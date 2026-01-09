@@ -34,7 +34,7 @@ jobs:
           ruff check . --target-version py39
       - name: Mypy
         run: |
-          mypy .
+          mypy . --python-version 3.9
 
   tests:
     runs-on: ubuntu-latest
