@@ -32,6 +32,9 @@ jobs:
       - name: Ruff check
         run: |
           ruff check . --target-version py39
+      - name: Confirm mypy version
+        run: |
+          mypy --version
       - name: Mypy
         run: |
           mypy .
