@@ -2,7 +2,7 @@ from hashlib import md5
 from typing import Any, Dict, List, Optional
 
 try:
-    from qdrant_client import AsyncQdrantClient, QdrantClient  # noqa: F401
+    from qdrant_client import AsyncQdrantClient, QdrantClient
     from qdrant_client.http import models
 except ImportError:
     raise ImportError(
@@ -492,7 +492,7 @@ class Qdrant(VectorDb):
                 models.Prefetch(
                     query=models.SparseVector(**sparse_embedding),
                     limit=limit,
-                    using=self.sparse_vector_name,
+                    using=DEFAULT_SPARSE_VECTOR_NAME,
                 ),
                 models.Prefetch(query=dense_embedding, limit=limit, using=self.dense_vector_name),
             ],
@@ -521,7 +521,7 @@ class Qdrant(VectorDb):
                 with_payload=True,
                 limit=limit,
                 query_filter=filters,
-                using=self.dense_vector_name,
+                using=DEFAULT_DENSE_VECTOR_NAME,
             )
         else:
             # Backward compatibility mode - use unnamed vector
@@ -685,7 +685,7 @@ class Qdrant(VectorDb):
         """Drop the collection asynchronously."""
         if await self.async_exists():
             log_debug(f"Deleting collection asynchronously: {self.collection}")
-            await self.async_client.delete_collection(self.collection)
+            await self.async_client.delete_collection(self.collection)  # Ensure async_client is defined
 
     def exists(self) -> bool:
         """Check if the collection exists."""

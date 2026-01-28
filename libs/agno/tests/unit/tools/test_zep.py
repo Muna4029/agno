@@ -4,6 +4,10 @@ import pytest
 
 from agno.tools.zep import ZepAsyncTools, ZepTools
 
+# Install missing dependencies
+# pip install zep-cloud
+# pip install firecrawl-py
+
 # Test data
 MOCK_API_KEY = "test_api_key"
 MOCK_SESSION_ID = "test-session"

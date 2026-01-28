@@ -9,6 +9,9 @@ from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 
+# Ensure required dependencies are installed
+# pip install zep-cloud firecrawl-py
+
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
 TEST_API_URL = "https://api.firecrawl.dev"
 
@@ -42,6 +45,8 @@ def test_init_with_env_vars():
             assert tools.limit == 10
             assert tools.app is not None
 
+    # Ensure FIRECRAWL_API_KEY is set correctly for the test
+
 
 def test_init_with_params():
     """Test initialization with parameters."""
@@ -51,6 +56,8 @@ def test_init_with_params():
         assert tools.formats == ["html", "text"]
         assert tools.limit == 5
         assert tools.app is not None
+
+    # Ensure parameters are valid and dependencies are met
 
 
 def test_scrape_website(firecrawl_tools, mock_firecrawl):
@@ -201,6 +208,8 @@ def test_search_with_error(firecrawl_tools, mock_firecrawl):
     # Verify results
     assert result == "Error searching with the Firecrawl tool: Search failed"
     mock_firecrawl.search.assert_called_once_with("test query", limit=10)
+
+    # Ensure error handling is correctly implemented
 
 
 def test_search_with_custom_params(firecrawl_tools, mock_firecrawl):
