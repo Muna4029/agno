@@ -5731,15 +5731,12 @@ class Agent:
                             log_warning(f"Error parsing reasoning response: {e}")
                             break
                     else:
-                        if (
-                            reasoning_agent_response.content.reasoning_steps is None
-                            or len(reasoning_agent_response.content.reasoning_steps) == 0
-                        ):
+                        reasoning_obj = cast(ReasoningSteps, reasoning_content)
+                        if not reasoning_obj.reasoning_steps:
                             log_warning("Reasoning error. Reasoning steps are empty, continuing regular session...")
                             break
 
-                        reasoning_steps = reasoning_agent_response.content.reasoning_steps
-
+                        reasoning_steps = reasoning_obj.reasoning_steps
                     all_reasoning_steps.extend(reasoning_steps)
                     # Yield reasoning steps
                     if self.stream_intermediate_steps:
@@ -5967,15 +5964,12 @@ class Agent:
                             log_warning(f"Error parsing reasoning response: {e}")
                             break
                     else:
-                        if (
-                            reasoning_agent_response.content.reasoning_steps is None
-                            or len(reasoning_agent_response.content.reasoning_steps) == 0
-                        ):
+                        reasoning_obj = cast(ReasoningSteps, reasoning_content)
+                        if not reasoning_obj.reasoning_steps:
                             log_warning("Reasoning error. Reasoning steps are empty, continuing regular session...")
                             break
 
-                        reasoning_steps = reasoning_agent_response.content.reasoning_steps
-
+                        reasoning_steps = reasoning_obj.reasoning_steps
                     all_reasoning_steps.extend(reasoning_steps)
                     # Yield reasoning steps
                     if self.stream_intermediate_steps:

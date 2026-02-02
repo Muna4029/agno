@@ -6,9 +6,15 @@ from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
-except ImportError:
-    raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
+    from firecrawl import FirecrawlApp  # type: ignore
+    try:
+        from firecrawl import ScrapeOptions  # type: ignore[attr-defined]
+    except ImportError:
+        from firecrawl import V1ScrapeOptions as ScrapeOptions  # type: ignore[attr-defined]
+except ImportError as e:
+    raise ImportError(
+        "`firecrawl-py` not installed. Please install using `pip install firecrawl-py`"
+    ) from e
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -87,7 +93,7 @@ class FirecrawlTools(Toolkit):
         if self.formats:
             params["formats"] = self.formats
 
-        scrape_result = self.app.scrape_url(url, **params)
+        scrape_result = self.app.scrape(url, **params)
         return json.dumps(scrape_result.model_dump(), cls=CustomJSONEncoder)
 
     def crawl_website(self, url: str, limit: Optional[int] = None) -> str:
@@ -101,14 +107,13 @@ class FirecrawlTools(Toolkit):
             The results of the crawling.
         """
         params: Dict[str, Any] = {}
-        if self.limit or limit:
-            params["limit"] = self.limit or limit
+        params["limit"] = limit if limit is not None else self.limit
         if self.formats:
             params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
 
         params["poll_interval"] = self.poll_interval
 
-        crawl_result = self.app.crawl_url(url, **params)
+        crawl_result = self.app.crawl(url, **params)
         return json.dumps(crawl_result.model_dump(), cls=CustomJSONEncoder)
 
     def map_website(self, url: str) -> str:
@@ -118,7 +123,7 @@ class FirecrawlTools(Toolkit):
             url (str): The URL to map.
 
         """
-        map_result = self.app.map_url(url)
+        map_result = self.app.map(url)
         return json.dumps(map_result.model_dump(), cls=CustomJSONEncoder)
 
     def search(self, query: str, limit: Optional[int] = None):
