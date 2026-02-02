@@ -5715,12 +5715,14 @@ class Agent:
                         break
 
                     # Handle case where reasoning content is a string
+                    # Handle case where reasoning content is a string
+                    reasoning_steps: List[ReasoningStep]
+
                     reasoning_content = reasoning_agent_response.content
                     if isinstance(reasoning_content, str):
                         try:
-                            # Try to parse the string as ReasoningSteps
                             parsed_content = parse_response_model_str(reasoning_content, ReasoningSteps)
-                            if parsed_content and hasattr(parsed_content, "reasoning_steps"):
+                            if parsed_content and getattr(parsed_content, "reasoning_steps", None):
                                 reasoning_steps = parsed_content.reasoning_steps
                             else:
                                 log_warning("Failed to parse reasoning response as ReasoningSteps")
@@ -5729,7 +5731,6 @@ class Agent:
                             log_warning(f"Error parsing reasoning response: {e}")
                             break
                     else:
-                        # Normal flow when content is already parsed
                         if (
                             reasoning_agent_response.content.reasoning_steps is None
                             or len(reasoning_agent_response.content.reasoning_steps) == 0
@@ -5737,7 +5738,8 @@ class Agent:
                             log_warning("Reasoning error. Reasoning steps are empty, continuing regular session...")
                             break
 
-                        reasoning_steps: List[ReasoningStep] = reasoning_agent_response.content.reasoning_steps
+                        reasoning_steps = reasoning_agent_response.content.reasoning_steps
+
                     all_reasoning_steps.extend(reasoning_steps)
                     # Yield reasoning steps
                     if self.stream_intermediate_steps:
@@ -5947,14 +5949,16 @@ class Agent:
                         break
 
                     # Handle case where content is a string instead of parsed object
+                    # Handle case where content is a string instead of parsed object
+                    reasoning_steps: List[ReasoningStep]
+
                     reasoning_content = reasoning_agent_response.content
                     if isinstance(reasoning_content, str):
                         try:
-                            # Try to parse the string as ReasoningSteps
                             from agno.utils.string import parse_response_model_str
 
                             parsed_content = parse_response_model_str(reasoning_content, ReasoningSteps)
-                            if parsed_content and hasattr(parsed_content, "reasoning_steps"):
+                            if parsed_content and getattr(parsed_content, "reasoning_steps", None):
                                 reasoning_steps = parsed_content.reasoning_steps
                             else:
                                 log_warning("Failed to parse reasoning response as ReasoningSteps")
@@ -5963,12 +5967,15 @@ class Agent:
                             log_warning(f"Error parsing reasoning response: {e}")
                             break
                     else:
-                        # Normal flow when content is already parsed
-                        if reasoning_agent_response.content.reasoning_steps is None:
+                        if (
+                            reasoning_agent_response.content.reasoning_steps is None
+                            or len(reasoning_agent_response.content.reasoning_steps) == 0
+                        ):
                             log_warning("Reasoning error. Reasoning steps are empty, continuing regular session...")
                             break
 
-                        reasoning_steps: List[ReasoningStep] = reasoning_agent_response.content.reasoning_steps
+                        reasoning_steps = reasoning_agent_response.content.reasoning_steps
+
                     all_reasoning_steps.extend(reasoning_steps)
                     # Yield reasoning steps
                     if self.stream_intermediate_steps:
