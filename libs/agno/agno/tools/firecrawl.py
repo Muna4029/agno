@@ -6,9 +6,18 @@ from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
-except ImportError:
-    raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
+    from firecrawl import FirecrawlApp  # type: ignore[attr-defined]
+    try:
+        # older versions
+        from firecrawl import ScrapeOptions  # type: ignore[attr-defined]
+    except ImportError:
+        # newer versions
+        from firecrawl import V1ScrapeOptions as ScrapeOptions  # type: ignore[attr-defined]
+except ImportError as e:
+    raise ImportError(
+        "`firecrawl-py` is required. Install with `pip install firecrawl-py` "
+        "and ensure the installed version matches the SDK API."
+    ) from e
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -83,7 +92,7 @@ class FirecrawlTools(Toolkit):
         Args:
             url (str): The URL to scrape.
         """
-        params = {}
+        params: Dict[str, Any] = {}
         if self.formats:
             params["formats"] = self.formats
 
@@ -91,18 +100,21 @@ class FirecrawlTools(Toolkit):
         return json.dumps(scrape_result.model_dump(), cls=CustomJSONEncoder)
 
     def crawl_website(self, url: str, limit: Optional[int] = None) -> str:
-        """Use this function to Crawls a website using Firecrawl.
+        """Use this function to crawl a website using Firecrawl.
 
         Args:
             url (str): The URL to crawl.
-            limit (int): The maximum number of pages to crawl
+            limit (Optional[int]): The maximum number of pages to crawl.
 
         Returns:
-            The results of the crawling.
+            str: JSON string containing the crawl results.
         """
         params: Dict[str, Any] = {}
-        if self.limit or limit:
-            params["limit"] = self.limit or limit
+
+        effective_limit = limit if limit is not None else self.limit
+        if effective_limit is not None:
+            params["limit"] = effective_limit
+
         if self.formats:
             params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
 
@@ -112,25 +124,30 @@ class FirecrawlTools(Toolkit):
         return json.dumps(crawl_result.model_dump(), cls=CustomJSONEncoder)
 
     def map_website(self, url: str) -> str:
-        """Use this function to Map a website using Firecrawl.
+        """Use this function to map a website using Firecrawl.
 
         Args:
             url (str): The URL to map.
-
         """
         map_result = self.app.map_url(url)
         return json.dumps(map_result.model_dump(), cls=CustomJSONEncoder)
 
-    def search(self, query: str, limit: Optional[int] = None):
-        """Use this function to search for the web using Firecrawl.
+    def search(self, query: str, limit: Optional[int] = None) -> str:
+        """Use this function to search the web using Firecrawl.
 
         Args:
             query (str): The query to search for.
-            limit (int): The maximum number of results to return.
+            limit (Optional[int]): The maximum number of results to return.
+
+        Returns:
+            str: JSON string containing search results or an error message.
         """
         params: Dict[str, Any] = {}
-        if self.limit or limit:
-            params["limit"] = self.limit or limit
+
+        effective_limit = limit if limit is not None else self.limit
+        if effective_limit is not None:
+            params["limit"] = effective_limit
+
         if self.formats:
             params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
         if self.search_params:
@@ -139,5 +156,4 @@ class FirecrawlTools(Toolkit):
         search_result = self.app.search(query, **params)
         if search_result.success:
             return json.dumps(search_result.data, cls=CustomJSONEncoder)
-        else:
-            return "Error searching with the Firecrawl tool: " + search_result.error
+        return "Error searching with the Firecrawl tool: " + search_result.error

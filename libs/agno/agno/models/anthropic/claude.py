@@ -5,6 +5,12 @@ from os import getenv
 from typing import Any, Dict, List, Optional, Type, Union
 from pathlib import Path
 
+import json
+from collections.abc import AsyncIterator
+from dataclasses import dataclass
+from os import getenv
+from typing import Any, Dict, List, Optional, Type, Union
+
 from pydantic import BaseModel
 
 from agno.exceptions import ModelProviderError, ModelRateLimitError
@@ -13,7 +19,6 @@ from agno.models.message import Citations, DocumentCitation, Message, UrlCitatio
 from agno.models.response import ModelResponse
 from agno.utils.log import log_error, log_warning
 from agno.utils.models.claude import format_messages
-from agno.media import File
 
 try:
     from anthropic import Anthropic as AnthropicClient
