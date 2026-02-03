@@ -1,5 +1,7 @@
+ from __future__ import annotations
+
 from pathlib import Path
-from typing import Optional
+from typing import Any, Mapping, Optional, cast
 
 from agno.utils.log import logger
 
@@ -10,8 +12,8 @@ def get_workspace_dir_from_env() -> Optional[Path]:
     from agno.constants import WORKSPACE_DIR_ENV_VAR
 
     logger.debug(f"Reading {WORKSPACE_DIR_ENV_VAR} from environment variables")
-    workspace_dir = getenv(WORKSPACE_DIR_ENV_VAR, None)
-    if workspace_dir is not None:
+    workspace_dir = getenv(WORKSPACE_DIR_ENV_VAR)
+    if workspace_dir:
         return Path(workspace_dir)
     return None
 
@@ -19,9 +21,10 @@ def get_workspace_dir_from_env() -> Optional[Path]:
 def get_workspace_dir_path(ws_root_path: Path) -> Path:
     """
     Get the workspace directory path from the given workspace root path.
+
     Agno workspace dir can be found at:
-        1. subdirectory: workspace
-        2. In a folder defined by the pyproject.toml file
+      1. subdirectory: workspace
+      2. In a folder defined by the pyproject.toml file
     """
     from agno.utils.pyproject import read_pyproject_agno
 
@@ -38,15 +41,16 @@ def get_workspace_dir_path(ws_root_path: Path) -> Path:
     if ws_pyproject_toml.exists() and ws_pyproject_toml.is_file():
         agno_conf = read_pyproject_agno(ws_pyproject_toml)
         if agno_conf is not None:
-            agno_conf_workspace_dir_str = agno_conf.get("workspace", None)
-            if agno_conf_workspace_dir_str is not None:
-                agno_conf_workspace_dir_path = ws_root_path.joinpath(agno_conf_workspace_dir_str)
-            else:
-                logger.error("Workspace directory not specified in pyproject.toml")
-                exit(0)
-            logger.debug(f"Searching {agno_conf_workspace_dir_path}")
-            if agno_conf_workspace_dir_path.exists() and agno_conf_workspace_dir_path.is_dir():
-                return agno_conf_workspace_dir_path
+            conf = cast(Mapping[str, Any], agno_conf)
+            workspace_value = conf.get("workspace")
 
-    logger.error(f"Could not find a workspace at: {ws_root_path}")
-    exit(0)
+            # mypy-safe narrowing: joinpath requires str or PathLike[str]
+            if isinstance(workspace_value, str) and workspace_value:
+                agno_conf_workspace_dir_path = ws_root_path.joinpath(workspace_value)
+                logger.debug(f"Searching {agno_conf_workspace_dir_path}")
+                if agno_conf_workspace_dir_path.exists() and agno_conf_workspace_dir_path.is_dir():
+                    return agno_conf_workspace_dir_path
+
+    msg = f"Could not find a workspace at: {ws_root_path}"
+    logger.error(msg)
+    raise FileNotFoundError(msg)
