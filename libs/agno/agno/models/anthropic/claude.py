@@ -3,13 +3,6 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
 from typing import Any, Dict, List, Optional, Type, Union
-from pathlib import Path
-
-import json
-from collections.abc import AsyncIterator
-from dataclasses import dataclass
-from os import getenv
-from typing import Any, Dict, List, Optional, Type, Union
 
 from pydantic import BaseModel
 
@@ -19,6 +12,24 @@ from agno.models.message import Citations, DocumentCitation, Message, UrlCitatio
 from agno.models.response import ModelResponse
 from agno.utils.log import log_error, log_warning
 from agno.utils.models.claude import format_messages
+
+try:
+    from anthropic import Anthropic as AnthropicClient
+    from anthropic import APIConnectionError, APIStatusError, RateLimitError
+    from anthropic import AsyncAnthropic as AsyncAnthropicClient
+    from anthropic.types import (
+        CitationPageLocation,
+        CitationsWebSearchResultLocation,
+        ContentBlockDeltaEvent,
+        ContentBlockStartEvent,
+        ContentBlockStopEvent,
+        MessageDeltaEvent,
+        MessageStopEvent,
+    )
+    from anthropic.types import Message as AnthropicMessage
+except ImportError:
+    raise ImportError("`anthropic` not installed. Please install using `pip install anthropic`")
+
 
 try:
     from anthropic import Anthropic as AnthropicClient
