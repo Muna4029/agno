@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 try:
     from qdrant_client import AsyncQdrantClient, QdrantClient
     from qdrant_client.http import models
-except ImportError:
+except ImportError as e:
     raise ImportError(
         "The `qdrant-client` package is not installed. Please install it via `pip install qdrant-client`."
-    )
+    ) from e
+
+if TYPE_CHECKING:
+    # fastembed often ships without type stubs in many environments
+    from fastembed import SparseTextEmbedding  # type: ignore[import-not-found]
 
 from agno.document import Document
 from agno.embedder import Embedder
@@ -47,7 +53,7 @@ class Qdrant(VectorDb):
         sparse_vector_name: str = DEFAULT_SPARSE_VECTOR_NAME,
         hybrid_fusion_strategy: models.Fusion = models.Fusion.RRF,
         fastembed_kwargs: Optional[dict] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -73,10 +79,8 @@ class Qdrant(VectorDb):
             fastembed_kwargs (Optional[dict]): Keyword args for `fastembed.SparseTextEmbedding.__init__()`.
             **kwargs: Keyword args for `qdrant_client.QdrantClient.__init__()`.
         """
-        # Collection attributes
         self.collection: str = collection
 
-        # Embedder for embedding the document contents
         if embedder is None:
             from agno.embedder.openai import OpenAIEmbedder
 
@@ -86,16 +90,11 @@ class Qdrant(VectorDb):
         self.embedder: Embedder = embedder
         self.dimensions: Optional[int] = self.embedder.dimensions
 
-        # Distance metric
         self.distance: Distance = distance
 
-        # Qdrant client instance
         self._client: Optional[QdrantClient] = None
-
-        # Qdrant async client instance
         self._async_client: Optional[AsyncQdrantClient] = None
 
-        # Qdrant client arguments
         self.location: Optional[str] = location
         self.url: Optional[str] = url
         self.port: Optional[int] = port
@@ -108,34 +107,33 @@ class Qdrant(VectorDb):
         self.host: Optional[str] = host
         self.path: Optional[str] = path
 
-        # Reranker instance
         self.reranker: Optional[Reranker] = reranker
 
-        # Qdrant client kwargs
-        self.kwargs = kwargs
+        self.kwargs: Dict[str, Any] = dict(kwargs)
 
-        self.search_type = search_type
-        self.dense_vector_name = dense_vector_name
-        self.sparse_vector_name = sparse_vector_name
-        self.hybrid_fusion_strategy = hybrid_fusion_strategy
+        self.search_type: SearchType = search_type
+        self.dense_vector_name: str = dense_vector_name
+        self.sparse_vector_name: str = sparse_vector_name
+        self.hybrid_fusion_strategy: models.Fusion = hybrid_fusion_strategy
 
-        # TODO(v2.0.0): Remove backward compatibility for unnamed vectors
-        # TODO(v2.0.0): Make named vectors mandatory and simplify the codebase
-        self.use_named_vectors = search_type in [SearchType.hybrid]
+        # Backward compatibility for unnamed vectors.
+        # Named vectors are used for hybrid.
+        self.use_named_vectors: bool = search_type in [SearchType.hybrid]
 
         if self.search_type in [SearchType.keyword, SearchType.hybrid]:
             try:
-                from fastembed import SparseTextEmbedding
+                from fastembed import SparseTextEmbedding  # type: ignore[import-not-found]
 
                 default_kwargs = {"model_name": DEFAULT_SPARSE_MODEL}
                 if fastembed_kwargs:
                     default_kwargs.update(fastembed_kwargs)
 
-                self.sparse_encoder = SparseTextEmbedding(**default_kwargs)
-
+                # Keep runtime type flexible since fastembed typing is often missing
+                self.sparse_encoder: Any = SparseTextEmbedding(**default_kwargs)
             except ImportError as e:
                 raise ImportError(
-                    "To use keyword/hybrid search, install the `fastembed` extra with `pip install 'qdrant-client[fastembed]'`."
+                    "To use keyword/hybrid search, install the `fastembed` extra with "
+                    "`pip install 'qdrant-client[fastembed]'`."
                 ) from e
 
     @property
@@ -160,7 +158,6 @@ class Qdrant(VectorDb):
 
     @property
     def async_client(self) -> AsyncQdrantClient:
-        """Get or create the async Qdrant client."""
         if self._async_client is None:
             log_debug("Creating Async Qdrant Client")
             self._async_client = AsyncQdrantClient(
@@ -189,12 +186,9 @@ class Qdrant(VectorDb):
         if not self.exists():
             log_debug(f"Creating collection: {self.collection}")
 
-            # Configure vectors based on search type
             if self.search_type == SearchType.vector:
-                # Maintain backward compatibility with unnamed vectors
-                vectors_config = models.VectorParams(size=self.dimensions, distance=_distance)
+                vectors_config: Any = models.VectorParams(size=self.dimensions, distance=_distance)
             else:
-                # Use named vectors for hybrid search
                 vectors_config = {self.dense_vector_name: models.VectorParams(size=self.dimensions, distance=_distance)}
 
             self.client.create_collection(
@@ -206,8 +200,6 @@ class Qdrant(VectorDb):
             )
 
     async def async_create(self) -> None:
-        """Create the collection asynchronously."""
-        # Collection distance
         _distance = models.Distance.COSINE
         if self.distance == Distance.l2:
             _distance = models.Distance.EUCLID
@@ -217,12 +209,9 @@ class Qdrant(VectorDb):
         if not await self.async_exists():
             log_debug(f"Creating collection asynchronously: {self.collection}")
 
-            # Configure vectors based on search type
             if self.search_type == SearchType.vector:
-                # Maintain backward compatibility with unnamed vectors
-                vectors_config = models.VectorParams(size=self.dimensions, distance=_distance)
+                vectors_config: Any = models.VectorParams(size=self.dimensions, distance=_distance)
             else:
-                # Use named vectors for hybrid search
                 vectors_config = {self.dense_vector_name: models.VectorParams(size=self.dimensions, distance=_distance)}
 
             await self.async_client.create_collection(
@@ -234,12 +223,6 @@ class Qdrant(VectorDb):
             )
 
     def doc_exists(self, document: Document) -> bool:
-        """
-        Validating if the document exists or not
-
-        Args:
-            document (Document): Document to validate
-        """
         if self.client:
             cleaned_content = document.content.replace("\x00", "\ufffd")
             doc_id = md5(cleaned_content.encode()).hexdigest()
@@ -251,7 +234,6 @@ class Qdrant(VectorDb):
         return False
 
     async def async_doc_exists(self, document: Document) -> bool:
-        """Check if a document exists asynchronously."""
         cleaned_content = document.content.replace("\x00", "\ufffd")
         doc_id = md5(cleaned_content.encode()).hexdigest()
         collection_points = await self.async_client.retrieve(
@@ -261,15 +243,6 @@ class Qdrant(VectorDb):
         return len(collection_points) > 0
 
     def name_exists(self, name: str) -> bool:
-        """
-        Validates if a document with the given name exists in the collection.
-
-        Args:
-            name (str): The name of the document to check.
-
-        Returns:
-            bool: True if a document with the given name exists, False otherwise.
-        """
         if self.client:
             scroll_result = self.client.scroll(
                 collection_name=self.collection,
@@ -282,15 +255,6 @@ class Qdrant(VectorDb):
         return False
 
     async def async_name_exists(self, name: str) -> bool:
-        """
-        Asynchronously validates if a document with the given name exists in the collection.
-
-        Args:
-            name (str): The name of the document to check.
-
-        Returns:
-            bool: True if a document with the given name exists, False otherwise.
-        """
         if self.async_client:
             scroll_result = await self.async_client.scroll(
                 collection_name=self.collection,
@@ -303,54 +267,45 @@ class Qdrant(VectorDb):
         return False
 
     def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None, batch_size: int = 10) -> None:
-        """
-        Insert documents into the database.
-
-        Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
-            batch_size (int): Batch size for inserting documents
-        """
         log_debug(f"Inserting {len(documents)} documents")
-        points = []
+        points: List[models.PointStruct] = []
+
         for document in documents:
             cleaned_content = document.content.replace("\x00", "\ufffd")
             doc_id = md5(cleaned_content.encode()).hexdigest()
 
-            # TODO(v2.0.0): Remove conditional vector naming logic
-            if self.use_named_vectors:
-                vector = {self.dense_vector_name: document.embedding}
-            else:
-                vector = document.embedding
+            # Qdrant PointStruct.vector accepts either:
+            # - dense vector as List[float] (unnamed vectors, backward compat)
+            # - dict of named vectors including sparse objects
+            vector: Union[List[float], Dict[str, Any]]
 
             if self.search_type == SearchType.vector:
-                # For vector search, maintain backward compatibility with unnamed vectors
                 document.embed(embedder=self.embedder)
+                if document.embedding is None:
+                    raise ValueError("Document embedding is None after embedding.")
                 vector = document.embedding
             else:
-                # For other search types, use named vectors
                 vector = {}
-                if self.search_type in [SearchType.hybrid]:
+
+                if self.search_type == SearchType.hybrid:
                     document.embed(embedder=self.embedder)
+                    if document.embedding is None:
+                        raise ValueError("Document embedding is None after embedding.")
                     vector[self.dense_vector_name] = document.embedding
 
                 if self.search_type in [SearchType.keyword, SearchType.hybrid]:
                     vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()
 
-            # Create payload with document properties
-            payload = {
+            payload: Dict[str, Any] = {
                 "name": document.name,
                 "meta_data": document.meta_data,
                 "content": cleaned_content,
                 "usage": document.usage,
             }
 
-            # Add filters as metadata if provided
             if filters:
-                # Merge filters with existing metadata
-                if "meta_data" not in payload:
-                    payload["meta_data"] = {}
-                payload["meta_data"].update(filters)  # type: ignore
+                payload.setdefault("meta_data", {})
+                payload["meta_data"].update(filters)
 
             points.append(
                 models.PointStruct(
@@ -359,120 +314,99 @@ class Qdrant(VectorDb):
                     payload=payload,
                 )
             )
+
             log_debug(f"Inserted document: {document.name} ({document.meta_data})")
-        if len(points) > 0:
+
+        if points:
             self.client.upsert(collection_name=self.collection, wait=False, points=points)
+
         log_debug(f"Upsert {len(points)} documents")
 
     async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
-        """
-        Insert documents asynchronously.
-
-        Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
-        """
         log_debug(f"Inserting {len(documents)} documents asynchronously")
 
-        async def process_document(document):
+        import asyncio
+
+        async def process_document(document: Document) -> models.PointStruct:
             cleaned_content = document.content.replace("\x00", "\ufffd")
             doc_id = md5(cleaned_content.encode()).hexdigest()
 
+            vector: Union[List[float], Dict[str, Any]]
+
             if self.search_type == SearchType.vector:
-                # For vector search, maintain backward compatibility with unnamed vectors
                 document.embed(embedder=self.embedder)
+                if document.embedding is None:
+                    raise ValueError("Document embedding is None after embedding.")
                 vector = document.embedding
             else:
-                # For other search types, use named vectors
                 vector = {}
-                if self.search_type in [SearchType.hybrid]:
+
+                if self.search_type == SearchType.hybrid:
                     document.embed(embedder=self.embedder)
+                    if document.embedding is None:
+                        raise ValueError("Document embedding is None after embedding.")
                     vector[self.dense_vector_name] = document.embedding
 
                 if self.search_type in [SearchType.keyword, SearchType.hybrid]:
                     vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()
 
-            if self.search_type in [SearchType.keyword, SearchType.hybrid]:
-                vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()
-
-            # Create payload with document properties
-            payload = {
+            payload: Dict[str, Any] = {
                 "name": document.name,
                 "meta_data": document.meta_data,
                 "content": cleaned_content,
                 "usage": document.usage,
             }
 
-            # Add filters as metadata if provided
             if filters:
-                # Merge filters with existing metadata
-                if "meta_data" not in payload:
-                    payload["meta_data"] = {}
+                payload.setdefault("meta_data", {})
                 payload["meta_data"].update(filters)
 
             log_debug(f"Inserted document asynchronously: {document.name} ({document.meta_data})")
+
             return models.PointStruct(
                 id=doc_id,
                 vector=vector,
                 payload=payload,
             )
 
-        import asyncio
-
-        # Process all documents in parallel
         points = await asyncio.gather(*[process_document(doc) for doc in documents])
 
-        if len(points) > 0:
+        if points:
             await self.async_client.upsert(collection_name=self.collection, wait=False, points=points)
+
         log_debug(f"Upserted {len(points)} documents asynchronously")
 
     def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
-        """
-        Upsert documents into the database.
-
-        Args:
-            documents (List[Document]): List of documents to upsert
-            filters (Optional[Dict[str, Any]]): Filters to apply while upserting
-        """
         log_debug("Redirecting the request to insert")
         self.insert(documents, filters)
 
     async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
-        """Upsert documents asynchronously."""
         log_debug("Redirecting the async request to async_insert")
         await self.async_insert(documents, filters)
 
     def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
-        """
-        Search for documents in the collection.
+        qfilter = self._format_filters(filters)
 
-        Args:
-            query (str): Query to search for
-            limit (int): Number of search results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply while searching
-        """
-        filters = self._format_filters(filters)
         if self.search_type == SearchType.vector:
-            results = self._run_vector_search_sync(query, limit, filters)
+            results = self._run_vector_search_sync(query, limit, qfilter)
         elif self.search_type == SearchType.keyword:
-            results = self._run_keyword_search_sync(query, limit, filters)
+            results = self._run_keyword_search_sync(query, limit, qfilter)
         elif self.search_type == SearchType.hybrid:
-            results = self._run_hybrid_search_sync(query, limit, filters)
+            results = self._run_hybrid_search_sync(query, limit, qfilter)
         else:
             raise ValueError(f"Unsupported search type: {self.search_type}")
 
         return self._build_search_results(results, query)
 
-    async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
-        filters = self._format_filters(filters)
+    async def async_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+        qfilter = self._format_filters(filters)
+
         if self.search_type == SearchType.vector:
-            results = await self._run_vector_search_async(query, limit, filters)
+            results = await self._run_vector_search_async(query, limit, qfilter)
         elif self.search_type == SearchType.keyword:
-            results = await self._run_keyword_search_async(query, limit, filters)
+            results = await self._run_keyword_search_async(query, limit, qfilter)
         elif self.search_type == SearchType.hybrid:
-            results = await self._run_hybrid_search_async(query, limit, filters)
+            results = await self._run_hybrid_search_async(query, limit, qfilter)
         else:
             raise ValueError(f"Unsupported search type: {self.search_type}")
 
@@ -482,17 +416,18 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
+        filters: Optional[models.Filter],
     ) -> List[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
+
         call = self.client.query_points(
             collection_name=self.collection,
             prefetch=[
                 models.Prefetch(
                     query=models.SparseVector(**sparse_embedding),
                     limit=limit,
-                    using=DEFAULT_SPARSE_VECTOR_NAME,
+                    using=self.sparse_vector_name,
                 ),
                 models.Prefetch(query=dense_embedding, limit=limit, using=self.dense_vector_name),
             ],
@@ -508,11 +443,10 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
+        filters: Optional[models.Filter],
     ) -> List[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
 
-        # TODO(v2.0.0): Remove this conditional and always use named vectors
         if self.use_named_vectors:
             call = self.client.query_points(
                 collection_name=self.collection,
@@ -521,10 +455,9 @@ class Qdrant(VectorDb):
                 with_payload=True,
                 limit=limit,
                 query_filter=filters,
-                using=DEFAULT_DENSE_VECTOR_NAME,
+                using=self.dense_vector_name,
             )
         else:
-            # Backward compatibility mode - use unnamed vector
             call = self.client.query_points(
                 collection_name=self.collection,
                 query=dense_embedding,
@@ -533,13 +466,14 @@ class Qdrant(VectorDb):
                 limit=limit,
                 query_filter=filters,
             )
+
         return call.points
 
     def _run_keyword_search_sync(
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
+        filters: Optional[models.Filter],
     ) -> List[models.ScoredPoint]:
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
         call = self.client.query_points(
@@ -557,11 +491,10 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
+        filters: Optional[models.Filter],
     ) -> List[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
 
-        # TODO(v2.0.0): Remove this conditional and always use named vectors
         if self.use_named_vectors:
             call = await self.async_client.query_points(
                 collection_name=self.collection,
@@ -573,7 +506,6 @@ class Qdrant(VectorDb):
                 using=self.dense_vector_name,
             )
         else:
-            # Backward compatibility mode - use unnamed vector
             call = await self.async_client.query_points(
                 collection_name=self.collection,
                 query=dense_embedding,
@@ -582,13 +514,14 @@ class Qdrant(VectorDb):
                 limit=limit,
                 query_filter=filters,
             )
+
         return call.points
 
     async def _run_keyword_search_async(
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
+        filters: Optional[models.Filter],
     ) -> List[models.ScoredPoint]:
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
         call = await self.async_client.query_points(
@@ -606,10 +539,11 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
+        filters: Optional[models.Filter],
     ) -> List[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
+
         call = await self.async_client.query_points(
             collection_name=self.collection,
             prefetch=[
@@ -628,19 +562,20 @@ class Qdrant(VectorDb):
         )
         return call.points
 
-    def _build_search_results(self, results, query: str) -> List[Document]:
+    def _build_search_results(self, results: List[models.ScoredPoint], query: str) -> List[Document]:
         search_results: List[Document] = []
 
         for result in results:
             if result.payload is None:
                 continue
+
             search_results.append(
                 Document(
                     name=result.payload["name"],
                     meta_data=result.payload["meta_data"],
                     content=result.payload["content"],
                     embedder=self.embedder,
-                    embedding=result.vector,  # type: ignore
+                    embedding=result.vector,  # type: ignore[arg-type]
                     usage=result.payload["usage"],
                 )
             )
@@ -652,29 +587,34 @@ class Qdrant(VectorDb):
         return search_results
 
     def _format_filters(self, filters: Optional[Dict[str, Any]]) -> Optional[models.Filter]:
-        if filters:
-            filter_conditions = []
-            for key, value in filters.items():
-                # If key contains a dot already, assume it's in the correct format
-                # Otherwise, assume it's a metadata field and add the prefix
-                if "." not in key and not key.startswith("meta_data."):
-                    # This is a simple field name, assume it's metadata
-                    key = f"meta_data.{key}"
+        if not filters:
+            return None
 
-                if isinstance(value, dict):
-                    # Handle nested dictionaries
-                    for sub_key, sub_value in value.items():
-                        filter_conditions.append(
-                            models.FieldCondition(key=f"{key}.{sub_key}", match=models.MatchValue(value=sub_value))
+        filter_conditions: List[models.FieldCondition] = []
+        for key, value in filters.items():
+            if "." not in key and not key.startswith("meta_data."):
+                key = f"meta_data.{key}"
+
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    filter_conditions.append(
+                        models.FieldCondition(
+                            key=f"{key}.{sub_key}",
+                            match=models.MatchValue(value=sub_value),
                         )
-                else:
-                    # Handle direct key-value pairs
-                    filter_conditions.append(models.FieldCondition(key=key, match=models.MatchValue(value=value)))
+                    )
+            else:
+                filter_conditions.append(
+                    models.FieldCondition(
+                        key=key,
+                        match=models.MatchValue(value=value),
+                    )
+                )
 
-            if filter_conditions:
-                return models.Filter(must=filter_conditions)
+        if not filter_conditions:
+            return None
 
-        return None
+        return models.Filter(must=filter_conditions)
 
     def drop(self) -> None:
         if self.exists():
@@ -682,17 +622,14 @@ class Qdrant(VectorDb):
             self.client.delete_collection(self.collection)
 
     async def async_drop(self) -> None:
-        """Drop the collection asynchronously."""
         if await self.async_exists():
             log_debug(f"Deleting collection asynchronously: {self.collection}")
-            await self.async_client.delete_collection(self.collection)  # Ensure async_client is defined
+            await self.async_client.delete_collection(self.collection)
 
     def exists(self) -> bool:
-        """Check if the collection exists."""
         return self.client.collection_exists(collection_name=self.collection)
 
     async def async_exists(self) -> bool:
-        """Check if the collection exists asynchronously."""
         return await self.async_client.collection_exists(collection_name=self.collection)
 
     def get_count(self) -> int:
