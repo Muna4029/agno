@@ -13,7 +13,7 @@ except ImportError as e:
 
 if TYPE_CHECKING:
     # fastembed often ships without type stubs in many environments
-    from fastembed import SparseTextEmbedding  # type: ignore[import-not-found]
+    pass  # type: ignore[import-not-found]
 
 from agno.document import Document
 from agno.embedder import Embedder
