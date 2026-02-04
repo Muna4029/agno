@@ -82,6 +82,8 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
 
     def process_message(message: dict, agent: Optional[Agent], team: Optional[Team]):
         """Process a single WhatsApp message in the background"""
+        phone_number = message.get("from", "")
+
         try:
             message_image = None
             message_video = None
@@ -111,10 +113,9 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
             else:
                 return
 
-            phone_number = message.get("from", "")
             log_debug(f"Processing message from {phone_number}: {message_text}")
 
-            # Generate and send response
+            # Generate response
             if agent:
                 response = agent.run(
                     message_text,
@@ -133,17 +134,21 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
                     videos=[Video(content=get_media(message_video))] if message_video else None,
                     audio=[Audio(content=get_media(message_audio))] if message_audio else None,
                 )
+            else:
+                return
 
+            # Send reasoning if present
             if response.reasoning_content:
                 _send_whatsapp_message(phone_number, f"Reasoning: \n{response.reasoning_content}", italics=True)
 
+            # Send image response if present
             if response.images:
                 image_content = response.images[0].content
-                image_bytes = None
+                image_bytes: bytes | None = None
+
                 if isinstance(image_content, bytes):
                     try:
                         decoded_string = image_content.decode("utf-8")
-
                         image_bytes = base64.b64decode(decoded_string)
                     except UnicodeDecodeError:
                         image_bytes = image_content
@@ -153,8 +158,28 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
                     log_error(f"Unexpected image content type: {type(image_content)} for user {phone_number}")
 
                 if image_bytes:
-                    media_id = upload_media(media_data=image_bytes, mime_type="image/png", filename="image.png")
-                    send_image_message(media_id=media_id, recipient=phone_number, text=response.content)
+                    media_id_or_obj = upload_media(
+                        media_data=image_bytes,
+                        mime_type="image/png",
+                        filename="image.png",
+                    )
+
+                    media_id: str | None = None
+                    if isinstance(media_id_or_obj, str):
+                        media_id = media_id_or_obj
+                    elif isinstance(media_id_or_obj, dict):
+                        maybe_id = media_id_or_obj.get("id") or media_id_or_obj.get("media_id")
+                        if isinstance(maybe_id, str):
+                            media_id = maybe_id
+
+                    if media_id:
+                        send_image_message(media_id=media_id, recipient=phone_number, text=response.content)
+                    else:
+                        log_warning(
+                            f"upload_media did not return a usable media id for user {phone_number}: "
+                            f"{type(media_id_or_obj)}"
+                        )
+                        _send_whatsapp_message(phone_number, response.content or "")
                 else:
                     log_warning(f"Could not process image content for user {phone_number}. Type: {type(image_content)}")
                     _send_whatsapp_message(phone_number, response.content or "")
@@ -166,7 +191,8 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
             # Optionally send an error message to the user
             try:
                 _send_whatsapp_message(
-                    phone_number, "Sorry, there was an error processing your message. Please try again later."
+                    phone_number,
+                    "Sorry, there was an error processing your message. Please try again later.",
                 )
             except Exception as send_error:
                 log_error(f"Error sending error message: {str(send_error)}")
@@ -183,7 +209,8 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
         for i, batch in enumerate(message_batches, 1):
             batch_message = f"[{i}/{len(message_batches)}] {batch}"
             WhatsAppTools().send_text_message_sync(
-                recipient=recipient, text=f"_{batch_message}_" if italics else batch_message
+                recipient=recipient,
+                text=f"_{batch_message}_" if italics else batch_message,
             )
 
     return router

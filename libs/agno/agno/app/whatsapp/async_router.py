@@ -47,23 +47,19 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
     async def webhook(request: Request, background_tasks: BackgroundTasks):
         """Handle incoming WhatsApp messages"""
         try:
-            # Get raw payload for signature validation
             payload = await request.body()
             signature = request.headers.get("X-Hub-Signature-256")
 
-            # Validate webhook signature
             if not validate_webhook_signature(payload, signature):
                 log_warning("Invalid webhook signature")
                 raise HTTPException(status_code=403, detail="Invalid signature")
 
             body = await request.json()
 
-            # Validate webhook data
             if body.get("object") != "whatsapp_business_account":
                 log_warning(f"Received non-WhatsApp webhook object: {body.get('object')}")
                 return {"status": "ignored"}
 
-            # Process messages in background
             for entry in body.get("entry", []):
                 for change in entry.get("changes", []):
                     messages = change.get("value", {}).get("messages", [])
@@ -82,6 +78,8 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
 
     async def process_message(message: dict, agent: Optional[Agent], team: Optional[Team]):
         """Process a single WhatsApp message in the background"""
+        phone_number = message.get("from", "")
+
         try:
             message_image = None
             message_video = None
@@ -111,10 +109,8 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
             else:
                 return
 
-            phone_number = message["from"]
             log_info(f"Processing message from {phone_number}: {message_text}")
 
-            # Generate and send response
             if agent:
                 response = await agent.arun(
                     message_text,
@@ -133,17 +129,19 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
                     videos=[Video(content=await get_media_async(message_video))] if message_video else None,
                     audio=[Audio(content=await get_media_async(message_audio))] if message_audio else None,
                 )
+            else:
+                return
 
             if response.reasoning_content:
                 await _send_whatsapp_message(phone_number, f"Reasoning: \n{response.reasoning_content}", italics=True)
 
             if response.images:
                 image_content = response.images[0].content
-                image_bytes = None
+                image_bytes: bytes | None = None
+
                 if isinstance(image_content, bytes):
                     try:
                         decoded_string = image_content.decode("utf-8")
-
                         image_bytes = base64.b64decode(decoded_string)
                     except UnicodeDecodeError:
                         image_bytes = image_content
@@ -153,22 +151,44 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
                     log_error(f"Unexpected image content type: {type(image_content)} for user {phone_number}")
 
                 if image_bytes:
-                    media_id = await upload_media_async(
-                        media_data=image_bytes, mime_type="image/png", filename="image.png"
+                    media_id_or_obj = await upload_media_async(
+                        media_data=image_bytes,
+                        mime_type="image/png",
+                        filename="image.png",
                     )
-                    await send_image_message_async(media_id=media_id, recipient=phone_number, text=response.content)
+
+                    media_id: str | None = None
+                    if isinstance(media_id_or_obj, str):
+                        media_id = media_id_or_obj
+                    elif isinstance(media_id_or_obj, dict):
+                        maybe_id = media_id_or_obj.get("id") or media_id_or_obj.get("media_id")
+                        if isinstance(maybe_id, str):
+                            media_id = maybe_id
+
+                    if media_id:
+                        await send_image_message_async(
+                            media_id=media_id,
+                            recipient=phone_number,
+                            text=response.content,
+                        )
+                    else:
+                        log_warning(
+                            f"upload_media_async did not return a usable media id for user {phone_number}: "
+                            f"{type(media_id_or_obj)}"
+                        )
+                        await _send_whatsapp_message(phone_number, response.content or "")
                 else:
                     log_warning(f"Could not process image content for user {phone_number}. Type: {type(image_content)}")
-                    await _send_whatsapp_message(phone_number, response.content)  # Send text part if image fails
+                    await _send_whatsapp_message(phone_number, response.content or "")
             else:
-                await _send_whatsapp_message(phone_number, response.content)
+                await _send_whatsapp_message(phone_number, response.content or "")
 
         except Exception as e:
             log_error(f"Error processing message: {str(e)}")
-
             try:
                 await _send_whatsapp_message(
-                    phone_number, "Sorry, there was an error processing your message. Please try again later."
+                    phone_number,
+                    "Sorry, there was an error processing your message. Please try again later.",
                 )
             except Exception as send_error:
                 log_error(f"Error sending error message: {str(send_error)}")
@@ -176,21 +196,17 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
     async def _send_whatsapp_message(recipient: str, message: str, italics: bool = False):
         if len(message) <= 4096:
             if italics:
-                # Handle multi-line messages by making each line italic
                 formatted_message = "\n".join([f"_{line}_" for line in message.split("\n")])
                 await WhatsAppTools().send_text_message_async(recipient=recipient, text=formatted_message)
             else:
                 await WhatsAppTools().send_text_message_async(recipient=recipient, text=message)
             return
 
-        # Split message into batches of 4000 characters (WhatsApp message limit is 4096)
         message_batches = [message[i : i + 4000] for i in range(0, len(message), 4000)]
 
-        # Add a prefix with the batch number
         for i, batch in enumerate(message_batches, 1):
             batch_message = f"[{i}/{len(message_batches)}] {batch}"
             if italics:
-                # Handle multi-line messages by making each line italic
                 formatted_batch = "\n".join([f"_{line}_" for line in batch_message.split("\n")])
                 await WhatsAppTools().send_text_message_async(recipient=recipient, text=formatted_batch)
             else:
