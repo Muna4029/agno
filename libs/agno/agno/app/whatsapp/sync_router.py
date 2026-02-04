@@ -144,7 +144,7 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
             # Send image response if present
             if response.images:
                 image_content = response.images[0].content
-                image_bytes: bytes | None = None
+                image_bytes: Optional[bytes] = None
 
                 if isinstance(image_content, bytes):
                     try:
@@ -164,7 +164,7 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
                         filename="image.png",
                     )
 
-                    media_id: str | None = None
+                    media_id: Optional[str] = None
                     if isinstance(media_id_or_obj, str):
                         media_id = media_id_or_obj
                     elif isinstance(media_id_or_obj, dict):
@@ -188,7 +188,6 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
 
         except Exception as e:
             log_error(f"Error processing message: {str(e)}")
-            # Optionally send an error message to the user
             try:
                 _send_whatsapp_message(
                     phone_number,
@@ -202,10 +201,8 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
             WhatsAppTools().send_text_message_sync(recipient=recipient, text=f"_{message}_" if italics else message)
             return
 
-        # Split message into batches of 4000 characters (WhatsApp message limit is 4096)
         message_batches = [message[i : i + 4000] for i in range(0, len(message), 4000)]
 
-        # Add a prefix with the batch number
         for i, batch in enumerate(message_batches, 1):
             batch_message = f"[{i}/{len(message_batches)}] {batch}"
             WhatsAppTools().send_text_message_sync(

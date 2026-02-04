@@ -137,7 +137,7 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
 
             if response.images:
                 image_content = response.images[0].content
-                image_bytes: bytes | None = None
+                image_bytes: Optional[bytes] = None
 
                 if isinstance(image_content, bytes):
                     try:
@@ -157,7 +157,7 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
                         filename="image.png",
                     )
 
-                    media_id: str | None = None
+                    media_id: Optional[str] = None
                     if isinstance(media_id_or_obj, str):
                         media_id = media_id_or_obj
                     elif isinstance(media_id_or_obj, dict):
