@@ -8,7 +8,15 @@ from agno.utils.log import logger
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:
-    raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
+    try:
+        from firecrawl import FirecrawlApp, V1ScrapeOptions as ScrapeOptions  # type: ignore[attr-defined]
+    except ImportError:
+        try:
+            from firecrawl import FirecrawlApp  # type: ignore[attr-defined]
+
+            ScrapeOptions = None
+        except ImportError:
+            raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -77,6 +85,13 @@ class FirecrawlTools(Toolkit):
 
         super().__init__(name="firecrawl_tools", tools=tools, **kwargs)
 
+    def _get_scrape_options(self) -> Optional[Any]:
+        if not self.formats:
+            return None
+        if ScrapeOptions is None:
+            return {"formats": self.formats}
+        return ScrapeOptions(formats=self.formats)
+
     def scrape_website(self, url: str) -> str:
         """Use this function to scrape a website using Firecrawl.
 
@@ -103,8 +118,9 @@ class FirecrawlTools(Toolkit):
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
-        if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+        scrape_options = self._get_scrape_options()
+        if scrape_options is not None:
+            params["scrape_options"] = scrape_options
 
         params["poll_interval"] = self.poll_interval
 
@@ -131,8 +147,9 @@ class FirecrawlTools(Toolkit):
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
-        if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+        scrape_options = self._get_scrape_options()
+        if scrape_options is not None:
+            params["scrape_options"] = scrape_options
         if self.search_params:
             params.update(self.search_params)
 
