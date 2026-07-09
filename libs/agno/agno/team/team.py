@@ -1911,6 +1911,8 @@ class Team:
 
     def _initialize_session_state(self, user_id: Optional[str] = None, session_id: Optional[str] = None) -> None:
         self.session_state = self.session_state or {}
+        if self.team_session_state is None:
+            self.team_session_state = {}
         if user_id is not None:
             self.session_state["current_user_id"] = user_id
             self.team_session_state["current_user_id"] = user_id
