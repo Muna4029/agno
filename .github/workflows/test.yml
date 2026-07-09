@@ -104,6 +104,7 @@ jobs:
         set -e
         VIRTUAL_ENV=.venv uv pip install -c constraints-py312.txt \
           openai redis fastapi aiofiles python-docx pypdf youtube-transcript-api \
+          rapidocr_onnxruntime google-maps-places \
           arxiv duckduckgo-search \
           google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib \
           google-cloud-storage google-cloud-bigquery \

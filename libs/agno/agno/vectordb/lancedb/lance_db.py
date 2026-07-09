@@ -117,15 +117,16 @@ class LanceDb(VectorDb):
         self.fts_index_exists = False
         self.use_tantivy = use_tantivy
 
-        if self.use_tantivy and (self.search_type in [SearchType.keyword, SearchType.hybrid]):
-            try:
-                import tantivy  # noqa: F401
-            except ImportError:
-                raise ImportError(
-                    "Please install tantivy-py `pip install tantivy` to use the full text search feature."  # noqa: E501
-                )
-
         log_debug(f"Initialized LanceDb with table: '{self.table_name}'")
+
+    def _create_fts_index(self) -> None:
+        if self.table is None:
+            return
+
+        try:
+            self.table.create_fts_index("payload", replace=True)
+        except TypeError:
+            self.table.create_fts_index("payload", use_tantivy=self.use_tantivy, replace=True)
 
     async def _get_async_connection(self) -> lancedb.AsyncConnection:
         """Get or create an async connection to LanceDB."""
@@ -457,11 +458,11 @@ class LanceDb(VectorDb):
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
             logger.error(f"Error getting embedding for Query: {query}")
-            return None
+            return []
 
         if self.table is None:
             logger.error("Table not initialized. Please create the table first")
-            return None  # type: ignore
+            return []
 
         results = self.table.search(
             query=query_embedding,
@@ -484,7 +485,7 @@ class LanceDb(VectorDb):
             return []
 
         if not self.fts_index_exists:
-            self.table.create_fts_index("payload", use_tantivy=self.use_tantivy, replace=True)
+            self._create_fts_index()
             self.fts_index_exists = True
 
         results = (
@@ -508,7 +509,7 @@ class LanceDb(VectorDb):
             return []
 
         if not self.fts_index_exists:
-            self.table.create_fts_index("payload", use_tantivy=self.use_tantivy, replace=True)
+            self._create_fts_index()
             self.fts_index_exists = True
 
         results = self.table.search(
