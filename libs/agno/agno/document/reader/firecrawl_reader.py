@@ -51,7 +51,9 @@ class FirecrawlReader(Reader):
 
         app = FirecrawlApp(api_key=self.api_key)
 
-        if self.params:
+        if self.params and "formats" in self.params:
+            scraped_data = app.scrape_url(url, params=self.params)
+        elif self.params:
             scraped_data = app.scrape_url(url, **self.params)
         else:
             scraped_data = app.scrape_url(url)
