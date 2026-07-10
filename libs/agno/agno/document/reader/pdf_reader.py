@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from typing import IO, Any, List, Optional, Union
+from typing import IO, Any, List, Optional, Union, cast
 
 from agno.document.base import Document
 from agno.document.reader.base import Reader
@@ -24,6 +24,50 @@ def _extract_page_text(page: Any) -> str:
     except TypeError:
         text = ""
     return text
+
+
+def _extract_page_content(doc_name: str, page_number: int, page: Any) -> str:
+    text = _extract_page_text(page)
+    if text.strip():
+        return text
+
+    try:
+        import rapidocr_onnxruntime as rapidocr
+    except ImportError:
+        return text
+
+    ocr = rapidocr.RapidOCR()
+    images_text_list = []
+    for image_object in getattr(page, "images", []) or []:
+        image_data = getattr(image_object, "data", None)
+        if image_data is None:
+            continue
+        ocr_result, _ = ocr(image_data)
+        if ocr_result:
+            images_text_list += [item[1] for item in ocr_result]
+
+    images_text = "\n".join(images_text_list)
+    return text if text.strip() else images_text
+
+
+def _extract_documents_with_pdfplumber(pdf: Union[str, Path, IO[Any]], doc_name: str) -> List[Document]:
+    import pdfplumber
+
+    if hasattr(pdf, "seek"):
+        pdf.seek(0)
+
+    documents: List[Document] = []
+    with pdfplumber.open(cast(Any, pdf)) as pdf_file:
+        for page_number, page in enumerate(pdf_file.pages, start=1):
+            documents.append(
+                Document(
+                    name=doc_name,
+                    id=f"{doc_name}_{page_number}",
+                    meta_data={"page": page_number},
+                    content=page.extract_text() or "",
+                )
+            )
+    return documents
 
 
 def process_image_page(doc_name: str, page_number: int, page: Any) -> Document:
@@ -131,9 +175,11 @@ class PDFReader(BasePDFReader):
                     name=doc_name,
                     id=f"{doc_name}_{page_number}",
                     meta_data={"page": page_number},
-                    content=_extract_page_text(page),
+                    content=_extract_page_content(doc_name, page_number, page),
                 )
             )
+        if not any(document.content.strip() for document in documents):
+            documents = _extract_documents_with_pdfplumber(pdf, doc_name)
         if self.chunk:
             return self._build_chunked_documents(documents)
         return documents
@@ -162,7 +208,7 @@ class PDFReader(BasePDFReader):
                 name=doc_name,
                 id=f"{doc_name}_{page_number}",
                 meta_data={"page": page_number},
-                content=_extract_page_text(page),
+                content=_extract_page_content(doc_name, page_number, page),
             )
 
         # Process pages in parallel using asyncio.gather
@@ -172,6 +218,8 @@ class PDFReader(BasePDFReader):
                 for page_number, page in enumerate(doc_reader.pages, start=1)
             ]
         )
+        if not any(document.content.strip() for document in documents):
+            documents = _extract_documents_with_pdfplumber(pdf, doc_name)
 
         if self.chunk:
             return self._build_chunked_documents(documents)
@@ -206,9 +254,11 @@ class PDFUrlReader(BasePDFReader):
                     name=doc_name,
                     id=f"{doc_name}_{page_number}",
                     meta_data={"page": page_number},
-                    content=_extract_page_text(page),
+                    content=_extract_page_content(doc_name, page_number, page),
                 )
             )
+        if not any(document.content.strip() for document in documents):
+            documents = _extract_documents_with_pdfplumber(BytesIO(response.content), doc_name)
         if self.chunk:
             return self._build_chunked_documents(documents)
         return documents
@@ -235,7 +285,7 @@ class PDFUrlReader(BasePDFReader):
                 name=doc_name,
                 id=f"{doc_name}_{page_number}",
                 meta_data={"page": page_number},
-                content=_extract_page_text(page),
+                content=_extract_page_content(doc_name, page_number, page),
             )
 
         # Process pages in parallel using asyncio.gather
@@ -245,6 +295,8 @@ class PDFUrlReader(BasePDFReader):
                 for page_number, page in enumerate(doc_reader.pages, start=1)
             ]
         )
+        if not any(document.content.strip() for document in documents):
+            documents = _extract_documents_with_pdfplumber(BytesIO(response.content), doc_name)
 
         if self.chunk:
             return self._build_chunked_documents(documents)
