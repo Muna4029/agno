@@ -1,7 +1,7 @@
 # agno/tests/unit/tools/test_bigquery.py
 
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
@@ -48,7 +48,7 @@ def test_run_sql_query_success(bq_tools_instance, mock_bq_client):
     assert result_json_str == expected_json_string
 
     cleaned_query = query.replace("\\n", " ").replace("\n", "").replace("\\", "")
-    mock_bq_client.query.assert_called_once_with(cleaned_query)
+    mock_bq_client.query.assert_called_once_with(cleaned_query, ANY)
 
 
 def test_list_tables_error(bq_tools_instance, mock_bq_client):
