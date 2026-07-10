@@ -30,7 +30,7 @@ def get_function_call(
         try:
             try:
                 _arguments = json.loads(arguments)
-            except Exception as e:
+            except Exception:
                 import ast
                 _arguments = ast.literal_eval(arguments)
         except Exception as e:
