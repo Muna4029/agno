@@ -14,6 +14,18 @@ except ImportError:
     raise ImportError("`pypdf` not installed. Please install it via `pip install pypdf`.")
 
 
+def _extract_page_text(page: Any) -> str:
+    text = page.extract_text() or ""
+    if text.strip():
+        return text
+
+    try:
+        text = page.extract_text(extraction_mode="layout") or ""
+    except TypeError:
+        text = ""
+    return text
+
+
 def process_image_page(doc_name: str, page_number: int, page: Any) -> Document:
     try:
         import rapidocr_onnxruntime as rapidocr
@@ -119,7 +131,7 @@ class PDFReader(BasePDFReader):
                     name=doc_name,
                     id=f"{doc_name}_{page_number}",
                     meta_data={"page": page_number},
-                    content=page.extract_text(),
+                    content=_extract_page_text(page),
                 )
             )
         if self.chunk:
@@ -150,7 +162,7 @@ class PDFReader(BasePDFReader):
                 name=doc_name,
                 id=f"{doc_name}_{page_number}",
                 meta_data={"page": page_number},
-                content=page.extract_text(),
+                content=_extract_page_text(page),
             )
 
         # Process pages in parallel using asyncio.gather
@@ -194,7 +206,7 @@ class PDFUrlReader(BasePDFReader):
                     name=doc_name,
                     id=f"{doc_name}_{page_number}",
                     meta_data={"page": page_number},
-                    content=page.extract_text(),
+                    content=_extract_page_text(page),
                 )
             )
         if self.chunk:
@@ -223,7 +235,7 @@ class PDFUrlReader(BasePDFReader):
                 name=doc_name,
                 id=f"{doc_name}_{page_number}",
                 meta_data={"page": page_number},
-                content=page.extract_text(),
+                content=_extract_page_text(page),
             )
 
         # Process pages in parallel using asyncio.gather
