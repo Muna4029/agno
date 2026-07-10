@@ -222,11 +222,10 @@ class AudioResponse(BaseModel):
     def to_dict(self) -> Dict[str, Any]:
         import base64
 
+        content: Any = self.content
         response_dict = {
             "id": self.id,
-            "content": base64.b64encode(self.content).decode("utf-8")
-            if isinstance(self.content, bytes)
-            else self.content,
+            "content": base64.b64encode(content).decode("utf-8") if isinstance(content, bytes) else content,
             "expires_at": self.expires_at,
             "transcript": self.transcript,
             "mime_type": self.mime_type,
