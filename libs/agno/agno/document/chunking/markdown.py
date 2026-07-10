@@ -1,15 +1,22 @@
 import os
 import tempfile
-from typing import List
-
-try:
-    from unstructured.chunking.title import chunk_by_title  # type: ignore
-    from unstructured.partition.md import partition_md  # type: ignore
-except ImportError:
-    raise ImportError("`unstructured` not installed. Please install it using `pip install unstructured markdown`")
+from typing import Any, List, Optional
 
 from agno.document.base import Document
 from agno.document.chunking.strategy import ChunkingStrategy
+
+chunk_by_title: Optional[Any]
+partition_md: Optional[Any]
+
+try:
+    from unstructured.chunking.title import chunk_by_title as _chunk_by_title  # type: ignore
+    from unstructured.partition.md import partition_md as _partition_md  # type: ignore
+
+    chunk_by_title = _chunk_by_title
+    partition_md = _partition_md
+except ImportError:
+    chunk_by_title = None
+    partition_md = None
 
 
 class MarkdownChunking(ChunkingStrategy):
@@ -24,6 +31,9 @@ class MarkdownChunking(ChunkingStrategy):
         Partition markdown content and return a list of text chunks.
         Falls back to paragraph splitting if the markdown chunking fails.
         """
+        if partition_md is None or chunk_by_title is None:
+            return self.clean_text(content).split("\n\n")
+
         try:
             # Create a temporary file with the markdown content.
             # This is the recommended usage of the unstructured library.
