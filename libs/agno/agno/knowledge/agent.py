@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Set, Tuple
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Set, Tuple, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -489,7 +489,7 @@ class AgentKnowledge(BaseModel):
 
     def prepare_load(
         self,
-        file_path: Path,
+        file_path: Union[str, Path],
         allowed_formats: Optional[List[str]],
         metadata: Optional[Dict[str, Any]] = None,
         recreate: bool = False,
@@ -497,7 +497,7 @@ class AgentKnowledge(BaseModel):
     ) -> bool:
         """Validate file path and prepare collection for loading.
         Args:
-            file_path (Path): Path to validate
+            file_path (Union[str, Path]): Path or URL to validate
             allowed_formats (List[str]): List of allowed file formats
             metadata (Optional[Dict[str, Any]]): Metadata to track
             recreate (bool): Whether to recreate the collection
@@ -506,12 +506,13 @@ class AgentKnowledge(BaseModel):
         """
         # 1. Validate file path
         if not is_url:
-            if not file_path.exists():
-                logger.error(f"File not found: {file_path}")
+            path = Path(file_path)
+            if not path.exists():
+                logger.error(f"File not found: {path}")
                 return False
 
-            if file_path.suffix not in allowed_formats:  # type: ignore
-                logger.error(f"Unsupported file format: {file_path.suffix}")
+            if path.suffix not in allowed_formats:  # type: ignore
+                logger.error(f"Unsupported file format: {path.suffix}")
                 return False
 
         # 2. Track metadata
@@ -537,7 +538,7 @@ class AgentKnowledge(BaseModel):
 
     async def aprepare_load(
         self,
-        file_path: Path,
+        file_path: Union[str, Path],
         allowed_formats: List[str],
         metadata: Optional[Dict[str, Any]] = None,
         recreate: bool = False,
@@ -545,7 +546,7 @@ class AgentKnowledge(BaseModel):
     ) -> bool:
         """Validate file path and prepare collection for loading.
         Args:
-            file_path (Path): Path to validate
+            file_path (Union[str, Path]): Path or URL to validate
             allowed_formats (List[str]): List of allowed file formats
             metadata (Optional[Dict[str, Any]]): Metadata to track
             recreate (bool): Whether to recreate the collection
@@ -554,12 +555,13 @@ class AgentKnowledge(BaseModel):
         """
         # 1. Validate file path
         if not is_url:
-            if not file_path.exists():
-                logger.error(f"File not found: {file_path}")
+            path = Path(file_path)
+            if not path.exists():
+                logger.error(f"File not found: {path}")
                 return False
 
-            if file_path.suffix not in allowed_formats:
-                logger.error(f"Unsupported file format: {file_path.suffix}")
+            if path.suffix not in allowed_formats:
+                logger.error(f"Unsupported file format: {path.suffix}")
                 return False
 
         # 2. Track metadata
