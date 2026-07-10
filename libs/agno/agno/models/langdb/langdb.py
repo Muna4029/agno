@@ -24,12 +24,21 @@ class LangDB(OpenAILike):
     provider: str = "LangDB"
 
     api_key: Optional[str] = getenv("LANGDB_API_KEY")
-    project_id: Optional[str] = getenv("LANGDB_PROJECT_ID")
-    if not project_id:
-        logger.warning("LANGDB_PROJECT_ID not set in the environment")
-    base_url: str = f"https://api.us-east-1.langdb.ai/{project_id}/v1"
+    project_id: Optional[str] = None
+    base_url: Optional[str] = None
     label: Optional[str] = None
     default_headers: Optional[dict] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.project_id = self.project_id or getenv("LANGDB_PROJECT_ID")
+        if not self.project_id:
+            logger.warning("LANGDB_PROJECT_ID not set in the environment")
+            self.project_id = "None"
+
+        if self.base_url is None:
+            self.base_url = f"https://api.us-east-1.langdb.ai/{self.project_id}/v1"
 
     def _get_client_params(self) -> Dict[str, Any]:
         # Initialize headers with label if present
