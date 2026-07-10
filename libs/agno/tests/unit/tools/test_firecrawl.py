@@ -5,7 +5,11 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+
+try:
+    from firecrawl import V1FirecrawlApp as FirecrawlApp
+except ImportError:
+    from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 
