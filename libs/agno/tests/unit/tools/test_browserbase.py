@@ -68,8 +68,11 @@ def browserbase_tools(mock_browserbase):
 
 def test_init_with_env_vars():
     """Test initialization with environment variables."""
-    with patch("agno.tools.browserbase.Browserbase"), patch.dict(
-        "os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY, "BROWSERBASE_PROJECT_ID": TEST_PROJECT_ID}, clear=True
+    with (
+        patch("agno.tools.browserbase.Browserbase"),
+        patch.dict(
+            "os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY, "BROWSERBASE_PROJECT_ID": TEST_PROJECT_ID}, clear=True
+        ),
     ):  # Clear=True to ensure no other env vars leak in
         tools = BrowserbaseTools()
         assert tools.api_key == TEST_API_KEY
@@ -95,9 +98,11 @@ def test_init_with_missing_api_key():
 
 def test_init_with_missing_project_id():
     """Test initialization with missing project ID raises ValueError."""
-    with patch.dict("os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY}, clear=True), patch(
-        "agno.tools.browserbase.Browserbase"
-    ), pytest.raises(ValueError, match="BROWSERBASE_PROJECT_ID is required"):
+    with (
+        patch.dict("os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY}, clear=True),
+        patch("agno.tools.browserbase.Browserbase"),
+        pytest.raises(ValueError, match="BROWSERBASE_PROJECT_ID is required"),
+    ):
         BrowserbaseTools()
 
 
