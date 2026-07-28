@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 try:
     from upstash_vector import Index, Vector
@@ -38,22 +40,22 @@ class UpstashVectorDb(VectorDb):
         self,
         url: str,
         token: str,
-        retries: Optional[int] = 3,
-        retry_interval: Optional[float] = 1.0,
-        dimension: Optional[int] = None,
-        embedder: Optional[Embedder] = None,
-        namespace: Optional[str] = DEFAULT_NAMESPACE,
-        reranker: Optional[Reranker] = None,
+        retries: int | None = 3,
+        retry_interval: float | None = 1.0,
+        dimension: int | None = None,
+        embedder: Embedder | None = None,
+        namespace: str | None = DEFAULT_NAMESPACE,
+        reranker: Reranker | None = None,
         **kwargs: Any,
     ) -> None:
-        self._index: Optional[Index] = None
+        self._index: Index | None = None
         self.url: str = url
         self.token: str = token
         self.retries: int = retries if retries is not None else 3
         self.retry_interval: float = retry_interval if retry_interval is not None else 1.0
-        self.dimension: Optional[int] = dimension
+        self.dimension: int | None = dimension
         self.namespace: str = namespace if namespace is not None else DEFAULT_NAMESPACE
-        self.kwargs: Dict[str, Any] = kwargs
+        self.kwargs: dict[str, Any] = kwargs
         self.use_upstash_embeddings: bool = embedder is None
 
         if embedder is None:
@@ -61,8 +63,8 @@ class UpstashVectorDb(VectorDb):
                 "You have not provided an embedder, using Upstash hosted embedding models. "
                 "Make sure you created your index with an embedding model."
             )
-        self.embedder: Optional[Embedder] = embedder
-        self.reranker: Optional[Reranker] = reranker
+        self.embedder: Embedder | None = embedder
+        self.reranker: Reranker | None = reranker
 
     @property
     def index(self) -> Index:
@@ -104,7 +106,7 @@ class UpstashVectorDb(VectorDb):
             self.index.info()
             return True
         except Exception as e:
-            logger.error(f"Error checking index existence: {str(e)}")
+            logger.error(f"Error checking index existence: {e!s}")
             return False
 
     def create(self) -> None:
@@ -112,16 +114,14 @@ class UpstashVectorDb(VectorDb):
         logger.warning(
             "Indexes can only be created through the Upstash Console or the developer API. Please create an index before using this vector database."
         )
-        pass
 
     def drop(self) -> None:
         """You can drop indexes via Upstash Console."""
         logger.warning(
             "Indexes can only be dropped through the Upstash Console. Make sure you have an existing index before performing operations."
         )
-        pass
 
-    def drop_namespace(self, namespace: Optional[str] = None) -> None:
+    def drop_namespace(self, namespace: str | None = None) -> None:
         """Delete a namespace from the index.
         Args:
             namespace (Optional[str], optional): The namespace to drop. Defaults to None, which uses the instance namespace.
@@ -132,7 +132,7 @@ class UpstashVectorDb(VectorDb):
         else:
             logger.error(f"Namespace {_namespace} does not exist.")
 
-    def get_all_namespaces(self) -> List[str]:
+    def get_all_namespaces(self) -> list[str]:
         """Get all namespaces in the index.
         Returns:
             List[str]: A list of namespaces.
@@ -177,7 +177,7 @@ class UpstashVectorDb(VectorDb):
         return namespace in namespaces
 
     def upsert(
-        self, documents: List[Document], filters: Optional[Dict[str, Any]] = None, namespace: Optional[str] = None
+        self, documents: list[Document], filters: dict[str, Any] | None = None, namespace: str | None = None
     ) -> None:
         """Upsert documents into the index.
 
@@ -226,7 +226,7 @@ class UpstashVectorDb(VectorDb):
         """
         return True
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents into the index.
         This method is not supported by Upstash. Use `upsert` instead.
         Args:
@@ -241,9 +241,9 @@ class UpstashVectorDb(VectorDb):
         self,
         query: str,
         limit: int = 5,
-        filters: Optional[Dict[str, Any]] = None,
-        namespace: Optional[str] = None,
-    ) -> List[Document]:
+        filters: dict[str, Any] | None = None,
+        namespace: str | None = None,
+    ) -> list[Document]:
         """Search for documents in the index.
         Args:
             query (str): The query string to search for.
@@ -305,7 +305,7 @@ class UpstashVectorDb(VectorDb):
 
         return search_results
 
-    def delete(self, namespace: Optional[str] = None, delete_all: bool = False) -> bool:
+    def delete(self, namespace: str | None = None, delete_all: bool = False) -> bool:
         """Clear the index.
         Args:
             namespace (Optional[str], optional): The namespace to clear. Defaults to None, which uses the instance namespace.
@@ -315,7 +315,7 @@ class UpstashVectorDb(VectorDb):
         """
         _namespace = self.namespace if namespace is None else namespace
         response = self.index.reset(namespace=_namespace, all=delete_all)
-        return True if response.lower().strip() == "success" else False
+        return response.lower().strip() == "success"
 
     def get_index_info(self) -> InfoResult:
         """Get information about the index.
@@ -328,7 +328,6 @@ class UpstashVectorDb(VectorDb):
         """Optimize the index.
         This method is empty as Upstash automatically optimizes indexes.
         """
-        pass
 
     async def async_name_exists(self, name: str) -> bool:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")

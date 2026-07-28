@@ -24,9 +24,8 @@ def openweather_tools():
 
 def test_initialization_without_api_key():
     """Test initialization without API key."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="OpenWeather API key is required"):
-            OpenWeatherTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="OpenWeather API key is required"):
+        OpenWeatherTools()
 
 
 def test_init_with_selective_tools():

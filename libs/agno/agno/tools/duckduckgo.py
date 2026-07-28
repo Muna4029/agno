@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug
@@ -29,24 +31,24 @@ class DuckDuckGoTools(Toolkit):
         self,
         search: bool = True,
         news: bool = True,
-        modifier: Optional[str] = None,
-        fixed_max_results: Optional[int] = None,
-        headers: Optional[Any] = None,
-        proxy: Optional[str] = None,
-        proxies: Optional[Any] = None,
-        timeout: Optional[int] = 10,
+        modifier: str | None = None,
+        fixed_max_results: int | None = None,
+        headers: Any | None = None,
+        proxy: str | None = None,
+        proxies: Any | None = None,
+        timeout: int | None = 10,
         verify_ssl: bool = True,
         **kwargs,
     ):
-        self.headers: Optional[Any] = headers
-        self.proxy: Optional[str] = proxy
-        self.proxies: Optional[Any] = proxies
-        self.timeout: Optional[int] = timeout
-        self.fixed_max_results: Optional[int] = fixed_max_results
-        self.modifier: Optional[str] = modifier
+        self.headers: Any | None = headers
+        self.proxy: str | None = proxy
+        self.proxies: Any | None = proxies
+        self.timeout: int | None = timeout
+        self.fixed_max_results: int | None = fixed_max_results
+        self.modifier: str | None = modifier
         self.verify_ssl: bool = verify_ssl
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if search:
             tools.append(self.duckduckgo_search)
         if news:

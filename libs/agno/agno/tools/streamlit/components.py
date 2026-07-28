@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from os import environ, getenv
-from typing import Optional
 
 try:
     import streamlit as st
@@ -7,7 +8,7 @@ except ImportError:
     raise ImportError("`streamlit` library not installed. Please install using `pip install streamlit`")
 
 
-def get_username_sidebar() -> Optional[str]:
+def get_username_sidebar() -> str | None:
     """Sidebar component to get username"""
 
     # Get username from user if not in session state
@@ -94,11 +95,11 @@ def check_password(password_env_var: str = "APP_PASSWORD") -> bool:
         return True
 
 
-def get_openai_key_sidebar() -> Optional[str]:
+def get_openai_key_sidebar() -> str | None:
     """Sidebar component to get OpenAI API key"""
 
     # Get OpenAI API key from environment variable
-    openai_key: Optional[str] = getenv("OPENAI_API_KEY")
+    openai_key: str | None = getenv("OPENAI_API_KEY")
     # If not found, get it from user input
     if openai_key is None or openai_key == "" or openai_key == "sk-***":
         api_key = st.sidebar.text_input("OpenAI API key", placeholder="sk-***", key="api_key")

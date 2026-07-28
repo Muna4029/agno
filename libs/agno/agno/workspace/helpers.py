@@ -1,10 +1,12 @@
+from __future__ import annotations
+
+import sys
 from pathlib import Path
-from typing import Optional
 
 from agno.utils.log import logger
 
 
-def get_workspace_dir_from_env() -> Optional[Path]:
+def get_workspace_dir_from_env() -> Path | None:
     from os import getenv
 
     from agno.constants import WORKSPACE_DIR_ENV_VAR
@@ -43,10 +45,10 @@ def get_workspace_dir_path(ws_root_path: Path) -> Path:
                 agno_conf_workspace_dir_path = ws_root_path.joinpath(agno_conf_workspace_dir_str)
             else:
                 logger.error("Workspace directory not specified in pyproject.toml")
-                exit(0)
+                sys.exit(0)
             logger.debug(f"Searching {agno_conf_workspace_dir_path}")
             if agno_conf_workspace_dir_path.exists() and agno_conf_workspace_dir_path.is_dir():
                 return agno_conf_workspace_dir_path
 
     logger.error(f"Could not find a workspace at: {ws_root_path}")
-    exit(0)
+    sys.exit(0)

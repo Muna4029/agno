@@ -1,10 +1,12 @@
 """Logic used by the AG-UI router."""
 
+from __future__ import annotations
+
 import uuid
 from collections import deque
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import AsyncIterator, Deque, List, Optional, Set, Tuple, Union
+from typing import AsyncIterator
 
 from ag_ui.core import (
     BaseEvent,
@@ -29,10 +31,10 @@ from agno.run.team import TeamRunResponse
 class EventBuffer:
     """Buffer to manage event ordering constraints, relevant when mapping Agno responses to AG-UI events."""
 
-    buffer: Deque[BaseEvent]
-    blocking_tool_call_id: Optional[str]  # The tool call that's currently blocking the buffer
-    active_tool_call_ids: Set[str]  # All currently active tool calls
-    ended_tool_call_ids: Set[str]  # All tool calls that have ended
+    buffer: deque[BaseEvent]
+    blocking_tool_call_id: str | None  # The tool call that's currently blocking the buffer
+    active_tool_call_ids: set[str]  # All currently active tool calls
+    ended_tool_call_ids: set[str]  # All tool calls that have ended
 
     def __init__(self):
         self.buffer = deque()
@@ -63,7 +65,7 @@ class EventBuffer:
         return False
 
 
-def get_last_user_message(messages: Optional[List[AGUIMessage]]) -> str:
+def get_last_user_message(messages: list[AGUIMessage] | None) -> str:
     if not messages:
         return ""
     for msg in reversed(messages):
@@ -103,8 +105,8 @@ def extract_response_chunk_content(response: RunResponse) -> str:
 
 
 def _create_events_from_chunk(
-    chunk: Union[RunResponse, TeamRunResponse], message_id: str, message_started: bool, event_buffer: EventBuffer
-) -> Tuple[List[BaseEvent], bool]:
+    chunk: RunResponse | TeamRunResponse, message_id: str, message_started: bool, event_buffer: EventBuffer
+) -> tuple[list[BaseEvent], bool]:
     """
     Process a single chunk and return events to emit + updated message_started state.
     Returns: (events_to_emit, new_message_started_state)
@@ -183,7 +185,7 @@ def _create_events_from_chunk(
 
 def _create_completion_events(
     event_buffer: EventBuffer, message_started: bool, message_id: str, thread_id: str, run_id: str
-) -> List[BaseEvent]:
+) -> list[BaseEvent]:
     """Create events for run completion."""
     events_to_emit = []
 
@@ -207,7 +209,7 @@ def _create_completion_events(
     return events_to_emit
 
 
-def _emit_event_logic(event: BaseEvent, event_buffer: EventBuffer) -> List[BaseEvent]:
+def _emit_event_logic(event: BaseEvent, event_buffer: EventBuffer) -> list[BaseEvent]:
     """Process an event through the buffer and return events to actually emit."""
     events_to_emit = []
 
@@ -258,7 +260,7 @@ def _emit_event_logic(event: BaseEvent, event_buffer: EventBuffer) -> List[BaseE
 
 
 def stream_agno_response_as_agui_events(
-    response_stream: Union[Iterator[RunResponse], Iterator[TeamRunResponse]], thread_id: str, run_id: str
+    response_stream: Iterator[RunResponse] | Iterator[TeamRunResponse], thread_id: str, run_id: str
 ) -> Iterator[BaseEvent]:
     """Map the Agno response stream to AG-UI format, handling event ordering constraints."""
     message_id = str(uuid.uuid4())
@@ -287,7 +289,7 @@ def stream_agno_response_as_agui_events(
 
 # Async version - thin wrapper
 async def async_stream_agno_response_as_agui_events(
-    response_stream: Union[AsyncIterator[RunResponse], AsyncIterator[TeamRunResponse]], thread_id: str, run_id: str
+    response_stream: AsyncIterator[RunResponse] | AsyncIterator[TeamRunResponse], thread_id: str, run_id: str
 ) -> AsyncIterator[BaseEvent]:
     """Map the Agno response stream to AG-UI format, handling event ordering constraints."""
     message_id = str(uuid.uuid4())

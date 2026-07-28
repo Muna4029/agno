@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.utils.common import dataclass_to_dict
 
 
 @dataclass
 class File:
-    name: Optional[str] = None
-    description: Optional[str] = None
-    columns: Optional[List[str]] = None
-    path: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    columns: list[str] | None = None
+    path: str | None = None
     type: str = "FILE"
 
     def get_metadata(self) -> dict[str, Any]:

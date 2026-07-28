@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, Optional
 
 from agno.utils.log import log_debug, logger
 
 
-def read_pyproject_agno(pyproject_file: Path) -> Optional[Dict]:
+def read_pyproject_agno(pyproject_file: Path) -> dict | None:
     log_debug(f"Reading {pyproject_file}")
     try:
         import tomli

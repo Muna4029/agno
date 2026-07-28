@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import asyncio
 from time import sleep
-from typing import List, Optional
 from urllib.parse import urlparse
 
 import httpx
@@ -13,11 +14,11 @@ from agno.utils.log import log_debug, log_info, logger
 class URLReader(Reader):
     """Reader for general URL content"""
 
-    def __init__(self, proxy: Optional[str] = None, **kwargs):
+    def __init__(self, proxy: str | None = None, **kwargs):
         super().__init__(**kwargs)
         self.proxy = proxy
 
-    def read(self, url: str) -> List[Document]:
+    def read(self, url: str) -> list[Document]:
         if not url:
             raise ValueError("No url provided")
 
@@ -52,7 +53,7 @@ class URLReader(Reader):
             return self.chunk_document(document)
         return [document]
 
-    async def async_read(self, url: str) -> List[Document]:
+    async def async_read(self, url: str) -> list[Document]:
         """Async version of read method"""
         if not url:
             raise ValueError("No url provided")

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.media import File, Image
 from agno.models.message import Message
@@ -18,7 +20,7 @@ except ImportError:
 @dataclass
 class MCPToolConfiguration:
     enabled: bool = True
-    allowed_tools: List[str] = field(default_factory=list)
+    allowed_tools: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -26,8 +28,8 @@ class MCPServerConfiguration:
     type: str
     url: str
     name: str
-    tool_configuration: Optional[MCPToolConfiguration] = None
-    authorization_token: Optional[str] = None
+    tool_configuration: MCPToolConfiguration | None = None
+    authorization_token: str | None = None
 
 
 ROLE_MAP = {
@@ -38,7 +40,7 @@ ROLE_MAP = {
 }
 
 
-def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
+def _format_image_for_message(image: Image) -> dict[str, Any] | None:
     """
     Add an image to a message by converting it to base64 encoded format.
     """
@@ -128,7 +130,7 @@ def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
         return None
 
 
-def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
+def _format_file_for_message(file: File) -> dict[str, Any] | None:
     """
     Add a document url or base64 encoded content to a message.
     """
@@ -202,7 +204,7 @@ def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
     return None
 
 
-def format_messages(messages: List[Message]) -> Tuple[List[Dict[str, str]], str]:
+def format_messages(messages: list[Message]) -> tuple[list[dict[str, str]], str]:
     """
     Process the list of messages and separate them into API messages and system messages.
 
@@ -212,8 +214,8 @@ def format_messages(messages: List[Message]) -> Tuple[List[Dict[str, str]], str]
     Returns:
         Tuple[List[Dict[str, str]], str]: A tuple containing the list of API messages and the concatenated system messages.
     """
-    chat_messages: List[Dict[str, str]] = []
-    system_messages: List[str] = []
+    chat_messages: list[dict[str, str]] = []
+    system_messages: list[str] = []
 
     for message in messages:
         content = message.content or ""

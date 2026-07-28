@@ -40,13 +40,15 @@ Note: The first time you run the application, it will open a browser window for 
 A token.json file will be created to store the authentication credentials for future use.
 """
 
+from __future__ import annotations
+
 import base64
 import re
 from datetime import datetime, timedelta
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 
@@ -106,10 +108,10 @@ class GmailTools(Toolkit):
         send_email: bool = True,
         send_email_reply: bool = True,
         search_emails: bool = True,
-        creds: Optional[Credentials] = None,
-        credentials_path: Optional[str] = None,
-        token_path: Optional[str] = None,
-        scopes: Optional[List[str]] = None,
+        creds: Credentials | None = None,
+        credentials_path: str | None = None,
+        token_path: str | None = None,
+        scopes: list[str] | None = None,
         **kwargs,
     ):
         """Initialize GmailTools and authenticate with Gmail API
@@ -160,7 +162,7 @@ class GmailTools(Toolkit):
             if read_scope not in self.scopes and write_scope not in self.scopes:
                 raise ValueError(f"The scope {read_scope} is required for email reading operations")
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if get_latest_emails:
             tools.append(self.get_latest_emails)
         if get_emails_from_user:
@@ -219,7 +221,7 @@ class GmailTools(Toolkit):
             if self.creds and self.creds.valid:
                 token_file.write_text(self.creds.to_json())
 
-    def _format_emails(self, emails: List[dict]) -> str:
+    def _format_emails(self, emails: list[dict]) -> str:
         """Format list of email dictionaries into a readable string"""
         if not emails:
             return "No emails found"
@@ -366,9 +368,7 @@ class GmailTools(Toolkit):
             return f"Unexpected error retrieving emails by context '{context}': {type(error).__name__}: {error}"
 
     @authenticate
-    def get_emails_by_date(
-        self, start_date: int, range_in_days: Optional[int] = None, num_emails: Optional[int] = 10
-    ) -> str:
+    def get_emails_by_date(self, start_date: int, range_in_days: int | None = None, num_emails: int | None = 10) -> str:
         """
         Get emails based on date range. start_date is an integer representing a unix timestamp
 
@@ -397,7 +397,7 @@ class GmailTools(Toolkit):
             return f"Unexpected error retrieving emails by date: {type(error).__name__}: {error}"
 
     @authenticate
-    def create_draft_email(self, to: str, subject: str, body: str, cc: Optional[str] = None) -> str:
+    def create_draft_email(self, to: str, subject: str, body: str, cc: str | None = None) -> str:
         """
         Create and save a draft email. to and cc are comma separated string of email ids
         Args:
@@ -416,7 +416,7 @@ class GmailTools(Toolkit):
         return str(draft)
 
     @authenticate
-    def send_email(self, to: str, subject: str, body: str, cc: Optional[str] = None) -> str:
+    def send_email(self, to: str, subject: str, body: str, cc: str | None = None) -> str:
         """
         Send an email immediately. to and cc are comma separated string of email ids
         Args:
@@ -436,7 +436,7 @@ class GmailTools(Toolkit):
 
     @authenticate
     def send_email_reply(
-        self, thread_id: str, message_id: str, to: str, subject: str, body: str, cc: Optional[str] = None
+        self, thread_id: str, message_id: str, to: str, subject: str, body: str, cc: str | None = None
     ) -> str:
         """
         Respond to an existing email thread.
@@ -505,12 +505,12 @@ class GmailTools(Toolkit):
 
     def _create_message(
         self,
-        to: List[str],
+        to: list[str],
         subject: str,
         body: str,
-        cc: Optional[List[str]] = None,
-        thread_id: Optional[str] = None,
-        message_id: Optional[str] = None,
+        cc: list[str] | None = None,
+        thread_id: str | None = None,
+        message_id: str | None = None,
     ) -> dict:
         body = body.replace("\\n", "\n")
         message = MIMEText(body, "html")
@@ -534,7 +534,7 @@ class GmailTools(Toolkit):
 
         return email_data
 
-    def _get_message_details(self, messages: List[dict]) -> List[dict]:
+    def _get_message_details(self, messages: list[dict]) -> list[dict]:
         """Get details for list of messages"""
         details = []
         for msg in messages:

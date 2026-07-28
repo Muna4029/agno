@@ -1,4 +1,4 @@
-from typing import List, Optional
+from __future__ import annotations
 
 from agno.document.base import Document
 from agno.document.chunking.strategy import ChunkingStrategy
@@ -10,7 +10,7 @@ from agno.models.message import Message
 class AgenticChunking(ChunkingStrategy):
     """Chunking strategy that uses an LLM to determine natural breakpoints in the text"""
 
-    def __init__(self, model: Optional[Model] = None, max_chunk_size: int = 5000):
+    def __init__(self, model: Model | None = None, max_chunk_size: int = 5000):
         if model is None:
             try:
                 from agno.models.openai import OpenAIChat
@@ -20,12 +20,12 @@ class AgenticChunking(ChunkingStrategy):
         self.max_chunk_size = max_chunk_size
         self.model = model
 
-    def chunk(self, document: Document) -> List[Document]:
+    def chunk(self, document: Document) -> list[Document]:
         """Split text into chunks using LLM to determine natural breakpoints based on context"""
         if len(document.content) <= self.max_chunk_size:
             return [document]
 
-        chunks: List[Document] = []
+        chunks: list[Document] = []
         remaining_text = self.clean_text(document.content)
         chunk_meta_data = document.meta_data
         chunk_number = 1

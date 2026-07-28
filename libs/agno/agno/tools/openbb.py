@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -14,8 +16,8 @@ except ImportError:
 class OpenBBTools(Toolkit):
     def __init__(
         self,
-        obb: Optional[Any] = None,
-        openbb_pat: Optional[str] = None,
+        obb: Any | None = None,
+        openbb_pat: str | None = None,
         provider: Literal["benzinga", "fmp", "intrinio", "polygon", "tiingo", "tmx", "yfinance"] = "yfinance",
         stock_price: bool = True,
         search_symbols: bool = False,
@@ -33,7 +35,7 @@ class OpenBBTools(Toolkit):
 
         self.provider: Literal["benzinga", "fmp", "intrinio", "polygon", "tiingo", "tmx", "yfinance"] = provider
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if stock_price:
             tools.append(self.get_stock_price)
         if search_symbols:

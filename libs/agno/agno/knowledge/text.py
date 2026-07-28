@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Iterator
 
 from agno.document import Document
 from agno.document.reader.text_reader import TextReader
@@ -8,12 +10,12 @@ from agno.utils.log import log_info, logger
 
 
 class TextKnowledgeBase(AgentKnowledge):
-    path: Optional[Union[str, Path, List[Dict[str, Union[str, Dict[str, Any]]]]]] = None
-    formats: List[str] = [".txt"]
+    path: str | Path | list[dict[str, str | dict[str, Any]]] | None = None
+    formats: list[str] = [".txt"]
     reader: TextReader = TextReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over text files and yield lists of documents."""
         if self.path is None:
             raise ValueError("Path is not set")
@@ -47,7 +49,7 @@ class TextKnowledgeBase(AgentKnowledge):
         return path.exists() and path.is_file() and path.suffix in self.formats
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Iterate over text files and yield lists of documents asynchronously."""
         if self.path is None:
             raise ValueError("Path is not set")
@@ -78,8 +80,8 @@ class TextKnowledgeBase(AgentKnowledge):
 
     def load_document(
         self,
-        path: Union[str, Path],
-        metadata: Optional[Dict[str, Any]] = None,
+        path: str | Path,
+        metadata: dict[str, Any] | None = None,
         recreate: bool = False,
         upsert: bool = False,
         skip_existing: bool = True,
@@ -110,8 +112,8 @@ class TextKnowledgeBase(AgentKnowledge):
 
     async def aload_document(
         self,
-        path: Union[str, Path],
-        metadata: Optional[Dict[str, Any]] = None,
+        path: str | Path,
+        metadata: dict[str, Any] | None = None,
         recreate: bool = False,
         upsert: bool = False,
         skip_existing: bool = True,

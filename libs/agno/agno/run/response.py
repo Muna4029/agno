@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from time import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -39,12 +41,12 @@ class RunEvent(str, Enum):
 
 @dataclass
 class RunResponseExtraData:
-    references: Optional[List[MessageReferences]] = None
-    add_messages: Optional[List[Message]] = None
-    reasoning_steps: Optional[List[ReasoningStep]] = None
-    reasoning_messages: Optional[List[Message]] = None
+    references: list[MessageReferences] | None = None
+    add_messages: list[Message] | None = None
+    reasoning_steps: list[ReasoningStep] | None = None
+    reasoning_messages: list[Message] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = {}
         if self.add_messages is not None:
             _dict["add_messages"] = [m.to_dict() for m in self.add_messages]
@@ -57,7 +59,7 @@ class RunResponseExtraData:
         return _dict
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "RunResponseExtraData":
+    def from_dict(cls, data: dict[str, Any]) -> RunResponseExtraData:
         add_messages = data.pop("add_messages", None)
         add_messages = [Message.model_validate(message) for message in add_messages] if add_messages else None
 
@@ -84,34 +86,32 @@ class RunResponseExtraData:
 class RunResponse:
     """Response returned by Agent.run() or Workflow.run() functions"""
 
-    content: Optional[Any] = None
+    content: Any | None = None
     content_type: str = "str"
-    thinking: Optional[str] = None
-    reasoning_content: Optional[str] = None
+    thinking: str | None = None
+    reasoning_content: str | None = None
     event: str = RunEvent.run_response.value
-    messages: Optional[List[Message]] = None
-    metrics: Optional[Dict[str, Any]] = None
-    model: Optional[str] = None
-    model_provider: Optional[str] = None
-    run_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    session_id: Optional[str] = None
-    workflow_id: Optional[str] = None
-    tools: Optional[List[ToolExecution]] = None
-    formatted_tool_calls: Optional[List[str]] = None
-    images: Optional[List[ImageArtifact]] = None  # Images attached to the response
-    videos: Optional[List[VideoArtifact]] = None  # Videos attached to the response
-    audio: Optional[List[AudioArtifact]] = None  # Audio attached to the response
-    response_audio: Optional[AudioResponse] = None  # Model audio response
-    citations: Optional[Citations] = None
-    extra_data: Optional[RunResponseExtraData] = None
+    messages: list[Message] | None = None
+    metrics: dict[str, Any] | None = None
+    model: str | None = None
+    model_provider: str | None = None
+    run_id: str | None = None
+    agent_id: str | None = None
+    session_id: str | None = None
+    workflow_id: str | None = None
+    tools: list[ToolExecution] | None = None
+    formatted_tool_calls: list[str] | None = None
+    images: list[ImageArtifact] | None = None  # Images attached to the response
+    videos: list[VideoArtifact] | None = None  # Videos attached to the response
+    audio: list[AudioArtifact] | None = None  # Audio attached to the response
+    response_audio: AudioResponse | None = None  # Model audio response
+    citations: Citations | None = None
+    extra_data: RunResponseExtraData | None = None
     created_at: int = field(default_factory=lambda: int(time()))
 
     @property
     def is_paused(self):
-        if self.event == RunEvent.run_paused:
-            return True
-        return False
+        return self.event == RunEvent.run_paused
 
     @property
     def tools_requiring_confirmation(self):
@@ -125,7 +125,7 @@ class RunResponse:
     def tools_awaiting_external_execution(self):
         return [t for t in self.tools if t.external_execution_required] if self.tools else []
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = {
             k: v
             for k, v in asdict(self).items()
@@ -201,7 +201,7 @@ class RunResponse:
         return json.dumps(_dict, indent=2)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "RunResponse":
+    def from_dict(cls, data: dict[str, Any]) -> RunResponse:
         messages = data.pop("messages", None)
         messages = [Message.model_validate(message) for message in messages] if messages else None
         tools = data.pop("tools", None)

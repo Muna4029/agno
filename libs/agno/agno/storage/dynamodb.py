@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import time
 from dataclasses import asdict
 from decimal import Decimal
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from agno.storage.base import Storage
 from agno.storage.session import Session
@@ -22,13 +24,13 @@ class DynamoDbStorage(Storage):
     def __init__(
         self,
         table_name: str,
-        profile_name: Optional[str] = None,
-        region_name: Optional[str] = None,
-        aws_access_key_id: Optional[str] = None,
-        aws_secret_access_key: Optional[str] = None,
-        endpoint_url: Optional[str] = None,
+        profile_name: str | None = None,
+        region_name: str | None = None,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
+        endpoint_url: str | None = None,
         create_table_if_not_exists: bool = True,
-        mode: Optional[Literal["agent", "team", "workflow"]] = "agent",
+        mode: Literal["agent", "team", "workflow"] | None = "agent",
     ):
         """
         Initialize the DynamoDbStorage.
@@ -84,12 +86,11 @@ class DynamoDbStorage(Storage):
         return super().mode
 
     @mode.setter
-    def mode(self, value: Optional[Literal["agent", "team", "workflow"]]) -> None:
+    def mode(self, value: Literal["agent", "team", "workflow"] | None) -> None:
         """Set the mode and refresh the table if mode changes."""
         super(DynamoDbStorage, type(self)).mode.fset(self, value)  # type: ignore
-        if value is not None:
-            if self.create_table_if_not_exists:
-                self.create()
+        if value is not None and self.create_table_if_not_exists:
+            self.create()
 
     def create(self) -> None:
         """
@@ -202,7 +203,7 @@ class DynamoDbStorage(Storage):
         except Exception as e:
             logger.error(f"Exception during table creation: {e}")
 
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         """
         Read and return a Session from the database.
 
@@ -233,7 +234,7 @@ class DynamoDbStorage(Storage):
             logger.error(f"Error reading session_id '{session_id}' with user_id '{user_id}': {e}")
         return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: str | None = None, entity_id: str | None = None) -> list[str]:
         """
         Retrieve all session IDs, optionally filtered by user_id and/or entity_id.
 
@@ -244,7 +245,7 @@ class DynamoDbStorage(Storage):
         Returns:
             List[str]: List of session IDs matching the criteria.
         """
-        session_ids: List[str] = []
+        session_ids: list[str] = []
         try:
             if user_id is not None:
                 # Query using user_id index
@@ -288,7 +289,7 @@ class DynamoDbStorage(Storage):
             logger.error(f"Error retrieving session IDs: {e}")
         return session_ids
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
         """
         Retrieve all sessions, optionally filtered by user_id and/or entity_id.
 
@@ -299,7 +300,7 @@ class DynamoDbStorage(Storage):
         Returns:
             List[Session]: List of AgentSession or WorkflowSession objects matching the criteria.
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         try:
             if user_id is not None:
                 if self.mode == "agent":
@@ -327,7 +328,7 @@ class DynamoDbStorage(Storage):
                 items = response.get("Items", [])  # type: ignore
                 for item in items:
                     item = self._deserialize_item(item)
-                    _session: Optional[Session] = None
+                    _session: Session | None = None
                     if self.mode == "agent":
                         _session = AgentSession.from_dict(item)
                     else:
@@ -396,10 +397,10 @@ class DynamoDbStorage(Storage):
 
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -410,7 +411,7 @@ class DynamoDbStorage(Storage):
         Returns:
             List[Session]: List of most recent sessions
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         try:
             if user_id is not None:
                 if self.mode == "agent":
@@ -483,7 +484,7 @@ class DynamoDbStorage(Storage):
             items = response.get("Items", [])
             for item in items:
                 item = self._deserialize_item(item)
-                session: Optional[Session] = None
+                session: Session | None = None
 
                 if self.mode == "agent":
                     session = AgentSession.from_dict(item)
@@ -500,7 +501,7 @@ class DynamoDbStorage(Storage):
 
         return sessions
 
-    def upsert(self, session: Session) -> Optional[Session]:
+    def upsert(self, session: Session) -> Session | None:
         """
         Create or update a Session in the database.
 
@@ -529,7 +530,7 @@ class DynamoDbStorage(Storage):
             logger.error(f"Error upserting session: {e}")
             return None
 
-    def delete_session(self, session_id: Optional[str] = None):
+    def delete_session(self, session_id: str | None = None):
         """
         Delete a session from the database.
 
@@ -561,9 +562,8 @@ class DynamoDbStorage(Storage):
         Upgrade the schema to the latest version.
         This method is currently a placeholder and does not perform any actions.
         """
-        pass
 
-    def _serialize_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
+    def _serialize_item(self, item: dict[str, Any]) -> dict[str, Any]:
         """
         Serialize item to be compatible with DynamoDB.
 
@@ -586,7 +586,7 @@ class DynamoDbStorage(Storage):
 
         return {k: serialize_value(v) for k, v in item.items() if v is not None}
 
-    def _deserialize_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
+    def _deserialize_item(self, item: dict[str, Any]) -> dict[str, Any]:
         """
         Deserialize item from DynamoDB format.
 

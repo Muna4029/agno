@@ -1,23 +1,25 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from pydantic import BaseModel, field_validator, model_validator
 
 
 class Media(BaseModel):
     id: str
-    original_prompt: Optional[str] = None
-    revised_prompt: Optional[str] = None
+    original_prompt: str | None = None
+    revised_prompt: str | None = None
 
 
 class VideoArtifact(Media):
-    url: Optional[str] = None  # Remote location for file (if no inline content)
-    content: Optional[Union[str, bytes]] = None  # type: ignore
-    mime_type: Optional[str] = None  # MIME type of the video content
-    eta: Optional[str] = None
-    length: Optional[str] = None
+    url: str | None = None  # Remote location for file (if no inline content)
+    content: str | bytes | None = None  # type: ignore
+    mime_type: str | None = None  # MIME type of the video content
+    eta: str | None = None
+    length: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         response_dict = {
             "url": self.url,
             "content": self.content
@@ -32,12 +34,12 @@ class VideoArtifact(Media):
 
 
 class ImageArtifact(Media):
-    url: Optional[str] = None  # Remote location for file
-    content: Optional[bytes] = None  # Actual image bytes content
-    mime_type: Optional[str] = None
-    alt_text: Optional[str] = None
+    url: str | None = None  # Remote location for file
+    content: bytes | None = None  # Actual image bytes content
+    mime_type: str | None = None
+    alt_text: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         response_dict = {
             "url": self.url,
             "content": self.content.decode("utf-8")
@@ -50,10 +52,10 @@ class ImageArtifact(Media):
 
 
 class AudioArtifact(Media):
-    url: Optional[str] = None  # Remote location for file
-    base64_audio: Optional[str] = None  # Base64-encoded audio data
-    length: Optional[str] = None
-    mime_type: Optional[str] = None
+    url: str | None = None  # Remote location for file
+    base64_audio: str | None = None  # Base64-encoded audio data
+    length: str | None = None
+    mime_type: str | None = None
 
     @model_validator(mode="before")
     def validate_exclusive_audio(cls, data: Any):
@@ -66,7 +68,7 @@ class AudioArtifact(Media):
             raise ValueError("Either `url` or `base64_audio` must be provided.")
         return data
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         response_dict = {
             "url": self.url,
             "content": self.base64_audio,
@@ -77,10 +79,10 @@ class AudioArtifact(Media):
 
 
 class Video(BaseModel):
-    filepath: Optional[Union[Path, str]] = None  # Absolute local location for video
-    content: Optional[Any] = None  # Actual video bytes content
-    url: Optional[str] = None  # Remote location for video
-    format: Optional[str] = None  # E.g. `mp4`, `mov`, `avi`, `mkv`, `webm`, `flv`, `mpeg`, `mpg`, `wmv`, `three_gp`
+    filepath: Path | str | None = None  # Absolute local location for video
+    content: Any | None = None  # Actual video bytes content
+    url: str | None = None  # Remote location for video
+    format: str | None = None  # E.g. `mp4`, `mov`, `avi`, `mkv`, `webm`, `flv`, `mpeg`, `mpg`, `wmv`, `three_gp`
 
     @model_validator(mode="before")
     def validate_data(cls, data: Any):
@@ -116,7 +118,7 @@ class Video(BaseModel):
 
         return data
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         import base64
         import zlib
 
@@ -132,15 +134,15 @@ class Video(BaseModel):
         return {k: v for k, v in response_dict.items() if v is not None}
 
     @classmethod
-    def from_artifact(cls, artifact: VideoArtifact) -> "Video":
+    def from_artifact(cls, artifact: VideoArtifact) -> Video:
         return cls(url=artifact.url)
 
 
 class Audio(BaseModel):
-    content: Optional[Any] = None  # Actual audio bytes content
-    filepath: Optional[Union[Path, str]] = None  # Absolute local location for audio
-    url: Optional[str] = None  # Remote location for audio
-    format: Optional[str] = None
+    content: Any | None = None  # Actual audio bytes content
+    filepath: Path | str | None = None  # Absolute local location for audio
+    url: str | None = None  # Remote location for audio
+    format: str | None = None
 
     @model_validator(mode="before")
     def validate_data(cls, data: Any):
@@ -177,7 +179,7 @@ class Audio(BaseModel):
         return data
 
     @property
-    def audio_url_content(self) -> Optional[bytes]:
+    def audio_url_content(self) -> bytes | None:
         import httpx
 
         if self.url:
@@ -185,7 +187,7 @@ class Audio(BaseModel):
         else:
             return None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         import base64
         import zlib
 
@@ -202,21 +204,21 @@ class Audio(BaseModel):
         return {k: v for k, v in response_dict.items() if v is not None}
 
     @classmethod
-    def from_artifact(cls, artifact: AudioArtifact) -> "Audio":
+    def from_artifact(cls, artifact: AudioArtifact) -> Audio:
         return cls(url=artifact.url, content=artifact.base64_audio, format=artifact.mime_type)
 
 
 class AudioResponse(BaseModel):
-    id: Optional[str] = None
-    content: Optional[str] = None  # Base64 encoded
-    expires_at: Optional[int] = None
-    transcript: Optional[str] = None
+    id: str | None = None
+    content: str | None = None  # Base64 encoded
+    expires_at: int | None = None
+    transcript: str | None = None
 
-    mime_type: Optional[str] = None
-    sample_rate: Optional[int] = 24000
-    channels: Optional[int] = 1
+    mime_type: str | None = None
+    sample_rate: int | None = 24000
+    channels: int | None = 1
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         import base64
 
         response_dict = {
@@ -234,17 +236,17 @@ class AudioResponse(BaseModel):
 
 
 class Image(BaseModel):
-    url: Optional[str] = None  # Remote location for image
-    filepath: Optional[Union[Path, str]] = None  # Absolute local location for image
-    content: Optional[Any] = None  # Actual image bytes content
-    format: Optional[str] = None  # E.g. `png`, `jpeg`, `webp`, `gif`
-    detail: Optional[str] = (
+    url: str | None = None  # Remote location for image
+    filepath: Path | str | None = None  # Absolute local location for image
+    content: Any | None = None  # Actual image bytes content
+    format: str | None = None  # E.g. `png`, `jpeg`, `webp`, `gif`
+    detail: str | None = (
         None  # low, medium, high or auto (per OpenAI spec https://platform.openai.com/docs/guides/vision?lang=node#low-or-high-fidelity-image-understanding)
     )
-    id: Optional[str] = None
+    id: str | None = None
 
     @property
-    def image_url_content(self) -> Optional[bytes]:
+    def image_url_content(self) -> bytes | None:
         import httpx
 
         if self.url:
@@ -286,7 +288,7 @@ class Image(BaseModel):
 
         return data
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         import base64
         import zlib
 
@@ -304,18 +306,18 @@ class Image(BaseModel):
         return {k: v for k, v in response_dict.items() if v is not None}
 
     @classmethod
-    def from_artifact(cls, artifact: ImageArtifact) -> "Image":
+    def from_artifact(cls, artifact: ImageArtifact) -> Image:
         return cls(url=artifact.url)
 
 
 class File(BaseModel):
-    url: Optional[str] = None
-    filepath: Optional[Union[Path, str]] = None
+    url: str | None = None
+    filepath: Path | str | None = None
     # Raw bytes content of a file
-    content: Optional[Any] = None
-    mime_type: Optional[str] = None
+    content: Any | None = None
+    mime_type: str | None = None
     # External file object (e.g. GeminiFile, must be a valid object as expected by the model you are using)
-    external: Optional[Any] = None
+    external: Any | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -334,7 +336,7 @@ class File(BaseModel):
         return v
 
     @classmethod
-    def valid_mime_types(cls) -> List[str]:
+    def valid_mime_types(cls) -> list[str]:
         return [
             "application/pdf",
             "application/x-javascript",
@@ -351,7 +353,7 @@ class File(BaseModel):
         ]
 
     @property
-    def file_url_content(self) -> Optional[Tuple[bytes, str]]:
+    def file_url_content(self) -> tuple[bytes, str] | None:
         import httpx
 
         if self.url:

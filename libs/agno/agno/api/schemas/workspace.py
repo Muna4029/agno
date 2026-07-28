@@ -1,46 +1,48 @@
-from typing import Any, Dict, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from pydantic import BaseModel
 
 
 class WorkspaceCreate(BaseModel):
     ws_name: str
-    git_url: Optional[str] = None
-    visibility: Optional[str] = None
-    ws_data: Optional[Dict[str, Any]] = None
+    git_url: str | None = None
+    visibility: str | None = None
+    ws_data: dict[str, Any] | None = None
 
 
 class WorkspaceUpdate(BaseModel):
     id_workspace: str
-    ws_name: Optional[str] = None
-    git_url: Optional[str] = None
-    visibility: Optional[str] = None
-    ws_data: Optional[Dict[str, Any]] = None
-    is_active: Optional[bool] = None
+    ws_name: str | None = None
+    git_url: str | None = None
+    visibility: str | None = None
+    ws_data: dict[str, Any] | None = None
+    is_active: bool | None = None
 
 
 class WorkspaceDelete(BaseModel):
     id_workspace: str
-    ws_name: Optional[str] = None
+    ws_name: str | None = None
 
 
 class WorkspaceEvent(BaseModel):
     id_workspace: str
     event_type: str
     event_status: str
-    event_data: Optional[Dict[str, Any]] = None
+    event_data: dict[str, Any] | None = None
 
 
 class WorkspaceSchema(BaseModel):
     """Workspace data returned by the API."""
 
-    id_workspace: Optional[str] = None
-    ws_name: Optional[str] = None
-    is_active: Optional[bool] = None
-    git_url: Optional[str] = None
-    ws_data: Optional[Dict[str, Any]] = None
+    id_workspace: str | None = None
+    ws_name: str | None = None
+    is_active: bool | None = None
+    git_url: str | None = None
+    ws_data: dict[str, Any] | None = None
 
 
 class WorkspaceIdentifier(BaseModel):
-    ws_key: Optional[str] = None
-    id_workspace: Optional[str] = None
+    ws_key: str | None = None
+    id_workspace: str | None = None

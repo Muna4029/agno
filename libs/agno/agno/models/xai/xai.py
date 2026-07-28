@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Optional
 
 from agno.models.openai.like import OpenAILike
 
@@ -22,5 +23,5 @@ class xAI(OpenAILike):
     name: str = "xAI"
     provider: str = "xAI"
 
-    api_key: Optional[str] = getenv("XAI_API_KEY")
+    api_key: str | None = getenv("XAI_API_KEY")
     base_url: str = "https://api.x.ai/v1"

@@ -1,4 +1,6 @@
-from typing import Any, Callable, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any, Callable
 
 from agno.document import Document
 from agno.knowledge.agent import AgentKnowledge
@@ -6,16 +8,16 @@ from agno.utils.log import log_debug, logger
 
 
 class LangChainKnowledgeBase(AgentKnowledge):
-    loader: Optional[Callable] = None
+    loader: Callable | None = None
 
-    vectorstore: Optional[Any] = None
-    search_kwargs: Optional[dict] = None
+    vectorstore: Any | None = None
+    search_kwargs: dict | None = None
 
-    retriever: Optional[Any] = None
+    retriever: Any | None = None
 
     def search(
-        self, query: str, num_documents: Optional[int] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, num_documents: int | None = None, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """Returns relevant documents matching the query"""
 
         try:
@@ -43,7 +45,7 @@ class LangChainKnowledgeBase(AgentKnowledge):
 
         _num_documents = num_documents or self.num_documents
         log_debug(f"Getting {_num_documents} relevant documents for query: {query}")
-        lc_documents: List[LangChainDocument] = self.retriever.invoke(input=query)
+        lc_documents: list[LangChainDocument] = self.retriever.invoke(input=query)
         documents = []
         for lc_doc in lc_documents:
             documents.append(
@@ -59,7 +61,7 @@ class LangChainKnowledgeBase(AgentKnowledge):
         recreate: bool = False,
         upsert: bool = True,
         skip_existing: bool = True,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
     ) -> None:
         if self.loader is None:
             logger.error("No loader provided for LangChainKnowledgeBase")

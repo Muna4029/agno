@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import platform
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union
 
 from agno.embedder.base import Embedder
 from agno.utils.log import logger
@@ -23,9 +24,9 @@ except ImportError:
 @dataclass
 class SentenceTransformerEmbedder(Embedder):
     id: str = "sentence-transformers/all-MiniLM-L6-v2"
-    sentence_transformer_client: Optional[SentenceTransformer] = None
+    sentence_transformer_client: SentenceTransformer | None = None
 
-    def get_embedding(self, text: Union[str, List[str]]) -> List[float]:
+    def get_embedding(self, text: str | list[str]) -> list[float]:
         model = SentenceTransformer(model_name_or_path=self.id)
         embedding = model.encode(text)
         try:
@@ -34,5 +35,5 @@ class SentenceTransformerEmbedder(Embedder):
             logger.warning(e)
             return []
 
-    def get_embedding_and_usage(self, text: str) -> Tuple[List[float], Optional[Dict]]:
+    def get_embedding_and_usage(self, text: str) -> tuple[list[float], dict | None]:
         return self.get_embedding(text=text), None

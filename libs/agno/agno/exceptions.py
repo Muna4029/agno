@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from __future__ import annotations
 
 from agno.models.message import Message
 
@@ -7,9 +7,9 @@ class AgentRunException(Exception):
     def __init__(
         self,
         exc,
-        user_message: Optional[Union[str, Message]] = None,
-        agent_message: Optional[Union[str, Message]] = None,
-        messages: Optional[List[Union[dict, Message]]] = None,
+        user_message: str | Message | None = None,
+        agent_message: str | Message | None = None,
+        messages: list[dict | Message] | None = None,
         stop_execution: bool = False,
     ):
         super().__init__(exc)
@@ -25,9 +25,9 @@ class RetryAgentRun(AgentRunException):
     def __init__(
         self,
         exc,
-        user_message: Optional[Union[str, Message]] = None,
-        agent_message: Optional[Union[str, Message]] = None,
-        messages: Optional[List[Union[dict, Message]]] = None,
+        user_message: str | Message | None = None,
+        agent_message: str | Message | None = None,
+        messages: list[dict | Message] | None = None,
     ):
         super().__init__(
             exc, user_message=user_message, agent_message=agent_message, messages=messages, stop_execution=False
@@ -40,9 +40,9 @@ class StopAgentRun(AgentRunException):
     def __init__(
         self,
         exc,
-        user_message: Optional[Union[str, Message]] = None,
-        agent_message: Optional[Union[str, Message]] = None,
-        messages: Optional[List[Union[dict, Message]]] = None,
+        user_message: str | Message | None = None,
+        agent_message: str | Message | None = None,
+        messages: list[dict | Message] | None = None,
     ):
         super().__init__(
             exc, user_message=user_message, agent_message=agent_message, messages=messages, stop_execution=True
@@ -72,7 +72,7 @@ class ModelProviderError(AgnoError):
     """Exception raised when a model provider returns an error."""
 
     def __init__(
-        self, message: str, status_code: int = 502, model_name: Optional[str] = None, model_id: Optional[str] = None
+        self, message: str, status_code: int = 502, model_name: str | None = None, model_id: str | None = None
     ):
         super().__init__(message, status_code)
         self.model_name = model_name
@@ -83,12 +83,10 @@ class ModelRateLimitError(ModelProviderError):
     """Exception raised when a model provider returns a rate limit error."""
 
     def __init__(
-        self, message: str, status_code: int = 429, model_name: Optional[str] = None, model_id: Optional[str] = None
+        self, message: str, status_code: int = 429, model_name: str | None = None, model_id: str | None = None
     ):
         super().__init__(message, status_code, model_name, model_id)
 
 
 class EvalError(Exception):
     """Exception raised when an evaluation fails."""
-
-    pass

@@ -1,4 +1,6 @@
-from typing import Any, List, Optional, Tuple
+from __future__ import annotations
+
+from typing import Any
 
 from agno.infra.base import InfraBase
 
@@ -8,48 +10,48 @@ class InfraResources(InfraBase):
     that are managed together.
     """
 
-    apps: Optional[List[Any]] = None
-    resources: Optional[List[Any]] = None
+    apps: list[Any] | None = None
+    resources: list[Any] | None = None
 
     def create_resources(
         self,
-        group_filter: Optional[str] = None,
-        name_filter: Optional[str] = None,
-        type_filter: Optional[str] = None,
-        dry_run: Optional[bool] = False,
-        auto_confirm: Optional[bool] = False,
-        force: Optional[bool] = None,
-        pull: Optional[bool] = None,
-    ) -> Tuple[int, int]:
+        group_filter: str | None = None,
+        name_filter: str | None = None,
+        type_filter: str | None = None,
+        dry_run: bool | None = False,
+        auto_confirm: bool | None = False,
+        force: bool | None = None,
+        pull: bool | None = None,
+    ) -> tuple[int, int]:
         raise NotImplementedError
 
     def delete_resources(
         self,
-        group_filter: Optional[str] = None,
-        name_filter: Optional[str] = None,
-        type_filter: Optional[str] = None,
-        dry_run: Optional[bool] = False,
-        auto_confirm: Optional[bool] = False,
-        force: Optional[bool] = None,
-    ) -> Tuple[int, int]:
+        group_filter: str | None = None,
+        name_filter: str | None = None,
+        type_filter: str | None = None,
+        dry_run: bool | None = False,
+        auto_confirm: bool | None = False,
+        force: bool | None = None,
+    ) -> tuple[int, int]:
         raise NotImplementedError
 
     def update_resources(
         self,
-        group_filter: Optional[str] = None,
-        name_filter: Optional[str] = None,
-        type_filter: Optional[str] = None,
-        dry_run: Optional[bool] = False,
-        auto_confirm: Optional[bool] = False,
-        force: Optional[bool] = None,
-        pull: Optional[bool] = None,
-    ) -> Tuple[int, int]:
+        group_filter: str | None = None,
+        name_filter: str | None = None,
+        type_filter: str | None = None,
+        dry_run: bool | None = False,
+        auto_confirm: bool | None = False,
+        force: bool | None = None,
+        pull: bool | None = None,
+    ) -> tuple[int, int]:
         raise NotImplementedError
 
     def save_resources(
         self,
-        group_filter: Optional[str] = None,
-        name_filter: Optional[str] = None,
-        type_filter: Optional[str] = None,
-    ) -> Tuple[int, int]:
+        group_filter: str | None = None,
+        name_filter: str | None = None,
+        type_filter: str | None = None,
+    ) -> tuple[int, int]:
         raise NotImplementedError

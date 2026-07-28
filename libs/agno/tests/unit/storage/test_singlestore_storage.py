@@ -82,7 +82,7 @@ def test_initialization():
 
 def test_agent_storage_crud(agent_storage):
     """Test CRUD operations for agent storage."""
-    storage, mock_session = agent_storage
+    storage, _mock_session = agent_storage
 
     # Create a test session
     session = AgentSession(
@@ -125,7 +125,7 @@ def test_agent_storage_crud(agent_storage):
 
 def test_workflow_storage_crud(workflow_storage):
     """Test CRUD operations for workflow storage."""
-    storage, mock_session = workflow_storage
+    storage, _mock_session = workflow_storage
 
     # Create a test session
     session = WorkflowSession(
@@ -313,15 +313,14 @@ def test_drop_table(agent_storage):
 
 def test_mode_switching():
     """Test switching between agent and workflow modes."""
-    with patch("agno.storage.singlestore.sessionmaker"):
-        with patch("agno.storage.singlestore.inspect"):
-            with patch("agno.storage.singlestore.create_engine"):
-                # Create storage in agent mode
-                storage = SingleStoreStorage(table_name="test_table", db_url="mysql://user:pass@localhost/db")
-                assert storage.mode == "agent"
+    with patch("agno.storage.singlestore.sessionmaker"), patch("agno.storage.singlestore.inspect"):
+        with patch("agno.storage.singlestore.create_engine"):
+            # Create storage in agent mode
+            storage = SingleStoreStorage(table_name="test_table", db_url="mysql://user:pass@localhost/db")
+            assert storage.mode == "agent"
 
-                # Switch to workflow mode
-                with patch.object(storage, "get_table") as mock_get_table:
-                    storage.mode = "workflow"
-                    assert storage.mode == "workflow"
-                    mock_get_table.assert_called_once()
+            # Switch to workflow mode
+            with patch.object(storage, "get_table") as mock_get_table:
+                storage.mode = "workflow"
+                assert storage.mode == "workflow"
+                mock_get_table.assert_called_once()

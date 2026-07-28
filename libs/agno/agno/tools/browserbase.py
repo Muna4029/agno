@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -21,9 +23,9 @@ except ImportError:
 class BrowserbaseTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        project_id: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        project_id: str | None = None,
+        base_url: str | None = None,
         **kwargs,
     ):
         """Initialize BrowserbaseTools.
@@ -60,7 +62,7 @@ class BrowserbaseTools(Toolkit):
         self._session = None
         self._connect_url = None
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.navigate_to)
         tools.append(self.screenshot)
         tools.append(self.get_page_content)
@@ -77,10 +79,10 @@ class BrowserbaseTools(Toolkit):
                 if self._session:
                     log_debug(f"Created new session with ID: {self._session.id}")
             except Exception as e:
-                logger.error(f"Failed to create session: {str(e)}")
+                logger.error(f"Failed to create session: {e!s}")
                 raise
 
-    def _initialize_browser(self, connect_url: Optional[str] = None):
+    def _initialize_browser(self, connect_url: str | None = None):
         """
         Initialize browser connection if not already initialized.
         Use provided connect_url or ensure we have a session with a connect_url
@@ -107,7 +109,7 @@ class BrowserbaseTools(Toolkit):
             self._playwright = None
         self._page = None
 
-    def _create_session(self) -> Dict[str, str]:
+    def _create_session(self) -> dict[str, str]:
         """Creates a new browser session.
 
         Returns:
@@ -119,7 +121,7 @@ class BrowserbaseTools(Toolkit):
             "connect_url": self._session.connect_url if self._session else "",
         }
 
-    def navigate_to(self, url: str, connect_url: Optional[str] = None) -> str:
+    def navigate_to(self, url: str, connect_url: str | None = None) -> str:
         """Navigates to a URL.
 
         Args:
@@ -135,11 +137,11 @@ class BrowserbaseTools(Toolkit):
                 self._page.goto(url, wait_until="networkidle")
             result = {"status": "complete", "title": self._page.title() if self._page else "", "url": url}
             return json.dumps(result)
-        except Exception as e:
+        except Exception:
             self._cleanup()
-            raise e
+            raise
 
-    def screenshot(self, path: str, full_page: bool = True, connect_url: Optional[str] = None) -> str:
+    def screenshot(self, path: str, full_page: bool = True, connect_url: str | None = None) -> str:
         """Takes a screenshot of the current page.
 
         Args:
@@ -155,11 +157,11 @@ class BrowserbaseTools(Toolkit):
             if self._page:
                 self._page.screenshot(path=path, full_page=full_page)
             return json.dumps({"status": "success", "path": path})
-        except Exception as e:
+        except Exception:
             self._cleanup()
-            raise e
+            raise
 
-    def get_page_content(self, connect_url: Optional[str] = None) -> str:
+    def get_page_content(self, connect_url: str | None = None) -> str:
         """Gets the HTML content of the current page.
 
         Args:
@@ -171,9 +173,9 @@ class BrowserbaseTools(Toolkit):
         try:
             self._initialize_browser(connect_url)
             return self._page.content() if self._page else ""
-        except Exception as e:
+        except Exception:
             self._cleanup()
-            raise e
+            raise
 
     def close_session(self) -> str:
         """Closes a browser session.
@@ -197,4 +199,4 @@ class BrowserbaseTools(Toolkit):
                 }
             )
         except Exception as e:
-            return json.dumps({"status": "warning", "message": f"Cleanup completed with warning: {str(e)}"})
+            return json.dumps({"status": "warning", "message": f"Cleanup completed with warning: {e!s}"})

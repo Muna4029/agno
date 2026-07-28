@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import uuid
 from os import getenv
 from textwrap import dedent
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_warning
@@ -36,14 +38,14 @@ DEFAULT_INSTRUCTIONS = dedent(
 class ZepTools(Toolkit):
     def __init__(
         self,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
-        api_key: Optional[str] = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
+        api_key: str | None = None,
         ignore_assistant_messages: bool = False,
         add_zep_message: bool = True,
         get_zep_memory: bool = True,
         search_zep_memory: bool = True,
-        instructions: Optional[str] = None,
+        instructions: str | None = None,
         add_instructions: bool = False,
         **kwargs,
     ):
@@ -58,19 +60,19 @@ class ZepTools(Toolkit):
         else:
             self.instructions = instructions
 
-        self.zep_client: Optional[Zep] = None
+        self.zep_client: Zep | None = None
         self._initialized = False
 
         self.session_id_provided = session_id
         self.user_id_provided = user_id
         self.ignore_assistant_messages = ignore_assistant_messages
 
-        self.session_id: Optional[str] = None
-        self.user_id: Optional[str] = None
+        self.session_id: str | None = None
+        self.user_id: str | None = None
 
         self.initialize()
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if add_zep_message:
             tools.append(self.add_zep_message)
         if get_zep_memory:
@@ -245,14 +247,14 @@ class ZepTools(Toolkit):
 class ZepAsyncTools(Toolkit):
     def __init__(
         self,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
-        api_key: Optional[str] = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
+        api_key: str | None = None,
         ignore_assistant_messages: bool = False,
         add_zep_message: bool = True,
         get_zep_memory: bool = True,
         search_zep_memory: bool = True,
-        instructions: Optional[str] = None,
+        instructions: str | None = None,
         add_instructions: bool = False,
         **kwargs,
     ):
@@ -267,15 +269,15 @@ class ZepAsyncTools(Toolkit):
         else:
             self.instructions = instructions
 
-        self.zep_client: Optional[AsyncZep] = None
+        self.zep_client: AsyncZep | None = None
         self._initialized = False
 
         self.session_id_provided = session_id
         self.user_id_provided = user_id
         self.ignore_assistant_messages = ignore_assistant_messages
 
-        self.session_id: Optional[str] = None
-        self.user_id: Optional[str] = None
+        self.session_id: str | None = None
+        self.user_id: str | None = None
 
         self._initialized = False
 

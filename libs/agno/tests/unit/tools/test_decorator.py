@@ -39,8 +39,7 @@ def test_sync_generator_decorator():
     @tool
     def sync_generator(count: int) -> Generator[int, None, None]:
         """Test sync generator"""
-        for i in range(count):
-            yield i
+        yield from range(count)
 
     assert isinstance(sync_generator, Function)
     assert sync_generator.name == "sync_generator"

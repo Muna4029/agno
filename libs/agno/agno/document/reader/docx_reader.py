@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from pathlib import Path
-from typing import IO, Any, List, Union
+from typing import IO, Any
 from uuid import uuid4
 
 from agno.document.base import Document
@@ -16,7 +18,7 @@ except ImportError:
 class DocxReader(Reader):
     """Reader for Doc/Docx files"""
 
-    def read(self, file: Union[Path, IO[Any]]) -> List[Document]:
+    def read(self, file: Path | IO[Any]) -> list[Document]:
         """Read a docx file and return a list of documents"""
         try:
             if isinstance(file, Path):
@@ -51,7 +53,7 @@ class DocxReader(Reader):
             logger.error(f"Error reading file: {e}")
             return []
 
-    async def async_read(self, file: Union[Path, IO[Any]]) -> List[Document]:
+    async def async_read(self, file: Path | IO[Any]) -> list[Document]:
         """Asynchronously read a docx file and return a list of documents"""
         try:
             return await asyncio.to_thread(self.read, file)

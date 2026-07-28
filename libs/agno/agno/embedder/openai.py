@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from typing_extensions import Literal
 
@@ -18,20 +20,20 @@ class OpenAIEmbedder(Embedder):
     id: str = "text-embedding-3-small"
     dimensions: int = 1536
     encoding_format: Literal["float", "base64"] = "float"
-    user: Optional[str] = None
-    api_key: Optional[str] = None
-    organization: Optional[str] = None
-    base_url: Optional[str] = None
-    request_params: Optional[Dict[str, Any]] = None
-    client_params: Optional[Dict[str, Any]] = None
-    openai_client: Optional[OpenAIClient] = None
+    user: str | None = None
+    api_key: str | None = None
+    organization: str | None = None
+    base_url: str | None = None
+    request_params: dict[str, Any] | None = None
+    client_params: dict[str, Any] | None = None
+    openai_client: OpenAIClient | None = None
 
     @property
     def client(self) -> OpenAIClient:
         if self.openai_client:
             return self.openai_client
 
-        _client_params: Dict[str, Any] = {
+        _client_params: dict[str, Any] = {
             "api_key": self.api_key,
             "organization": self.organization,
             "base_url": self.base_url,
@@ -43,7 +45,7 @@ class OpenAIEmbedder(Embedder):
         return self.openai_client
 
     def response(self, text: str) -> CreateEmbeddingResponse:
-        _request_params: Dict[str, Any] = {
+        _request_params: dict[str, Any] = {
             "input": text,
             "model": self.id,
             "encoding_format": self.encoding_format,
@@ -56,7 +58,7 @@ class OpenAIEmbedder(Embedder):
             _request_params.update(self.request_params)
         return self.client.embeddings.create(**_request_params)
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         response: CreateEmbeddingResponse = self.response(text=text)
         try:
             return response.data[0].embedding
@@ -64,7 +66,7 @@ class OpenAIEmbedder(Embedder):
             logger.warning(e)
             return []
 
-    def get_embedding_and_usage(self, text: str) -> Tuple[List[float], Optional[Dict]]:
+    def get_embedding_and_usage(self, text: str) -> tuple[list[float], dict | None]:
         response: CreateEmbeddingResponse = self.response(text=text)
 
         embedding = response.data[0].embedding

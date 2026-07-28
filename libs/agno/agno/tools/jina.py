@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
@@ -9,21 +11,21 @@ from agno.utils.log import log_info, logger
 
 
 class JinaReaderToolsConfig(BaseModel):
-    api_key: Optional[str] = Field(None, description="API key for Jina Reader")
+    api_key: str | None = Field(None, description="API key for Jina Reader")
     base_url: HttpUrl = Field("https://r.jina.ai/", description="Base URL for Jina Reader API")  # type: ignore
     search_url: HttpUrl = Field("https://s.jina.ai/", description="Search URL for Jina Reader API")  # type: ignore
     max_content_length: int = Field(10000, description="Maximum content length in characters")
-    timeout: Optional[int] = Field(None, description="Timeout for Jina Reader API requests")
+    timeout: int | None = Field(None, description="Timeout for Jina Reader API requests")
 
 
 class JinaReaderTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = getenv("JINA_API_KEY"),
+        api_key: str | None = getenv("JINA_API_KEY"),
         base_url: str = "https://r.jina.ai/",
         search_url: str = "https://s.jina.ai/",
         max_content_length: int = 10000,
-        timeout: Optional[int] = None,
+        timeout: int | None = None,
         read_url: bool = True,
         search_query: bool = False,
         **kwargs,
@@ -36,7 +38,7 @@ class JinaReaderTools(Toolkit):
             timeout=timeout,
         )
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if read_url:
             tools.append(self.read_url)
         if search_query:
@@ -54,7 +56,7 @@ class JinaReaderTools(Toolkit):
             content = response.json()
             return self._truncate_content(str(content))
         except Exception as e:
-            error_msg = f"Error reading URL: {str(e)}"
+            error_msg = f"Error reading URL: {e!s}"
             logger.error(error_msg)
             return error_msg
 
@@ -68,11 +70,11 @@ class JinaReaderTools(Toolkit):
             content = response.json()
             return self._truncate_content(str(content))
         except Exception as e:
-            error_msg = f"Error performing search: {str(e)}"
+            error_msg = f"Error performing search: {e!s}"
             logger.error(error_msg)
             return error_msg
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         headers = {
             "Accept": "application/json",
             "X-With-Links-Summary": "true",

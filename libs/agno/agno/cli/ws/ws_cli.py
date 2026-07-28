@@ -3,8 +3,10 @@
 This is the entrypoint for the `agno ws` application.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import cast
 
 import typer
 
@@ -33,21 +35,21 @@ Run `ag ws [COMMAND] --help` for more info.
 
 @ws_cli.command(short_help="Create a new workspace in the current directory.")
 def create(
-    name: Optional[str] = typer.Option(
+    name: str | None = typer.Option(
         None,
         "-n",
         "--name",
         help="Name of the new workspace.",
         show_default=False,
     ),
-    template: Optional[str] = typer.Option(
+    template: str | None = typer.Option(
         None,
         "-t",
         "--template",
         help="Starter template for the workspace.",
         show_default=False,
     ),
-    url: Optional[str] = typer.Option(
+    url: str | None = typer.Option(
         None,
         "-u",
         "--url",
@@ -78,7 +80,7 @@ def create(
 
 @ws_cli.command(short_help="Setup workspace from the current directory")
 def setup(
-    path: Optional[str] = typer.Argument(
+    path: str | None = typer.Argument(
         None,
         help="Path to workspace [default: current directory]",
         show_default=False,
@@ -103,7 +105,7 @@ def setup(
     from agno.workspace.operator import setup_workspace
 
     # By default, we assume this command is run from the workspace directory
-    ws_root_path: Path = Path(".").resolve()
+    ws_root_path: Path = Path.cwd()
 
     # If the user provides a path, use that to setup the workspace
     if path is not None:
@@ -113,17 +115,17 @@ def setup(
 
 @ws_cli.command(short_help="Create resources for the active workspace")
 def up(
-    resource_filter: Optional[str] = typer.Argument(
+    resource_filter: str | None = typer.Argument(
         None,
         help="Resource filter. Format - ENV:INFRA:GROUP:NAME:TYPE",
     ),
-    env_filter: Optional[str] = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy."),
-    infra_filter: Optional[str] = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
-    group_filter: Optional[str] = typer.Option(
+    env_filter: str | None = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy."),
+    infra_filter: str | None = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
+    group_filter: str | None = typer.Option(
         None, "-g", "--group", metavar="", help="Filter resources using group name."
     ),
-    name_filter: Optional[str] = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
-    type_filter: Optional[str] = typer.Option(
+    name_filter: str | None = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
+    type_filter: str | None = typer.Option(
         None,
         "-t",
         "--type",
@@ -148,13 +150,13 @@ def up(
         "--debug",
         help="Print debug logs.",
     ),
-    force: Optional[bool] = typer.Option(
+    force: bool | None = typer.Option(
         None,
         "-f",
         "--force",
         help="Force create resources where applicable.",
     ),
-    pull: Optional[bool] = typer.Option(
+    pull: bool | None = typer.Option(
         None,
         "-p",
         "--pull",
@@ -189,7 +191,7 @@ def up(
     from agno.workspace.helpers import get_workspace_dir_path
     from agno.workspace.operator import setup_workspace, start_workspace
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
@@ -198,11 +200,11 @@ def up(
     agno_config = cast(AgnoCliConfig, agno_config)
 
     # Workspace to start
-    ws_to_start: Optional[WorkspaceConfig] = None
+    ws_to_start: WorkspaceConfig | None = None
 
     # If there is an existing workspace at current path, use that workspace
-    current_path: Path = Path(".").resolve()
-    ws_at_current_path: Optional[WorkspaceConfig] = agno_config.get_ws_config_by_path(current_path)
+    current_path: Path = Path.cwd()
+    ws_at_current_path: WorkspaceConfig | None = agno_config.get_ws_config_by_path(current_path)
     if ws_at_current_path is not None:
         logger.debug(f"Found workspace at: {ws_at_current_path.ws_root_path}")
         if str(ws_at_current_path.ws_root_path) != agno_config.active_ws_dir:
@@ -222,7 +224,7 @@ def up(
 
     # If there's no workspace at current path, check if an active workspace exists
     if ws_to_start is None:
-        active_ws_config: Optional[WorkspaceConfig] = agno_config.get_active_ws_config()
+        active_ws_config: WorkspaceConfig | None = agno_config.get_active_ws_config()
         # If there's an active workspace, use that workspace
         if active_ws_config is not None:
             ws_to_start = active_ws_config
@@ -235,11 +237,11 @@ def up(
             print_available_workspaces(avl_ws)
         return
 
-    target_env: Optional[str] = None
-    target_infra: Optional[str] = None
-    target_group: Optional[str] = None
-    target_name: Optional[str] = None
-    target_type: Optional[str] = None
+    target_env: str | None = None
+    target_infra: str | None = None
+    target_group: str | None = None
+    target_name: str | None = None
+    target_type: str | None = None
 
     # derive env:infra:name:type:group from ws_filter
     if resource_filter is not None:
@@ -288,19 +290,17 @@ def up(
 
 @ws_cli.command(short_help="Delete resources for active workspace")
 def down(
-    resource_filter: Optional[str] = typer.Argument(
+    resource_filter: str | None = typer.Argument(
         None,
         help="Resource filter. Format - ENV:INFRA:GROUP:NAME:TYPE",
     ),
     env_filter: str = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to shut down."),
-    infra_filter: Optional[str] = typer.Option(
-        None, "-i", "--infra", metavar="", help="Filter the infra to shut down."
-    ),
-    group_filter: Optional[str] = typer.Option(
+    infra_filter: str | None = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to shut down."),
+    group_filter: str | None = typer.Option(
         None, "-g", "--group", metavar="", help="Filter resources using group name."
     ),
-    name_filter: Optional[str] = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
-    type_filter: Optional[str] = typer.Option(
+    name_filter: str | None = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
+    type_filter: str | None = typer.Option(
         None,
         "-t",
         "--type",
@@ -356,7 +356,7 @@ def down(
     from agno.workspace.helpers import get_workspace_dir_path
     from agno.workspace.operator import setup_workspace, stop_workspace
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
@@ -364,11 +364,11 @@ def down(
             return
 
     # Workspace to stop
-    ws_to_stop: Optional[WorkspaceConfig] = None
+    ws_to_stop: WorkspaceConfig | None = None
 
     # If there is an existing workspace at current path, use that workspace
-    current_path: Path = Path(".").resolve()
-    ws_at_current_path: Optional[WorkspaceConfig] = agno_config.get_ws_config_by_path(current_path)
+    current_path: Path = Path.cwd()
+    ws_at_current_path: WorkspaceConfig | None = agno_config.get_ws_config_by_path(current_path)
     if ws_at_current_path is not None:
         logger.debug(f"Found workspace at: {ws_at_current_path.ws_root_path}")
         if str(ws_at_current_path.ws_root_path) != agno_config.active_ws_dir:
@@ -388,7 +388,7 @@ def down(
 
     # If there's no workspace at current path, check if an active workspace exists
     if ws_to_stop is None:
-        active_ws_config: Optional[WorkspaceConfig] = agno_config.get_active_ws_config()
+        active_ws_config: WorkspaceConfig | None = agno_config.get_active_ws_config()
         # If there's an active workspace, use that workspace
         if active_ws_config is not None:
             ws_to_stop = active_ws_config
@@ -401,11 +401,11 @@ def down(
             print_available_workspaces(avl_ws)
         return
 
-    target_env: Optional[str] = None
-    target_infra: Optional[str] = None
-    target_group: Optional[str] = None
-    target_name: Optional[str] = None
-    target_type: Optional[str] = None
+    target_env: str | None = None
+    target_infra: str | None = None
+    target_group: str | None = None
+    target_name: str | None = None
+    target_type: str | None = None
 
     # derive env:infra:name:type:group from ws_filter
     if resource_filter is not None:
@@ -453,17 +453,17 @@ def down(
 
 @ws_cli.command(short_help="Update resources for active workspace")
 def patch(
-    resource_filter: Optional[str] = typer.Argument(
+    resource_filter: str | None = typer.Argument(
         None,
         help="Resource filter. Format - ENV:INFRA:GROUP:NAME:TYPE",
     ),
     env_filter: str = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to patch."),
-    infra_filter: Optional[str] = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to patch."),
-    group_filter: Optional[str] = typer.Option(
+    infra_filter: str | None = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to patch."),
+    group_filter: str | None = typer.Option(
         None, "-g", "--group", metavar="", help="Filter resources using group name."
     ),
-    name_filter: Optional[str] = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
-    type_filter: Optional[str] = typer.Option(
+    name_filter: str | None = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
+    type_filter: str | None = typer.Option(
         None,
         "-t",
         "--type",
@@ -494,7 +494,7 @@ def patch(
         "--force",
         help="Force",
     ),
-    pull: Optional[bool] = typer.Option(
+    pull: bool | None = typer.Option(
         None,
         "-p",
         "--pull",
@@ -525,7 +525,7 @@ def patch(
     from agno.workspace.helpers import get_workspace_dir_path
     from agno.workspace.operator import setup_workspace, update_workspace
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
@@ -533,11 +533,11 @@ def patch(
             return
 
     # Workspace to patch
-    ws_to_patch: Optional[WorkspaceConfig] = None
+    ws_to_patch: WorkspaceConfig | None = None
 
     # If there is an existing workspace at current path, use that workspace
-    current_path: Path = Path(".").resolve()
-    ws_at_current_path: Optional[WorkspaceConfig] = agno_config.get_ws_config_by_path(current_path)
+    current_path: Path = Path.cwd()
+    ws_at_current_path: WorkspaceConfig | None = agno_config.get_ws_config_by_path(current_path)
     if ws_at_current_path is not None:
         logger.debug(f"Found workspace at: {ws_at_current_path.ws_root_path}")
         if str(ws_at_current_path.ws_root_path) != agno_config.active_ws_dir:
@@ -557,7 +557,7 @@ def patch(
 
     # If there's no workspace at current path, check if an active workspace exists
     if ws_to_patch is None:
-        active_ws_config: Optional[WorkspaceConfig] = agno_config.get_active_ws_config()
+        active_ws_config: WorkspaceConfig | None = agno_config.get_active_ws_config()
         # If there's an active workspace, use that workspace
         if active_ws_config is not None:
             ws_to_patch = active_ws_config
@@ -570,11 +570,11 @@ def patch(
             print_available_workspaces(avl_ws)
         return
 
-    target_env: Optional[str] = None
-    target_infra: Optional[str] = None
-    target_group: Optional[str] = None
-    target_name: Optional[str] = None
-    target_type: Optional[str] = None
+    target_env: str | None = None
+    target_infra: str | None = None
+    target_group: str | None = None
+    target_name: str | None = None
+    target_type: str | None = None
 
     # derive env:infra:name:type:group from ws_filter
     if resource_filter is not None:
@@ -623,17 +623,17 @@ def patch(
 
 @ws_cli.command(short_help="Restart resources for active workspace")
 def restart(
-    resource_filter: Optional[str] = typer.Argument(
+    resource_filter: str | None = typer.Argument(
         None,
         help="Resource filter. Format - ENV:INFRA:GROUP:NAME:TYPE",
     ),
     env_filter: str = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to restart."),
-    infra_filter: Optional[str] = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to restart."),
-    group_filter: Optional[str] = typer.Option(
+    infra_filter: str | None = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to restart."),
+    group_filter: str | None = typer.Option(
         None, "-g", "--group", metavar="", help="Filter resources using group name."
     ),
-    name_filter: Optional[str] = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
-    type_filter: Optional[str] = typer.Option(
+    name_filter: str | None = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
+    type_filter: str | None = typer.Option(
         None,
         "-t",
         "--type",
@@ -664,7 +664,7 @@ def restart(
         "--force",
         help="Force",
     ),
-    pull: Optional[bool] = typer.Option(
+    pull: bool | None = typer.Option(
         None,
         "-p",
         "--pull",
@@ -736,14 +736,14 @@ def config(
     from agno.utils.load_env import load_env
     from agno.workspace.config import WorkspaceConfig
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
             log_config_not_available_msg()
             return
 
-    active_ws_config: Optional[WorkspaceConfig] = agno_config.get_active_ws_config()
+    active_ws_config: WorkspaceConfig | None = agno_config.get_active_ws_config()
     if active_ws_config is None:
         log_active_workspace_not_available()
         avl_ws = agno_config.available_ws
@@ -760,7 +760,7 @@ def config(
 
 @ws_cli.command(short_help="Delete workspace record")
 def delete(
-    ws_name: Optional[str] = typer.Option(None, "-ws", help="Name of the workspace to delete"),
+    ws_name: str | None = typer.Option(None, "-ws", help="Name of the workspace to delete"),
     all_workspaces: bool = typer.Option(
         False,
         "-a",
@@ -790,14 +790,14 @@ def delete(
     from agno.cli.operator import initialize_agno
     from agno.workspace.operator import delete_workspace
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
             log_config_not_available_msg()
             return
 
-    ws_to_delete: List[Path] = []
+    ws_to_delete: list[Path] = []
     # Delete workspace by name if provided
     if ws_name is not None:
         ws_config = agno_config.get_ws_config_by_dir_name(ws_name)

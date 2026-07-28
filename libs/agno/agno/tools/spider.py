@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 
 try:
@@ -5,7 +7,7 @@ try:
 except ImportError:
     raise ImportError("`spider-client` not installed. Please install using `pip install spider-client`")
 
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools.toolkit import Toolkit
 from agno.utils.log import log_info, logger
@@ -14,16 +16,16 @@ from agno.utils.log import log_info, logger
 class SpiderTools(Toolkit):
     def __init__(
         self,
-        max_results: Optional[int] = None,
-        url: Optional[str] = None,
-        optional_params: Optional[dict] = None,
+        max_results: int | None = None,
+        url: str | None = None,
+        optional_params: dict | None = None,
         **kwargs,
     ):
         self.max_results = max_results
         self.url = url
         self.optional_params = optional_params or {}
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.search)
         tools.append(self.scrape)
         tools.append(self.crawl)
@@ -50,7 +52,7 @@ class SpiderTools(Toolkit):
         """
         return self._scrape(url)
 
-    def crawl(self, url: str, limit: Optional[int] = None) -> str:
+    def crawl(self, url: str, limit: int | None = None) -> str:
         """Use this function to crawl the web.
         Args:
             url (str): The URL of the webpage to crawl.
@@ -82,7 +84,7 @@ class SpiderTools(Toolkit):
             logger.error(f"Error fetching content from spider: {e}")
             return f"Error fetching content from spider: {e}"
 
-    def _crawl(self, url: str, limit: Optional[int] = None) -> str:
+    def _crawl(self, url: str, limit: int | None = None) -> str:
         app = ExternalSpider()
         log_info(f"Fetching content from spider for url: {url}")
         try:

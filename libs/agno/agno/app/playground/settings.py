@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Optional
-
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
@@ -18,11 +16,11 @@ class PlaygroundSettings(BaseSettings):
     # Set to False to disable docs server at /docs and /redoc
     docs_enabled: bool = True
 
-    secret_key: Optional[str] = None
+    secret_key: str | None = None
 
     # Cors origin list to allow requests from.
     # This list is set using the set_cors_origin_list validator
-    cors_origin_list: Optional[List[str]] = Field(None, validate_default=True)
+    cors_origin_list: list[str] | None = Field(None, validate_default=True)
 
     @field_validator("env", mode="before")
     def validate_playground_env(cls, env):

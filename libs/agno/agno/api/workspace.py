@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from __future__ import annotations
 
 from httpx import Response
 
@@ -15,7 +15,7 @@ from agno.cli.settings import agno_cli_settings
 from agno.utils.log import logger
 
 
-def get_teams_for_user(user: UserSchema) -> Optional[List[TeamSchema]]:
+def get_teams_for_user(user: UserSchema) -> list[TeamSchema] | None:
     logger.debug("--**-- Reading teams for user")
     with api.AuthenticatedClient() as api_client:
         try:
@@ -29,11 +29,11 @@ def get_teams_for_user(user: UserSchema) -> Optional[List[TeamSchema]]:
             if invalid_response(r):
                 return None
 
-            response_json: Optional[List[Dict]] = r.json()
+            response_json: list[dict] | None = r.json()
             if response_json is None:
                 return None
 
-            teams: List[TeamSchema] = [TeamSchema.model_validate(team) for team in response_json]
+            teams: list[TeamSchema] = [TeamSchema.model_validate(team) for team in response_json]
             return teams
         except Exception as e:
             logger.debug(f"Could not read teams: {e}")
@@ -41,8 +41,8 @@ def get_teams_for_user(user: UserSchema) -> Optional[List[TeamSchema]]:
 
 
 def create_workspace_for_user(
-    user: UserSchema, workspace: WorkspaceCreate, team: Optional[TeamIdentifier] = None
-) -> Optional[WorkspaceSchema]:
+    user: UserSchema, workspace: WorkspaceCreate, team: TeamIdentifier | None = None
+) -> WorkspaceSchema | None:
     logger.debug("--**-- Creating workspace")
     with api.AuthenticatedClient() as api_client:
         try:
@@ -66,7 +66,7 @@ def create_workspace_for_user(
                 logger.error(error_msg)
                 return None
 
-            response_json: Union[Dict, List] = r.json()
+            response_json: dict | list = r.json()
             if response_json is None:
                 return None
 
@@ -78,7 +78,7 @@ def create_workspace_for_user(
     return None
 
 
-def update_workspace_for_user(user: UserSchema, workspace: WorkspaceUpdate) -> Optional[WorkspaceSchema]:
+def update_workspace_for_user(user: UserSchema, workspace: WorkspaceUpdate) -> WorkspaceSchema | None:
     logger.debug("--**-- Updating workspace for user")
     with api.AuthenticatedClient() as api_client:
         try:
@@ -99,7 +99,7 @@ def update_workspace_for_user(user: UserSchema, workspace: WorkspaceUpdate) -> O
                 logger.error(error_msg)
                 return None
 
-            response_json: Union[Dict, List] = r.json()
+            response_json: dict | list = r.json()
             if response_json is None:
                 return None
 
@@ -113,7 +113,7 @@ def update_workspace_for_user(user: UserSchema, workspace: WorkspaceUpdate) -> O
 
 def update_workspace_for_team(
     user: UserSchema, workspace: WorkspaceUpdate, team: TeamIdentifier
-) -> Optional[WorkspaceSchema]:
+) -> WorkspaceSchema | None:
     logger.debug("--**-- Updating workspace for team")
     with api.AuthenticatedClient() as api_client:
         try:
@@ -134,7 +134,7 @@ def update_workspace_for_team(
                 logger.error(error_msg)
                 return None
 
-            response_json: Union[Dict, List] = r.json()
+            response_json: dict | list = r.json()
             if response_json is None:
                 return None
 
@@ -163,13 +163,11 @@ def log_workspace_event(user: UserSchema, workspace_event: WorkspaceEvent) -> bo
             if invalid_response(r):
                 return False
 
-            response_json: Union[Dict, List] = r.json()
+            response_json: dict | list = r.json()
             if response_json is None:
                 return False
 
-            if isinstance(response_json, dict) and response_json.get("status") == "success":
-                return True
-            return False
+            return bool(isinstance(response_json, dict) and response_json.get("status") == "success")
         except Exception as e:
             logger.debug(f"Could not log workspace event: {e}")
     return False

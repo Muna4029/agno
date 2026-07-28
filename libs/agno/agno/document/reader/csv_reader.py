@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import csv
 import io
 import os
 from pathlib import Path
-from typing import IO, Any, List, Optional, Union
+from typing import IO, Any
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -22,7 +24,7 @@ from agno.utils.log import logger
 class CSVReader(Reader):
     """Reader for CSV files"""
 
-    def read(self, file: Union[Path, IO[Any]], delimiter: str = ",", quotechar: str = '"') -> List[Document]:
+    def read(self, file: Path | IO[Any], delimiter: str = ",", quotechar: str = '"') -> list[Document]:
         try:
             if isinstance(file, Path):
                 if not file.exists():
@@ -59,8 +61,8 @@ class CSVReader(Reader):
             return []
 
     async def async_read(
-        self, file: Union[Path, IO[Any]], delimiter: str = ",", quotechar: str = '"', page_size: int = 1000
-    ) -> List[Document]:
+        self, file: Path | IO[Any], delimiter: str = ",", quotechar: str = '"', page_size: int = 1000
+    ) -> list[Document]:
         """
         Read a CSV file asynchronously, processing batches of rows concurrently.
 
@@ -107,7 +109,7 @@ class CSVReader(Reader):
                 for i in range(0, total_rows, page_size):
                     pages.append(rows[i : i + page_size])
 
-                async def _process_page(page_number: int, page_rows: List[List[str]]) -> Document:
+                async def _process_page(page_number: int, page_rows: list[list[str]]) -> Document:
                     """Process a page of rows into a document"""
                     start_row = (page_number - 1) * page_size + 1
                     page_content = " ".join(", ".join(row) for row in page_rows)
@@ -135,11 +137,11 @@ class CSVReader(Reader):
 class CSVUrlReader(Reader):
     """Reader for CSV files"""
 
-    def __init__(self, proxy: Optional[str] = None, **kwargs):
+    def __init__(self, proxy: str | None = None, **kwargs):
         super().__init__(**kwargs)
         self.proxy = proxy
 
-    def read(self, url: str) -> List[Document]:
+    def read(self, url: str) -> list[Document]:
         if not url:
             raise ValueError("No URL provided")
 
@@ -158,7 +160,7 @@ class CSVUrlReader(Reader):
 
         return documents
 
-    async def async_read(self, url: str) -> List[Document]:
+    async def async_read(self, url: str) -> list[Document]:
         if not url:
             raise ValueError("No URL provided")
 
