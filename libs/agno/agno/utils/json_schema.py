@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Union, get_args, get_origin
+from typing import Any, Union, get_args, get_origin, get_type_hints
 
 from pydantic import BaseModel
 
@@ -151,8 +151,15 @@ def get_json_schema_for_arg(type_hint: Any) -> dict[str, Any] | None:
         properties = {}
         required = []
 
+        # Use get_type_hints to resolve string annotations (from __future__ import annotations)
+        try:
+            type_hints_map = get_type_hints(type_hint)
+        except Exception:
+            type_hints_map = {}
+
         for field_name, field in type_hint.__dataclass_fields__.items():
-            field_type = field.type
+            # Prefer resolved type hints over field.type which might be a string
+            field_type = type_hints_map.get(field_name, field.type)
             field_schema = get_json_schema_for_arg(field_type)
 
             if (
