@@ -176,7 +176,15 @@ def get_json_schema_for_arg(type_hint: Any) -> dict[str, Any] | None:
             arg_json_schema["required"] = required
         return arg_json_schema
 
-    json_schema: dict[str, Any] = {"type": get_json_type_for_py_type(type_hint.__name__)}
+    # Handle string annotations (from __future__ import annotations)
+    if isinstance(type_hint, str):
+        json_schema: dict[str, Any] = {"type": get_json_type_for_py_type(type_hint)}
+    elif hasattr(type_hint, "__name__"):
+        json_schema: dict[str, Any] = {"type": get_json_type_for_py_type(type_hint.__name__)}
+    else:
+        # For unknown types, default to object
+        json_schema: dict[str, Any] = {"type": "object"}
+
     if json_schema["type"] == "object":
         json_schema["properties"] = {}
         json_schema["additionalProperties"] = False

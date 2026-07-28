@@ -698,5 +698,7 @@ def test_tool_decorator_with_complex_types():
     assert complex_types_func.parameters["properties"]["param1"]["type"] == "array"
     assert complex_types_func.parameters["properties"]["param1"]["items"]["type"] == "string"
     assert complex_types_func.parameters["properties"]["param2"]["type"] == "object"
-    assert complex_types_func.parameters["properties"]["param3"]["type"] == "boolean"
+    # With | union syntax, optional types generate anyOf instead of a simple type
+    assert "anyOf" in complex_types_func.parameters["properties"]["param3"]
+    assert any(item["type"] == "boolean" for item in complex_types_func.parameters["properties"]["param3"]["anyOf"])
     assert "param3" not in complex_types_func.parameters["required"]
