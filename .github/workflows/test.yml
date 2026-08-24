@@ -64,8 +64,6 @@ jobs:
 
     - name: Pin zep-cloud to working version
       run: |
-        VIRTUAL_ENV=.venv uv pip install -e "libs/agno[tests]"
-        VIRTUAL_ENV=.venv uv pip install pytest-cov
         VIRTUAL_ENV=.venv uv pip install --force-reinstall "zep-cloud==2.22.1"
 
     - name: Run tests for Agno
