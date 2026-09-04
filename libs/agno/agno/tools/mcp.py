@@ -4,6 +4,7 @@ from datetime import timedelta
 from os import environ
 from types import TracebackType
 from typing import Any, Dict, List, Literal, Optional, Union
+from contextlib import AsyncIterator
 
 from agno.tools import Toolkit
 from agno.tools.function import Function
@@ -14,7 +15,7 @@ try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.sse import sse_client
     from mcp.client.stdio import stdio_client
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import streamable_http_client
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`mcp` not installed. Please install using `pip install mcp`")
 
@@ -146,8 +147,8 @@ class MCPTools(Toolkit):
             self.server_params = StdioServerParameters(command=cmd, args=arguments, env=env)
 
         self._client = client
-        self._context = None
-        self._session_context = None
+        self._context: AsyncIterator[Any] | None = None
+        self._session_context: AsyncIterator[Any] | None = None
         self._initialized = False
 
     async def __aenter__(self) -> "MCPTools":
@@ -159,7 +160,7 @@ class MCPTools(Toolkit):
                 await self.initialize()
             return self
 
-        # Create a new session using stdio_client, sse_client or streamablehttp_client based on transport
+        # Create a new session using stdio_client, sse_client or streamable_http_client based on transport
         if self.transport == "sse":
             sse_params = asdict(self.server_params) if self.server_params is not None else {}
             if "url" not in sse_params:
@@ -170,7 +171,7 @@ class MCPTools(Toolkit):
             streamable_http_params = asdict(self.server_params) if self.server_params is not None else {}
             if "url" not in streamable_http_params:
                 streamable_http_params["url"] = self.url
-            self._context = streamablehttp_client(**streamable_http_params)
+            self._context = streamable_http_client(**streamable_http_params)
             params_timeout = streamable_http_params.get("timeout", self.timeout_seconds)
             if isinstance(params_timeout, timedelta):
                 params_timeout = int(params_timeout.total_seconds())
@@ -184,8 +185,8 @@ class MCPTools(Toolkit):
         session_params = await self._context.__aenter__()  # type: ignore
         read, write = session_params[0:2]
 
-        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))
-        self.session = await self._session_context.__aenter__()  # type: ignore
+        self._session_context = ClientSession(read, write, read_timeout_seconds=client_timeout)
+        self.session = await self._session_context.__aenter__()  # type: ignore[attr-defined]
 
         # Initialize with the new session
         await self.initialize()
@@ -196,11 +197,11 @@ class MCPTools(Toolkit):
         if self._session_context is not None:
             await self._session_context.__aexit__(exc_type, exc_val, exc_tb)
             self.session = None
-            self._session_context = None
+            self._session_context: AsyncIterator[Any] | None = None
 
         if self._context is not None:
             await self._context.__aexit__(exc_type, exc_val, exc_tb)
-            self._context = None
+            self._context: AsyncIterator[Any] | None = None
 
         self._initialized = False
 
@@ -386,7 +387,7 @@ class MultiMCPTools(Toolkit):
             # Handle Streamable HTTP connections
             elif isinstance(server_params, StreamableHTTPClientParams):
                 client_connection = await self._async_exit_stack.enter_async_context(
-                    streamablehttp_client(**asdict(server_params))
+                    streamable_http_client(**asdict(server_params))
                 )
                 read, write = client_connection[0:2]
                 session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))

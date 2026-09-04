@@ -4530,7 +4530,7 @@ class Agent:
         ):
             user_msg_content += "\n\nUse the following references from the knowledge base if it helps:\n"
             user_msg_content += "<references>\n"
-            user_msg_content += self.convert_documents_to_string(references.references) + "\n"
+            user_msg_content += self.convert_documents_to_string([d for d in references.references if isinstance(d, dict)]) + "\n"
             user_msg_content += "</references>"
         # 4.2 Add context to user message
         if self.add_context and self.context is not None:

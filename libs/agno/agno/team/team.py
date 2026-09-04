@@ -4810,7 +4810,8 @@ class Team:
     ):
         # Get references from the knowledge base to use in the user message
         references = None
-        self.run_response = cast(RunResponse, self.run_response)
+        if self.run_response is None:
+            self.run_response = TeamRunResponse(run_id=self.run_id, session_id=self.session_id, team_id=self.team_id)
         if self.add_references and message:
             message_str: str
             if isinstance(message, str):
@@ -4831,11 +4832,12 @@ class Team:
                         query=message_str, references=docs_from_knowledge, time=round(retrieval_timer.elapsed, 4)
                     )
                     # Add the references to the run_response
-                    if self.run_response.extra_data is None:
-                        self.run_response.extra_data = RunResponseExtraData()
-                    if self.run_response.extra_data.references is None:
-                        self.run_response.extra_data.references = []
-                    self.run_response.extra_data.references.append(references)
+                    if self.run_response is not None:
+                        if self.run_response.extra_data is None:
+                            self.run_response.extra_data = RunResponseExtraData()
+                        if self.run_response.extra_data.references is None:
+                            self.run_response.extra_data.references = []
+                        self.run_response.extra_data.references.append(references)
                 retrieval_timer.stop()
                 log_debug(f"Time to get references: {retrieval_timer.elapsed:.4f}s")
             except Exception as e:
@@ -4866,7 +4868,7 @@ class Team:
             ):
                 user_message_content += "\n\nUse the following references from the knowledge base if it helps:\n"
                 user_message_content += "<references>\n"
-                user_message_content += self._convert_documents_to_string(references.references) + "\n"
+                user_message_content += self._convert_documents_to_string([d for d in references.references if isinstance(d, dict)]) + "\n"
                 user_message_content += "</references>"
             # Add context to user message
             if self.add_context and self.context is not None:
