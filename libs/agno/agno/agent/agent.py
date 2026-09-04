@@ -4182,6 +4182,7 @@ class Agent:
         agent_session_from_db = self.storage.read(session_id=session_id)
         if (
             agent_session_from_db is not None
+            and hasattr(agent_session_from_db, "memory")
             and agent_session_from_db.memory is not None
             and "runs" in agent_session_from_db.memory  # type: ignore
         ):
