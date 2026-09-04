@@ -271,6 +271,7 @@ def get_async_router(
         agent = None
         team = None
         workflow = None
+        workflow_input_dict: dict = {}
 
         # Only one of agent_id, team_id or workflow_id can be provided
         if agent_id and team_id or agent_id and workflow_id or team_id and workflow_id:
@@ -298,7 +299,7 @@ def get_async_router(
             if not workflow_input:
                 raise HTTPException(status_code=400, detail="Workflow input is required")
             try:
-                workflow_input = json.loads(workflow_input)
+                workflow_input_dict = json.loads(workflow_input)
             except json.JSONDecodeError:
                 raise HTTPException(status_code=400, detail="Workflow input must be a valid JSON string")
 
@@ -352,7 +353,7 @@ def get_async_router(
                 workflow_instance.user_id = user_id
                 workflow_instance.session_name = None
                 return StreamingResponse(
-                    (json.dumps(asdict(result)) for result in await workflow_instance.arun(**(workflow_input or {}))),
+                    (json.dumps(asdict(result)) for result in await workflow_instance.arun(**workflow_input_dict)),
                     media_type="text/event-stream",
                 )
         else:
@@ -386,6 +387,6 @@ def get_async_router(
                 workflow_instance = workflow.deep_copy(update={"workflow_id": workflow_id})
                 workflow_instance.user_id = user_id
                 workflow_instance.session_name = None
-                return (await workflow_instance.arun(**(workflow_input or {}))).to_dict()
+                return (await workflow_instance.arun(**workflow_input_dict)).to_dict()
 
     return router
