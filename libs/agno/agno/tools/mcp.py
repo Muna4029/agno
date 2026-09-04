@@ -14,7 +14,7 @@ try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.sse import sse_client
     from mcp.client.stdio import stdio_client
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import streamable_http_client
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`mcp` not installed. Please install using `pip install mcp`")
 
@@ -159,18 +159,18 @@ class MCPTools(Toolkit):
                 await self.initialize()
             return self
 
-        # Create a new session using stdio_client, sse_client or streamablehttp_client based on transport
+        # Create a new session using stdio_client, sse_client or streamable_http_client based on transport
         if self.transport == "sse":
-            sse_params = asdict(self.server_params) if self.server_params is not None else {}
+            sse_params = asdict(self.server_params) if self.server_params is not None else {}  # type: ignore[arg-type]
             if "url" not in sse_params:
                 sse_params["url"] = self.url
-            self._context = sse_client(**sse_params)
+            self._context = sse_client(**sse_params)  # type: ignore[assignment]
             client_timeout = min(self.timeout_seconds, sse_params.get("timeout", self.timeout_seconds))
         elif self.transport == "streamable-http":
-            streamable_http_params = asdict(self.server_params) if self.server_params is not None else {}
+            streamable_http_params = asdict(self.server_params) if self.server_params is not None else {}  # type: ignore[arg-type]
             if "url" not in streamable_http_params:
                 streamable_http_params["url"] = self.url
-            self._context = streamablehttp_client(**streamable_http_params)
+            self._context = streamable_http_client(**streamable_http_params)  # type: ignore[assignment]
             client_timeout = min(self.timeout_seconds, streamable_http_params.get("timeout", self.timeout_seconds))
         else:
             if self.server_params is None:
@@ -181,7 +181,7 @@ class MCPTools(Toolkit):
         session_params = await self._context.__aenter__()  # type: ignore
         read, write = session_params[0:2]
 
-        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))
+        self._session_context = ClientSession(read, write, read_timeout_seconds=float(client_timeout))
         self.session = await self._session_context.__aenter__()  # type: ignore
 
         # Initialize with the new session
@@ -239,7 +239,7 @@ class MCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
@@ -383,7 +383,7 @@ class MultiMCPTools(Toolkit):
             # Handle Streamable HTTP connections
             elif isinstance(server_params, StreamableHTTPClientParams):
                 client_connection = await self._async_exit_stack.enter_async_context(
-                    streamablehttp_client(**asdict(server_params))
+                    streamable_http_client(**asdict(server_params))
                 )
                 read, write = client_connection[0:2]
                 session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
@@ -428,7 +428,7 @@ class MultiMCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
