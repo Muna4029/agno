@@ -182,12 +182,15 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    image_data: dict[str, str] = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
+    data: dict[str, str | dict[str, str]] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
@@ -232,12 +235,15 @@ def send_image_message(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    image_data: dict[str, str] = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
+    data: dict[str, str | dict[str, str]] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
