@@ -245,7 +245,7 @@ class SingleStoreStorage(Storage):
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
-            num_history_sessions: Number of most recent sessions to return
+            limit: Number of most recent sessions to return
             user_id: Filter by user ID
             entity_id: Filter by entity ID (agent_id, team_id, or workflow_id)
 
@@ -296,7 +296,7 @@ class SingleStoreStorage(Storage):
                 log_debug(f"Table does not exist: {self.table.name}")
                 self.create()
             else:
-                logger.error(f"Error getting last {num_history_sessions} sessions: {e}")
+                logger.error(f"Error getting last {limit} sessions: {e}")
 
         return sessions
 
