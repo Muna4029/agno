@@ -1,8 +1,8 @@
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 import httpx
 from pydantic import BaseModel
@@ -182,7 +182,7 @@ class Cerebras(Model):
             ):
                 # Ensure json_schema has strict=True as required by Cerebras API
                 schema = response_format["json_schema"]
-                if isinstance(schema.get("schema"), dict) and "strict" not in schema:
+                if isinstance(schema, dict) and isinstance(schema.get("schema"), dict) and "strict" not in schema:
                     schema["strict"] = True
 
                 request_params["response_format"] = response_format

@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union, cast
 
 from agno.document import Document
 from agno.knowledge.agent import AgentKnowledge
@@ -24,7 +24,9 @@ class DocumentKnowledgeBase(AgentKnowledge):
             if isinstance(item, dict) and "document" in item:
                 # Handle document with metadata
                 document = item["document"]
-                config = item.get("metadata", {})
+                if not isinstance(document, Document):
+                    raise ValueError(f"Invalid document format: expected Document, got {type(document)}")
+                config = cast(Dict[str, Any], item.get("metadata", {}))
                 if config:
                     log_info(f"Adding metadata {config} to document: {document.name}")
                     # Create a copy of the document with updated metadata
@@ -32,7 +34,7 @@ class DocumentKnowledgeBase(AgentKnowledge):
                         content=document.content,
                         id=document.id,
                         name=document.name,
-                        meta_data={**document.meta_data, **config},
+                        meta_data=dict(document.meta_data, **config),
                         embedder=document.embedder,
                         embedding=document.embedding,
                         usage=document.usage,
@@ -63,7 +65,9 @@ class DocumentKnowledgeBase(AgentKnowledge):
             if isinstance(item, dict) and "document" in item:
                 # Handle document with metadata
                 document = item["document"]
-                config = item.get("metadata", {})
+                if not isinstance(document, Document):
+                    raise ValueError(f"Invalid document format: expected Document, got {type(document)}")
+                config = cast(Dict[str, Any], item.get("metadata", {}))
                 if config:
                     log_info(f"Adding metadata {config} to document: {document.name}")
                     # Create a copy of the document with updated metadata
@@ -71,7 +75,7 @@ class DocumentKnowledgeBase(AgentKnowledge):
                         content=document.content,
                         id=document.id,
                         name=document.name,
-                        meta_data={**document.meta_data, **config},
+                        meta_data=dict(document.meta_data, **config),
                         embedder=document.embedder,
                         embedding=document.embedding,
                         usage=document.usage,
