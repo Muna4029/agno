@@ -739,7 +739,7 @@ class Team:
     @overload
     def run(
         self,
-        message: Union[str, List, Dict, Message, BaseModel],
+        message: Optional[Union[str, List, Dict, Message, BaseModel]] = None,
         *,
         stream: Literal[False] = False,
         stream_intermediate_steps: Optional[bool] = None,
@@ -751,6 +751,7 @@ class Team:
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
+        messages: Optional[Sequence[Union[Dict, Message]]] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> TeamRunResponse: ...
@@ -758,7 +759,7 @@ class Team:
     @overload
     def run(
         self,
-        message: Union[str, List, Dict, Message, BaseModel],
+        message: Optional[Union[str, List, Dict, Message, BaseModel]] = None,
         *,
         stream: Literal[True] = True,
         stream_intermediate_steps: Optional[bool] = None,
@@ -770,13 +771,14 @@ class Team:
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
+        messages: Optional[Sequence[Union[Dict, Message]]] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]: ...
 
     def run(
         self,
-        message: Union[str, List, Dict, Message, BaseModel],
+        message: Optional[Union[str, List, Dict, Message, BaseModel]] = None,
         *,
         stream: Optional[bool] = None,
         stream_intermediate_steps: Optional[bool] = None,
@@ -788,6 +790,7 @@ class Team:
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
+        messages: Optional[Sequence[Union[Dict, Message]]] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> Union[TeamRunResponse, Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]]:
@@ -902,6 +905,8 @@ class Team:
                     self.run_input = message.to_dict()
                 else:
                     self.run_input = message
+            elif messages is not None:
+                self.run_input = [m.to_dict() if isinstance(m, Message) else m for m in messages]
 
             # Run the team
             try:
@@ -915,6 +920,7 @@ class Team:
                         images=images,
                         videos=videos,
                         files=files,
+                        messages=messages,
                         knowledge_filters=effective_filters,
                         **kwargs,
                     )
@@ -927,6 +933,7 @@ class Team:
                         images=images,
                         videos=videos,
                         files=files,
+                        messages=messages,
                         knowledge_filters=effective_filters,
                         **kwargs,
                     )
@@ -1143,7 +1150,7 @@ class Team:
     @overload
     async def arun(
         self,
-        message: Union[str, List, Dict, Message, BaseModel],
+        message: Optional[Union[str, List, Dict, Message, BaseModel]] = None,
         *,
         stream: Literal[False] = False,
         stream_intermediate_steps: Optional[bool] = None,
@@ -1155,6 +1162,7 @@ class Team:
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
+        messages: Optional[Sequence[Union[Dict, Message]]] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> TeamRunResponse: ...
@@ -1162,7 +1170,7 @@ class Team:
     @overload
     async def arun(
         self,
-        message: Union[str, List, Dict, Message, BaseModel],
+        message: Optional[Union[str, List, Dict, Message, BaseModel]] = None,
         *,
         stream: Literal[True] = True,
         stream_intermediate_steps: Optional[bool] = None,
@@ -1174,13 +1182,14 @@ class Team:
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
+        messages: Optional[Sequence[Union[Dict, Message]]] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]: ...
 
     async def arun(
         self,
-        message: Union[str, List, Dict, Message, BaseModel],
+        message: Optional[Union[str, List, Dict, Message, BaseModel]] = None,
         *,
         stream: Optional[bool] = None,
         stream_intermediate_steps: Optional[bool] = None,
@@ -1192,6 +1201,7 @@ class Team:
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
+        messages: Optional[Sequence[Union[Dict, Message]]] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> Union[TeamRunResponse, AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]]:
@@ -1297,6 +1307,8 @@ class Team:
                     self.run_input = message.to_dict()
                 else:
                     self.run_input = message
+            elif messages is not None:
+                self.run_input = [m.to_dict() if isinstance(m, Message) else m for m in messages]
 
             # Run the team
             try:
@@ -1311,6 +1323,7 @@ class Team:
                         images=images,
                         videos=videos,
                         files=files,
+                        messages=messages,
                         knowledge_filters=effective_filters,
                         **kwargs,
                     )
@@ -1323,6 +1336,7 @@ class Team:
                         images=images,
                         videos=videos,
                         files=files,
+                        messages=messages,
                         knowledge_filters=effective_filters,
                         **kwargs,
                     )
@@ -5331,6 +5345,7 @@ class Team:
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
+        messages: Optional[Sequence[Union[Dict, Message]]] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> RunMessages:
@@ -5403,6 +5418,14 @@ class Team:
         if user_message is not None:
             run_messages.user_message = user_message
             run_messages.messages.append(user_message)
+
+        # Add messages to run_messages
+        if messages is not None:
+            for msg in messages:
+                if isinstance(msg, Message):
+                    run_messages.messages.append(msg)
+                elif isinstance(msg, dict):
+                    run_messages.messages.append(Message(**msg))
 
         return run_messages
 
