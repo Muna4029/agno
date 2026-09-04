@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Any, Optional, Union, cast
 
 import httpx
 import requests
@@ -182,12 +182,16 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
+    image_data: dict = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
+
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
@@ -195,7 +199,7 @@ async def send_image_message_async(
             import json
 
             log_debug(f"Request data: {json.dumps(data, indent=2)}")
-            response = await client.post(url, headers=headers, json=data)
+            response = await client.post(url, headers=headers, json=cast(dict[str, Any], data))
             response.raise_for_status()
             log_debug(f"Response: {response.text}")
 
@@ -204,7 +208,7 @@ async def send_image_message_async(
         log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")
         raise
     except Exception as e:
-        log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")
+        log_error(f"Unexpected error sending WhatsApp image message: {e!s}")
         raise
 
 
@@ -232,19 +236,23 @@ def send_image_message(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
+    image_data: dict = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
+
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
         import json
 
         log_debug(f"Request data: {json.dumps(data, indent=2)}")
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=cast(dict[str, Any], data))
         response.raise_for_status()
         log_debug(f"Response: {response.text}")
     except requests.exceptions.RequestException as e:
@@ -252,7 +260,7 @@ def send_image_message(
         log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")  # type: ignore
         raise
     except Exception as e:
-        log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")
+        log_error(f"Unexpected error sending WhatsApp image message: {e!s}")
         raise
 
 
