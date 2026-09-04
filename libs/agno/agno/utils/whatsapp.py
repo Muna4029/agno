@@ -46,7 +46,7 @@ def get_media(media_id: str) -> dict:
         response = requests.get(media_url, headers=headers)
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         data = response.content
-        return data
+        return {"data": data}
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 

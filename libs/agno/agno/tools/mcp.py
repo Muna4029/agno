@@ -368,8 +368,8 @@ class MultiMCPTools(Toolkit):
                 stdio_transport = await self._async_exit_stack.enter_async_context(stdio_client(server_params))
                 read, write = stdio_transport
                 session = await self._async_exit_stack.enter_async_context(
-                    ClientSession(read, write, read_timeout_seconds=timedelta(seconds=self.timeout_seconds))
-                )
+                    ClientSession(read, write, read_timeout_seconds=timedelta(seconds=self.timeout_seconds))  # type: ignore[attr-defined]
+                )  # type: ignore[attr-defined]
                 await self.initialize(session)
             # Handle SSE connections
             elif isinstance(server_params, SSEClientParams):
