@@ -676,7 +676,7 @@ class Agent:
         session_id: str,
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-    ) -> RunResponse:
+    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
         """Run the Agent and return the RunResponse.
 
         Steps:
@@ -1123,7 +1123,7 @@ class Agent:
         session_id: str,
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-    ) -> RunResponse:
+    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
         """Run the Agent and yield the RunResponse.
 
         Steps:
@@ -1791,7 +1791,7 @@ class Agent:
         session_id: str,
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-    ) -> RunResponse:
+    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
         """Continue a previous run.
 
         Steps:
@@ -2192,7 +2192,7 @@ class Agent:
         session_id: str,
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-    ) -> RunResponse:
+    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
         """Continue a previous run.
 
         Steps:
@@ -2358,7 +2358,7 @@ class Agent:
         run_messages: RunMessages,
         session_id: str,
         user_id: Optional[str] = None,
-    ) -> RunResponse:
+    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
         # Set the run response to paused
 
         run_response.status = RunStatus.paused
@@ -3300,7 +3300,7 @@ class Agent:
         created_at: Optional[int] = None,
         citations: Optional[Citations] = None,
         run_response: Optional[RunResponse] = None,
-    ) -> RunResponse:
+    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
         thinking_combined = (thinking or "") + (redacted_thinking or "")
 
         tools = None
