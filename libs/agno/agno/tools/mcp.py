@@ -516,7 +516,7 @@ class MultiMCPTools(Toolkit):
                 stdio_transport = await self._async_exit_stack.enter_async_context(stdio_client(server_params))
                 self._active_contexts.append(stdio_transport)
                 read, write = stdio_transport
-                session = await self._async_exit_stack.enter_async_context(
+                session = await self._async_exit_stack.enter_async_context(  # type: ignore[attr-defined]
                     ClientSession(read, write, read_timeout_seconds=timedelta(seconds=self.timeout_seconds))
                 )
                 self._active_contexts.append(session)
@@ -528,7 +528,7 @@ class MultiMCPTools(Toolkit):
                 )
                 self._active_contexts.append(client_connection)
                 read, write = client_connection
-                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
+                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))  # type: ignore[attr-defined]
                 self._active_contexts.append(session)
                 await self.initialize(session)
 
@@ -539,7 +539,7 @@ class MultiMCPTools(Toolkit):
                 )
                 self._active_contexts.append(client_connection)
                 read, write = client_connection[0:2]
-                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
+                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))  # type: ignore[attr-defined]
                 self._active_contexts.append(session)
                 await self.initialize(session)
 

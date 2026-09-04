@@ -6,9 +6,43 @@ from agno.tools.toolkit import Toolkit
 from agno.utils.log import log_debug, log_error, log_info, log_warning
 
 try:
-    from memori import Memori, create_memory_tool
+    from memori import Memori
 except ImportError:
     raise ImportError("`memorisdk` package not found. Please install it with `pip install memorisdk`")
+
+
+def create_memory_tool(memory_system: Memori):
+    """
+    Create a memory tool from a Memori instance.
+
+    This function creates a wrapper that provides an execute method
+    for searching memories using the Memori recall functionality.
+
+    Args:
+        memory_system: An initialized Memori instance
+
+    Returns:
+        An object with an execute method for searching memories
+    """
+
+    class MemoryTool:
+        def __init__(self, memori_instance: Memori):
+            self.memori = memori_instance
+
+        def execute(self, query: str, limit: int | None = None):
+            """
+            Execute a memory search query.
+
+            Args:
+                query: The search query string
+                limit: Optional maximum number of results
+
+            Returns:
+                List of search results from memory
+            """
+            return self.memori.recall(query, limit)
+
+    return MemoryTool(memory_system)
 
 
 class MemoriTools(Toolkit):
@@ -174,7 +208,7 @@ class MemoriTools(Toolkit):
 
         except Exception as e:
             log_error(f"Error searching memory: {e}")
-            return json.dumps({"success": False, "error": f"Memory search error: {str(e)}"})
+            return json.dumps({"success": False, "error": f"Memory search error: {e!s}"})
 
     def record_conversation(self, agent: Agent, content: str) -> str:
         """
@@ -214,7 +248,7 @@ class MemoriTools(Toolkit):
 
         except Exception as e:
             log_error(f"Error adding memory: {e}")
-            return json.dumps({"success": False, "error": f"Failed to add memory: {str(e)}"})
+            return json.dumps({"success": False, "error": f"Failed to add memory: {e!s}"})
 
     def get_memory_stats(
         self,
@@ -311,7 +345,7 @@ class MemoriTools(Toolkit):
 
         except Exception as e:
             log_error(f"Error getting memory stats: {e}")
-            return json.dumps({"success": False, "error": f"Failed to get memory statistics: {str(e)}"})
+            return json.dumps({"success": False, "error": f"Failed to get memory statistics: {e!s}"})
 
     def enable_memory_system(self) -> bool:
         """Enable the Memori memory system."""
@@ -382,6 +416,6 @@ def create_memori_search_tool(memori_toolkit: MemoriTools):
             return str(result) if result else "No relevant memories found"
 
         except Exception as e:
-            return f"Memory search error: {str(e)}"
+            return f"Memory search error: {e!s}"
 
     return search_memory
