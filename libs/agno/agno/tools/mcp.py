@@ -1,4 +1,4 @@
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, _AsyncGeneratorContextManager
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from os import environ
@@ -14,7 +14,7 @@ try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.sse import sse_client
     from mcp.client.stdio import stdio_client
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import streamable_http_client
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`mcp` not installed. Please install using `pip install mcp`")
 

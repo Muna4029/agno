@@ -51,7 +51,7 @@ def get_media(media_id: str) -> dict:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> dict:
+async def get_media_async(media_id: str) -> bytes | dict:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 

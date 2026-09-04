@@ -260,7 +260,7 @@ class Cerebras(Model):
             **self.get_request_kwargs(response_format=response_format, tools=tools),
         )  # type: ignore
 
-    async def ainvoke_stream(
+    async def ainvoke_stream(  # type: ignore[override]
         self,
         messages: List[Message],
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
