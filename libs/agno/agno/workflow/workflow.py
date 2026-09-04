@@ -208,7 +208,7 @@ class Workflow:
                         item.workflow_id = self.workflow_id
 
                         # Update the run_response with the content from the result
-                        if item.content is not None and isinstance(item.content, str):
+                        if self.run_response is not None and item.content is not None and isinstance(item.content, str):
                             self.run_response.content += item.content
                     else:
                         logger.warning(f"Workflow.run() should only yield RunResponse objects, got: {type(item)}")
@@ -315,7 +315,7 @@ class Workflow:
                         item.workflow_id = self.workflow_id
 
                         # Update the run_response with the content from the result
-                        if item.content is not None and isinstance(item.content, str):
+                        if self.run_response is not None and item.content is not None and isinstance(item.content, str):
                             self.run_response.content += item.content
                     else:
                         logger.warning(f"Workflow.arun() should only yield RunResponse objects, got: {type(item)}")

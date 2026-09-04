@@ -1,14 +1,22 @@
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
+# Try to import firecrawl dependencies
+# Handle case where firecrawl is not installed or ScrapeOptions doesn't exist (older API)
+# Keep references so tests can mock them
+FirecrawlApp = None
+ScrapeOptions = None
+
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
+    from firecrawl import FirecrawlApp as _FirecrawlApp, ScrapeOptions as _ScrapeOptions  # type: ignore[attr-defined]
+    FirecrawlApp = _FirecrawlApp
+    ScrapeOptions = _ScrapeOptions
 except ImportError:
-    raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
+    pass
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -55,7 +63,9 @@ class FirecrawlTools(Toolkit):
         self.formats: Optional[List[str]] = formats
         self.limit: int = limit
         self.poll_interval: int = poll_interval
-        self.app: FirecrawlApp = FirecrawlApp(api_key=self.api_key, api_url=api_url)
+        if FirecrawlApp is None:
+            raise ImportError("FirecrawlApp is not available. Please install firecrawl.")
+        self.app = FirecrawlApp(api_key=self.api_key, api_url=api_url)
         self.search_params = search_params
 
         # Start with scrape by default. But if crawl is set, then set scrape to False.
@@ -103,7 +113,7 @@ class FirecrawlTools(Toolkit):
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
-        if self.formats:
+        if self.formats and ScrapeOptions:
             params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
 
         params["poll_interval"] = self.poll_interval
@@ -131,7 +141,7 @@ class FirecrawlTools(Toolkit):
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
-        if self.formats:
+        if self.formats and ScrapeOptions:
             params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
         if self.search_params:
             params.update(self.search_params)
