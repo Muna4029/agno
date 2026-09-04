@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import httpx
 import requests
@@ -182,7 +182,7 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    data: dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
@@ -232,7 +232,7 @@ def send_image_message(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    data: dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
