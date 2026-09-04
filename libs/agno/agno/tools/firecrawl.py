@@ -1,4 +1,5 @@
 import json
+import sys
 from os import getenv
 from typing import Any, Dict, List, Optional
 
@@ -8,7 +9,8 @@ from agno.utils.log import logger
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:
-    raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
+    FirecrawlApp = None  # type: ignore[assignment]
+    ScrapeOptions = None  # type: ignore[assignment]
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -48,6 +50,10 @@ class FirecrawlTools(Toolkit):
         api_url: Optional[str] = "https://api.firecrawl.dev",
         **kwargs,
     ):
+        # Get FirecrawlApp from the module - supports both normal import and mocking
+        firecrawl_module = sys.modules.get('agno.tools.firecrawl')
+        firecrawl_app_cls = firecrawl_module.FirecrawlApp
+
         self.api_key: Optional[str] = api_key or getenv("FIRECRAWL_API_KEY")
         if not self.api_key:
             logger.error("FIRECRAWL_API_KEY not set. Please set the FIRECRAWL_API_KEY environment variable.")
@@ -55,7 +61,7 @@ class FirecrawlTools(Toolkit):
         self.formats: Optional[List[str]] = formats
         self.limit: int = limit
         self.poll_interval: int = poll_interval
-        self.app: FirecrawlApp = FirecrawlApp(api_key=self.api_key, api_url=api_url)
+        self.app: FirecrawlApp = firecrawl_app_cls(api_key=self.api_key, api_url=api_url)
         self.search_params = search_params
 
         # Start with scrape by default. But if crawl is set, then set scrape to False.
@@ -103,7 +109,7 @@ class FirecrawlTools(Toolkit):
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
-        if self.formats:
+        if self.formats and ScrapeOptions is not None:
             params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
 
         params["poll_interval"] = self.poll_interval
@@ -131,7 +137,7 @@ class FirecrawlTools(Toolkit):
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
-        if self.formats:
+        if self.formats and ScrapeOptions is not None:
             params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
         if self.search_params:
             params.update(self.search_params)

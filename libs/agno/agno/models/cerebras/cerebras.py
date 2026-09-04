@@ -1,5 +1,5 @@
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
 from dataclasses import dataclass
 from os import getenv
 from typing import Any, Dict, Iterator, List, Optional, Type, Union
@@ -260,13 +260,13 @@ class Cerebras(Model):
             **self.get_request_kwargs(response_format=response_format, tools=tools),
         )  # type: ignore
 
-    async def ainvoke_stream(
+    async def ainvoke_stream(  # type: ignore[override]
         self,
         messages: List[Message],
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> AsyncIterator[ChatChunkResponse]:
+    ) -> AsyncGenerator[Any, None]:
         """
         Sends an asynchronous streaming chat completion request to the Cerebras API.
 
