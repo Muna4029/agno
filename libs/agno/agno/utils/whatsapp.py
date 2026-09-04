@@ -21,7 +21,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> dict:
+def get_media(media_id: str) -> dict | bytes:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
