@@ -7,6 +7,12 @@ from unittest.mock import Mock, patch
 import pytest
 from firecrawl import FirecrawlApp
 
+# Handle case where ScrapeOptions is not available in newer firecrawl versions
+try:
+    from firecrawl import ScrapeOptions
+except ImportError:
+    ScrapeOptions = None
+
 from agno.tools.firecrawl import FirecrawlTools
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
