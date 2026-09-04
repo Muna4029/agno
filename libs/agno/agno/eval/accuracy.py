@@ -309,6 +309,9 @@ Remember: You must only compare the agent_output to the expected_output. The exp
                 status = Status(f"Running evaluation {i + 1}...", spinner="dots", speed=1.0, refresh_per_second=10)
                 live_log.update(status)
 
+                if self.agent is None:
+                    logger.error(f"Agent is not set for evaluation iteration {i + 1}")
+                    continue
                 agent_output = self.agent.run(message=eval_input).content
                 if not agent_output:
                     logger.error(f"Failed to generate a valid answer on iteration {i + 1}: {agent_output}")
