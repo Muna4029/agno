@@ -181,8 +181,8 @@ class MCPTools(Toolkit):
         session_params = await self._context.__aenter__()  # type: ignore
         read, write = session_params[0:2]
 
-        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))
-        self.session = await self._session_context.__aenter__()  # type: ignore
+        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))  # type: ignore[assignment,arg-type]
+        self.session = await self._session_context.__aenter__()  # type: ignore[attr-defined,assignment]
 
         # Initialize with the new session
         await self.initialize()
