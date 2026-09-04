@@ -268,7 +268,7 @@ class Cerebras(Model):
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> AsyncIterator[ChatChunkResponse]:
+    ) -> AsyncIterator[ChatChunkResponse]:  # type: ignore[override]
         """
         Sends an asynchronous streaming chat completion request to the Cerebras API.
 

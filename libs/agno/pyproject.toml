@@ -338,6 +338,7 @@ module = [
   "browserbase.*",
   "cassio.*",
   "cerebras.*",
+  "cerebras.cloud.sdk.*",
   "cerebras_cloud_sdk.*",
   "chonkie.*",
   "chromadb.*",

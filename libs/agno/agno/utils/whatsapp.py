@@ -244,7 +244,7 @@ def send_image_message(
         import json
 
         log_debug(f"Request data: {json.dumps(data, indent=2)}")
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=data)  # type: ignore[arg-type]
         response.raise_for_status()
         log_debug(f"Response: {response.text}")
     except requests.exceptions.RequestException as e:
