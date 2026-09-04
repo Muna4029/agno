@@ -344,6 +344,7 @@ module = [
   "groq.*",
   "huggingface_hub.*",
   "ibm_watsonx_ai.*",
+  "infinity_client.*",
   "imghdr.*",
   "jira.*",
   "kubernetes.*",

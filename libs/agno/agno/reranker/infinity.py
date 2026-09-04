@@ -1,16 +1,26 @@
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 from urllib.parse import urlparse
 
 from agno.document import Document
 from agno.reranker.base import Reranker
 from agno.utils.log import logger
 
+if TYPE_CHECKING:
+    from infinity_client import AuthenticatedClient, Client
+    from infinity_client.api.default import rerank
+    from infinity_client.models import RerankInput
+
 try:
     from infinity_client import AuthenticatedClient, Client
     from infinity_client.api.default import rerank
     from infinity_client.models import RerankInput
+    INFINITY_CLIENT_AVAILABLE = True
 except ImportError:
-    raise ImportError("infinity_client not installed, please run `pip install infinity_client`")
+    INFINITY_CLIENT_AVAILABLE = False
+    AuthenticatedClient = None
+    Client = None
+    rerank = None
+    RerankInput = None
 
 
 class InfinityReranker(Reranker):
@@ -24,6 +34,8 @@ class InfinityReranker(Reranker):
     _client: Optional[Any] = None
 
     def __init__(self, **kwargs):
+        if not INFINITY_CLIENT_AVAILABLE:
+            raise ImportError("infinity_client not installed, please run `pip install infinity_client`")
         super().__init__(**kwargs)
         if self.url:
             self._parse_url()
