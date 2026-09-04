@@ -282,7 +282,7 @@ class Model(ABC):
         pass
 
     @abstractmethod
-    async def ainvoke_stream(self, *args, **kwargs) -> AsyncGenerator[Any, None]:
+    async def ainvoke_stream(self, *args, **kwargs) -> AsyncIterator[Any]:
         pass
 
     @abstractmethod
