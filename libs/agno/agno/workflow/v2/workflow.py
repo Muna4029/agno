@@ -3217,13 +3217,13 @@ class Workflow:
                 executor = step.active_executor
                 if hasattr(executor, "workflow_session_state") and executor.workflow_session_state:
                     # Merge the agent's session state back into workflow session state
-                    merge_dictionaries(self.workflow_session_state, executor.workflow_session_state)
+                    merge_dictionaries(self.workflow_session_state, executor.workflow_session_state or {})
 
                 # If it's a team, collect from all members
                 if hasattr(executor, "members"):
                     for member in executor.members:
                         if hasattr(member, "workflow_session_state") and member.workflow_session_state:
-                            merge_dictionaries(self.workflow_session_state, member.workflow_session_state)
+                            merge_dictionaries(self.workflow_session_state, member.workflow_session_state or {})
 
             elif isinstance(step, Steps):
                 # Recursively handle nested Steps
