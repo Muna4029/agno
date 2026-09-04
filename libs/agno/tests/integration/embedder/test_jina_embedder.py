@@ -14,7 +14,7 @@ def test_embedder_initialization(embedder):
     assert embedder.id == "jina-embeddings-v3"  # Field is 'id' not 'model'
     assert embedder.dimensions == 1024
     assert embedder.embedding_type == "float"
-    assert embedder.late_chunking == False
+    assert not embedder.late_chunking
     assert embedder.api_key is not None  # Should load from environment
 
 
