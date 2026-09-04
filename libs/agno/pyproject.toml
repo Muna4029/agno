@@ -36,6 +36,7 @@ dependencies = [
   "httpx",
   "pydantic-settings",
   "pydantic",
+  "packaging.*",
   "python-dotenv",
   "python-multipart",
   "pyyaml",
@@ -308,6 +309,7 @@ target-version = "py39"
 "__init__.py" = ["F401"]
 
 [tool.mypy]
+ignore_missing_imports = true
 check_untyped_defs = true
 no_implicit_optional = true
 warn_unused_configs = true

@@ -92,9 +92,10 @@ class BrowserbaseTools(Toolkit):
 
         if not self._playwright:
             self._playwright = sync_playwright().start()  # type: ignore
-            if self._playwright:
+            if self._playwright is not None:
                 self._browser = self._playwright.chromium.connect_over_cdp(self._connect_url)
-            context = self._browser.contexts[0] if self._browser else ""
+        if self._browser is not None:
+            context = self._browser.contexts[0]
             self._page = context.pages[0] or context.new_page()  # type: ignore
 
     def _cleanup(self):
