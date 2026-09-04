@@ -12,10 +12,10 @@ from agno.utils.log import log_debug, log_info, log_warning, logger
 from agno.utils.mcp import get_entrypoint_for_tool
 
 try:
-    from mcp import ClientSession, StdioServerParameters
-    from mcp.client.sse import sse_client
-    from mcp.client.stdio import get_default_environment, stdio_client
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp import ClientSession, StdioServerParameters  # type: ignore[import-not-found]
+    from mcp.client.sse import sse_client  # type: ignore[import-not-found]
+    from mcp.client.stdio import get_default_environment, stdio_client  # type: ignore[import-not-found]
+    from mcp.client.streamable_http import streamablehttp_client  # type: ignore[import-not-found]
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`mcp` not installed. Please install using `pip install mcp`")
 
