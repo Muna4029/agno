@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import httpx
 import requests
@@ -100,7 +100,7 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {"messaging_product": "whatsapp", "type": mime_type}
+    data: dict[str, Any] = {"messaging_product": "whatsapp", "type": mime_type}
     try:
         from io import BytesIO
 
@@ -137,7 +137,7 @@ async def upload_media_async(media_data: bytes, mime_type: str, filename: str = 
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {"messaging_product": "whatsapp", "type": mime_type}
+    data: dict[str, Any] = {"messaging_product": "whatsapp", "type": mime_type}
     try:
         from io import BytesIO
 
@@ -182,7 +182,7 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    data: dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
@@ -232,7 +232,7 @@ def send_image_message(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    data: dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
@@ -267,7 +267,7 @@ def typing_indicator(message_id: Optional[str] = None):
     access_token = get_access_token()
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    data = {
+    data: dict[str, Any] = {
         "messaging_product": "whatsapp",
         "status": "read",
         "message_id": f"{message_id}",
@@ -291,7 +291,7 @@ async def typing_indicator_async(message_id: Optional[str] = None):
     access_token = get_access_token()
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    data = {
+    data: dict[str, Any] = {
         "messaging_product": "whatsapp",
         "status": "read",
         "message_id": f"{message_id}",
