@@ -6776,7 +6776,7 @@ class Agent:
         if stream:
             _response_content: str = ""
             _response_thinking: str = ""
-            response_content_batch: Union[str, JSON, Markdown] = ""
+            response_content_batch: Optional[Union[str, JSON, Markdown]] = None
             reasoning_steps: List[ReasoningStep] = []
 
             with Live(console=console) as live_log:
@@ -7108,7 +7108,7 @@ class Agent:
                     panels.append(tool_calls_panel)
                     live_log.update(Group(*panels))
 
-                response_content_batch: Union[str, JSON, Markdown] = ""  # type: ignore
+                response_content_batch: Optional[Union[str, JSON, Markdown]] = None  # type: ignore
                 if isinstance(run_response, RunResponse):
                     if isinstance(run_response.content, str):
                         if self.markdown:
@@ -7225,7 +7225,7 @@ class Agent:
             _response_content: str = ""
             _response_thinking: str = ""
             reasoning_steps: List[ReasoningStep] = []
-            response_content_batch: Union[str, JSON, Markdown] = ""
+            response_content_batch: Optional[Union[str, JSON, Markdown]] = None
 
             with Live(console=console) as live_log:
                 status = Status("Thinking...", spinner="aesthetic", speed=0.4, refresh_per_second=10)
@@ -7555,7 +7555,7 @@ class Agent:
                     panels.append(tool_calls_panel)
                     live_log.update(Group(*panels))
 
-                response_content_batch: Union[str, JSON, Markdown] = ""  # type: ignore
+                response_content_batch: Optional[Union[str, JSON, Markdown]] = None  # type: ignore
                 if isinstance(run_response, RunResponse):
                     if isinstance(run_response.content, str):
                         if self.markdown:

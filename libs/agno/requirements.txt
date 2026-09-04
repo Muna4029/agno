@@ -72,3 +72,4 @@ typing-extensions==4.12.2
     #   pydantic-core
     #   rich
     #   typer
+firecrawl-py>=2.16.5
