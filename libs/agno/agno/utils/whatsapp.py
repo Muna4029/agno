@@ -182,12 +182,16 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
+    image_data = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
+
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
@@ -232,19 +236,23 @@ def send_image_message(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
+    image_data = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
+
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
         import json
 
         log_debug(f"Request data: {json.dumps(data, indent=2)}")
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=data)  # type: ignore[arg-type]
         response.raise_for_status()
         log_debug(f"Response: {response.text}")
     except requests.exceptions.RequestException as e:
