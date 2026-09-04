@@ -369,7 +369,7 @@ class MultiMCPTools(Toolkit):
                 read, write = stdio_transport
                 session = await self._async_exit_stack.enter_async_context(
                     ClientSession(read, write, read_timeout_seconds=timedelta(seconds=self.timeout_seconds))
-                )
+                )  # type: ignore[attr-defined]
                 await self.initialize(session)
             # Handle SSE connections
             elif isinstance(server_params, SSEClientParams):
@@ -377,7 +377,7 @@ class MultiMCPTools(Toolkit):
                     sse_client(**asdict(server_params))
                 )
                 read, write = client_connection
-                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
+                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))  # type: ignore[attr-defined]
                 await self.initialize(session)
 
             # Handle Streamable HTTP connections
@@ -386,7 +386,7 @@ class MultiMCPTools(Toolkit):
                     streamablehttp_client(**asdict(server_params))
                 )
                 read, write = client_connection[0:2]
-                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
+                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))  # type: ignore[attr-defined]
                 await self.initialize(session)
 
         return self
