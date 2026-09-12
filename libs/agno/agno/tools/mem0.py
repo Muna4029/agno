@@ -90,6 +90,9 @@ class Mem0Tools(Toolkit):
             if isinstance(content, dict):
                 log_debug("Wrapping dict message into content string")
                 content = json.dumps(content)
+            elif not isinstance(content, str):
+                log_debug("Converting non-string content to string")
+                content = str(content)
             messages_list = [{"role": "user", "content": content}]
 
             result = self.client.add(
