@@ -249,7 +249,7 @@ class BitbucketTools(Toolkit):
             logger.error(f"Error retrieving pull requests for {self.repo_slug}: {str(e)}")
             return json.dumps({"error": str(e)})
 
-    def get_pull_request_changes(self, pull_request_id: int) -> str:
+    def get_pull_request_changes(self, pull_request_id: int) -> Union[str, Dict[str, Any]]:
         """
         Retrieves changes for a pull request in a repository.
 

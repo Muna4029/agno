@@ -8,7 +8,7 @@ from agno.document.reader.base import Reader
 from agno.utils.log import log_debug, logger
 
 try:
-    from firecrawl import FirecrawlApp  # type: ignore[attr-defined]
+    from firecrawl import V1FirecrawlApp  # type: ignore[attr-defined]
 except ImportError:
     raise ImportError("The `firecrawl` package is not installed. Please install it via `pip install firecrawl-py`.")
 
@@ -49,7 +49,7 @@ class FirecrawlReader(Reader):
 
         log_debug(f"Scraping: {url}")
 
-        app = FirecrawlApp(api_key=self.api_key)
+        app = V1FirecrawlApp(api_key=self.api_key)
 
         if self.params:
             scraped_data = app.scrape_url(url, **self.params)
@@ -103,7 +103,7 @@ class FirecrawlReader(Reader):
         """
         log_debug(f"Crawling: {url}")
 
-        app = FirecrawlApp(api_key=self.api_key)
+        app = V1FirecrawlApp(api_key=self.api_key)
 
         if self.params:
             crawl_result = app.crawl_url(url, **self.params)
