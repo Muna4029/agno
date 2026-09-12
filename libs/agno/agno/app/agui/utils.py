@@ -290,7 +290,9 @@ def stream_agno_response_as_agui_events(
 
 # Async version - thin wrapper
 async def async_stream_agno_response_as_agui_events(
-    response_stream: Union[AsyncIterator[RunResponseEvent], AsyncIterator[TeamRunResponseEvent]], thread_id: str, run_id: str
+    response_stream: Union[AsyncIterator[RunResponseEvent], AsyncIterator[TeamRunResponseEvent]],
+    thread_id: str,
+    run_id: str,
 ) -> AsyncIterator[BaseEvent]:
     """Map the Agno response stream to AG-UI format, handling event ordering constraints."""
     message_id = str(uuid.uuid4())

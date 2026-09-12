@@ -5,7 +5,7 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+from firecrawl import V1FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 
@@ -16,8 +16,8 @@ TEST_API_URL = "https://api.firecrawl.dev"
 @pytest.fixture
 def mock_firecrawl():
     """Create a mock FirecrawlApp instance."""
-    with patch("agno.tools.firecrawl.FirecrawlApp") as mock_firecrawl_cls:
-        mock_app = Mock(spec=FirecrawlApp)
+    with patch("agno.tools.firecrawl.V1FirecrawlApp") as mock_firecrawl_cls:
+        mock_app = Mock(spec=V1FirecrawlApp)
         mock_firecrawl_cls.return_value = mock_app
         return mock_app
 
@@ -34,7 +34,7 @@ def firecrawl_tools(mock_firecrawl):
 
 def test_init_with_env_vars():
     """Test initialization with environment variables."""
-    with patch("agno.tools.firecrawl.FirecrawlApp"):
+    with patch("agno.tools.firecrawl.V1FirecrawlApp"):
         with patch.dict("os.environ", {"FIRECRAWL_API_KEY": TEST_API_KEY}, clear=True):
             tools = FirecrawlTools()
             assert tools.api_key == TEST_API_KEY
@@ -45,7 +45,7 @@ def test_init_with_env_vars():
 
 def test_init_with_params():
     """Test initialization with parameters."""
-    with patch("agno.tools.firecrawl.FirecrawlApp"):
+    with patch("agno.tools.firecrawl.V1FirecrawlApp"):
         tools = FirecrawlTools(api_key="param_api_key", formats=["html", "text"], limit=5, api_url=TEST_API_URL)
         assert tools.api_key == "param_api_key"
         assert tools.formats == ["html", "text"]
