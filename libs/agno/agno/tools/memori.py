@@ -6,9 +6,14 @@ from agno.tools.toolkit import Toolkit
 from agno.utils.log import log_debug, log_error, log_info, log_warning
 
 try:
-    from memori import Memori, create_memory_tool
+    from memori import Memori
+    try:
+        from memori import create_memory_tool
+    except ImportError:
+        create_memory_tool = None
 except ImportError:
-    raise ImportError("`memorisdk` package not found. Please install it with `pip install memorisdk`")
+    Memori = None
+    create_memory_tool = None
 
 
 class MemoriTools(Toolkit):
@@ -110,7 +115,11 @@ class MemoriTools(Toolkit):
                 log_debug("Memori memory system enabled")
 
             # Create the memory tool for internal use
-            self._memory_tool = create_memory_tool(self.memory_system)
+            if create_memory_tool is not None:
+                self._memory_tool = create_memory_tool(self.memory_system)
+            else:
+                self._memory_tool = None
+                log_warning("create_memory_tool not available from memori, memory search tool disabled")
 
         except Exception as e:
             log_error(f"Failed to initialize Memori: {e}")
@@ -146,6 +155,8 @@ class MemoriTools(Toolkit):
             log_debug(f"Searching memory for: {query}")
 
             # Execute search using Memori's memory tool
+            if self._memory_tool is None:
+                return json.dumps({"success": False, "error": "Memory search tool not available"})
             result = self._memory_tool.execute(query=query.strip())
 
             if result:
@@ -378,6 +389,8 @@ def create_memori_search_tool(memori_toolkit: MemoriTools):
             if not query.strip():
                 return "Please provide a search query"
 
+            if memori_toolkit._memory_tool is None:
+                return "Memory search tool not available"
             result = memori_toolkit._memory_tool.execute(query=query.strip())
             return str(result) if result else "No relevant memories found"
 
