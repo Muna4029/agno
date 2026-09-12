@@ -1453,7 +1453,7 @@ class Agent:
 
                 # Pass the new run_response to _arun
                 if stream and self.is_streamable:
-                    resp = self._arun_stream(
+                    return self._arun_stream(
                         run_response=run_response,
                         run_messages=run_messages,
                         message=message,
@@ -1462,8 +1462,7 @@ class Agent:
                         response_format=response_format,
                         messages=messages,
                         stream_intermediate_steps=stream_intermediate_steps,
-                    )  # type: ignore[assignment]
-                    return resp
+                    )
                 else:
                     return await self._arun(
                         run_response=run_response,
@@ -5205,7 +5204,7 @@ class Agent:
             log_warning(f"Error searching knowledge base: {e}")
             raise e
 
-    def convert_documents_to_string(self, docs: List[Dict[str, Any]]) -> str:
+    def convert_documents_to_string(self, docs: Optional[Sequence[Union[Dict[str, Any], str]]]) -> str:
         if docs is None or len(docs) == 0:
             return ""
 
