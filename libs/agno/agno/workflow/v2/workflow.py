@@ -3205,6 +3205,8 @@ class Workflow:
 
     def _collect_session_state_from_steps_recursive(self, steps_list):
         """Recursively collect session state from all steps, including nested primitives"""
+        if self.workflow_session_state is None:
+            self.workflow_session_state = {}
         from agno.utils.merge_dict import merge_dictionaries
         from agno.workflow.v2.condition import Condition
         from agno.workflow.v2.loop import Loop

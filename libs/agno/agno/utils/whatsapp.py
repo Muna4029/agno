@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Any, Optional
 
 import httpx
 import requests
@@ -21,7 +21,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> Union[dict, bytes]:
+def get_media(media_id: str) -> dict[Any, Any]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -46,12 +46,12 @@ def get_media(media_id: str) -> Union[dict, bytes]:
         response = requests.get(media_url, headers=headers)
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         data = response.content
-        return data
+        return {"data": data}
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> Union[dict, bytes]:
+async def get_media_async(media_id: str) -> dict[Any, Any]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -78,7 +78,7 @@ async def get_media_async(media_id: str) -> Union[dict, bytes]:
             response = await client.get(media_url, headers=headers)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
             data = response.content
-        return data
+        return {"data": data}
     except httpx.HTTPStatusError as e:
         return {"error": str(e)}
 
