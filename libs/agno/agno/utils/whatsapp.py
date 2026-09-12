@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, Union
 
 import httpx
 import requests
@@ -21,7 +21,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> dict:
+def get_media(media_id: str) -> Union[dict, bytes]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -51,7 +51,7 @@ def get_media(media_id: str) -> dict:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> dict:
+async def get_media_async(media_id: str) -> Union[dict, bytes]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -83,7 +83,7 @@ async def get_media_async(media_id: str) -> dict:
         return {"error": str(e)}
 
 
-def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
+def upload_media(media_data: bytes, mime_type: str, filename: str = "file") -> Union[dict, str]:
     """
     Sends a POST request to the Facebook Graph API to upload media for WhatsApp.
 
@@ -120,7 +120,7 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
         return {"error": str(e)}
 
 
-async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file"):
+async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file") -> Union[dict, str]:
     """
     Sends a POST request to the Facebook Graph API to upload media for WhatsApp.
 
@@ -201,7 +201,7 @@ async def send_image_message_async(
 
     except httpx.HTTPStatusError as e:
         log_error(f"Failed to send WhatsApp image message: {e}")
-        log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")
+        log_error(f"Error response: {e.response.text if e.response is not None else 'No response text'}")
         raise
     except Exception as e:
         log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")
@@ -249,7 +249,7 @@ def send_image_message(
         log_debug(f"Response: {response.text}")
     except requests.exceptions.RequestException as e:
         log_error(f"Failed to send WhatsApp image message: {e}")
-        log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")
+        log_error(f"Error response: {e.response.text if e.response is not None else 'No response text'}")
         raise
     except Exception as e:
         log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")

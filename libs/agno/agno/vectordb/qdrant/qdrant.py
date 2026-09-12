@@ -316,6 +316,7 @@ class Qdrant(VectorDb):
         for document in documents:
             cleaned_content = document.content.replace("\x00", "\ufffd")
             doc_id = md5(cleaned_content.encode()).hexdigest()
+            vector: Any = None
 
             # TODO(v2.0.0): Remove conditional vector naming logic
             if self.use_named_vectors:
