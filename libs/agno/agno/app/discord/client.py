@@ -1,5 +1,5 @@
 from os import getenv
-from typing import Optional
+from typing import Optional, Union
 
 import requests
 
@@ -138,7 +138,7 @@ class DiscordClient:
                     )
                     await self._handle_response_in_thread(team_response, thread)
 
-    async def _handle_hitl(self, run_response: RunResponse | TeamRunResponse, thread: discord.Thread):
+    async def _handle_hitl(self, run_response: Union[RunResponse, TeamRunResponse], thread: discord.Thread):
         for tool in run_response.tools_requiring_confirmation:
             view = RequiresConfirmationView()
             await thread.send(f"Tool requiring confirmation: {tool.tool_name}", view=view)
@@ -166,11 +166,11 @@ class DiscordClient:
 
             await thread.send_modal(RequiresUserInputModal())
 
-        if self.agent:
+        if self.agent and isinstance(run_response, RunResponse):
             return await self.agent.acontinue_run(run_response=run_response, )
         return None
 
-    async def _handle_response_in_thread(self, response: RunResponse, thread: discord.TextChannel):
+    async def _handle_response_in_thread(self, response: Union[RunResponse, TeamRunResponse], thread: discord.TextChannel):
         if response.is_paused:
             response = await self._handle_hitl(response, thread)
 

@@ -40,7 +40,11 @@ def get_workspace_dir_path(ws_root_path: Path) -> Path:
         if agno_conf is not None:
             agno_conf_workspace_dir_str = agno_conf.get("workspace", None)
             if agno_conf_workspace_dir_str is not None:
-                agno_conf_workspace_dir_path = ws_root_path.joinpath(agno_conf_workspace_dir_str)
+                agno_conf_workspace_dir_path = (
+                    ws_root_path.joinpath(agno_conf_workspace_dir_str)
+                    if agno_conf_workspace_dir_str is not None
+                    else Path()
+                )
             else:
                 logger.error("Workspace directory not specified in pyproject.toml")
                 exit(0)

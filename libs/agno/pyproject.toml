@@ -376,6 +376,7 @@ module = [
   "cv2.*",
   "openbb.*",
   "pandas.*",
+  "pdfplumber.*",
   "pgvector.*",
   "PIL.*",
   "pinecone_text.*",
