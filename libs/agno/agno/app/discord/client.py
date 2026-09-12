@@ -8,9 +8,6 @@ from agno.media import Audio, File, Image, Video
 from agno.team.team import Team, TeamRunResponse
 from agno.utils.log import log_info, log_warning
 
-from typing import List
-from agno.tools.function import UserInputField
-
 from textwrap import dedent
 
 try:
@@ -18,7 +15,6 @@ try:
 
 except (ImportError, ModuleNotFoundError):
     print("`discord.py` not installed. Please install using `pip install discord.py`")
-
 
 class RequiresConfirmationView(discord.ui.View):
     def __init__(self):
@@ -43,7 +39,6 @@ class RequiresConfirmationView(discord.ui.View):
 
     async def on_timeout(self):
         log_warning("Agent Timeout Error")
-
 
 class DiscordClient:
     def __init__(self,
