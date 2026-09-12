@@ -5714,6 +5714,7 @@ class Agent:
                         log_warning("Reasoning error. Reasoning response is empty, continuing regular session...")
                         break
 
+                    reasoning_steps: List[ReasoningStep]
                     # Handle case where reasoning content is a string
                     reasoning_content = reasoning_agent_response.content
                     if isinstance(reasoning_content, str):
@@ -5737,7 +5738,7 @@ class Agent:
                             log_warning("Reasoning error. Reasoning steps are empty, continuing regular session...")
                             break
 
-                        reasoning_steps: List[ReasoningStep] = reasoning_agent_response.content.reasoning_steps
+                        reasoning_steps = reasoning_agent_response.content.reasoning_steps
                     all_reasoning_steps.extend(reasoning_steps)
                     # Yield reasoning steps
                     if self.stream_intermediate_steps:
@@ -5948,6 +5949,7 @@ class Agent:
 
                     # Handle case where content is a string instead of parsed object
                     reasoning_content = reasoning_agent_response.content
+                    reasoning_steps: List[ReasoningStep]
                     if isinstance(reasoning_content, str):
                         try:
                             # Try to parse the string as ReasoningSteps
@@ -5968,7 +5970,7 @@ class Agent:
                             log_warning("Reasoning error. Reasoning steps are empty, continuing regular session...")
                             break
 
-                        reasoning_steps: List[ReasoningStep] = reasoning_agent_response.content.reasoning_steps
+                        reasoning_steps = reasoning_agent_response.content.reasoning_steps
                     all_reasoning_steps.extend(reasoning_steps)
                     # Yield reasoning steps
                     if self.stream_intermediate_steps:
