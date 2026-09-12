@@ -893,7 +893,7 @@ class Agent:
         retries: Optional[int] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
-    ) -> Iterator[RunResponseEvent]: ...
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]: ...
 
     def run(
         self,
@@ -911,7 +911,7 @@ class Agent:
         retries: Optional[int] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
-    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
+    ) -> Union[RunResponse, Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]]:
         """Run the Agent and return the response."""
 
         self.reset_run_state()
@@ -1552,7 +1552,7 @@ class Agent:
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
-    ) -> Iterator[RunResponseEvent]: ...
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]: ...
 
     def continue_run(
         self,
@@ -1566,7 +1566,7 @@ class Agent:
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
-    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
+    ) -> Union[RunResponse, Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]]:
         """Continue a previous run.
 
         Args:
