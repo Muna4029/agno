@@ -6934,11 +6934,9 @@ class Agent:
 
                     response_panel = None
                     # Check if we have any response content to display
+                    response_content = response_content_batch
                     if response_content_stream and not self.markdown:
                         response_content = response_content_stream
-                    else:
-                        response_content = response_content_batch
-
                     # Sanitize empty Markdown content
                     if isinstance(response_content, Markdown):
                         if not (response_content.markup and response_content.markup.strip()):
@@ -7383,11 +7381,9 @@ class Agent:
 
                     response_panel = None
                     # Check if we have any response content to display
+                    response_content = response_content_batch
                     if response_content_stream and not self.markdown:
                         response_content = response_content_stream
-                    else:
-                        response_content = response_content_batch
-
                     # Sanitize empty Markdown content
                     if isinstance(response_content, Markdown):
                         if not (response_content.markup and response_content.markup.strip()):
