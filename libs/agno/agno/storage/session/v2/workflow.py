@@ -16,6 +16,9 @@ class WorkflowSession:
     # ID of the user interacting with this workflow
     user_id: Optional[str] = None
 
+    # Workflow Memory
+    memory: Optional[Dict[str, Any]] = None
+
     # ID of the workflow that this session is associated with
     workflow_id: Optional[str] = None
     # Workflow name
@@ -52,6 +55,7 @@ class WorkflowSession:
         return {
             "session_id": self.session_id,
             "user_id": self.user_id,
+            "memory": self.memory,
             "workflow_id": self.workflow_id,
             "workflow_name": self.workflow_name,
             "runs": [run.to_dict() for run in self.runs] if self.runs else None,
@@ -78,6 +82,7 @@ class WorkflowSession:
         return cls(
             session_id=data.get("session_id"),  # type: ignore
             user_id=data.get("user_id"),
+            memory=data.get("memory"),
             workflow_id=data.get("workflow_id"),
             workflow_name=data.get("workflow_name"),
             runs=runs,

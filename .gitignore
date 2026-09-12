@@ -64,3 +64,8 @@ token.json
 # Coverage
 coverage_report
 .coverage
+# Shell redirection artifacts
+=[0-9]*
+>[0-9]*
+*.tmp
+*.log
