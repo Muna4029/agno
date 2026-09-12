@@ -375,7 +375,7 @@ class Agent:
         self.session_id = session_id
         self.session_name = session_name
         self.session_state = session_state
-        self.search_previous_sessions_history = search_previous_sessions_history
+        self.search_previous_sessions_history = search_previous_sessions_history or False
         self.number_of_sessions = number_of_sessions
 
         self.context = context
@@ -2080,7 +2080,7 @@ class Agent:
         if self.search_previous_sessions_history:
             agent_tools.append(
                 self.get_previous_sessions_messages_function(
-                    number_of_sessions=self.number_of_sessions,
+                    number_of_sessions=self.number_of_sessions or 3,
                 )
             )
 
