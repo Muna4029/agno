@@ -24,7 +24,9 @@ class DocumentKnowledgeBase(AgentKnowledge):
             if isinstance(item, dict) and "document" in item:
                 # Handle document with metadata
                 document = item["document"]
+                assert isinstance(document, Document)
                 config = item.get("metadata", {})
+                assert isinstance(config, dict)
                 if config:
                     log_info(f"Adding metadata {config} to document: {document.name}")
                     # Create a copy of the document with updated metadata
@@ -63,7 +65,9 @@ class DocumentKnowledgeBase(AgentKnowledge):
             if isinstance(item, dict) and "document" in item:
                 # Handle document with metadata
                 document = item["document"]
+                assert isinstance(document, Document)
                 config = item.get("metadata", {})
+                assert isinstance(config, dict)
                 if config:
                     log_info(f"Adding metadata {config} to document: {document.name}")
                     # Create a copy of the document with updated metadata
