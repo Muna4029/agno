@@ -1,4 +1,5 @@
 from os import getenv
+from textwrap import dedent
 from typing import Optional, Union
 
 import requests
@@ -7,11 +8,6 @@ from agno.agent.agent import Agent, RunResponse
 from agno.media import Audio, File, Image, Video
 from agno.team.team import Team, TeamRunResponse
 from agno.utils.log import log_info, log_warning
-
-from typing import List
-from agno.tools.function import UserInputField
-
-from textwrap import dedent
 
 try:
     import discord
@@ -94,9 +90,7 @@ class DiscordClient:
                     message_audio = media_url
 
             log_info(f"processing message:{message_text} \n with media: {media_url} \n url:{message_url}")
-            if isinstance(message.channel, discord.Thread):
-                thread = message.channel
-            elif isinstance(message.channel, discord.channel.DMChannel):
+            if isinstance(message.channel, discord.Thread) or isinstance(message.channel, discord.channel.DMChannel):
                 thread = message.channel
             elif isinstance(message.channel, discord.TextChannel):
                 thread = await message.create_thread(name=f"{message_user}'s thread")
@@ -205,4 +199,4 @@ class DiscordClient:
                 raise ValueError("DISCORD_BOT_TOKEN NOT SET")
             return self.client.run(token)
         except Exception as e:
-            raise ValueError(f"Failed to run Discord client: {str(e)}")
+            raise ValueError(f"Failed to run Discord client: {e!s}")
