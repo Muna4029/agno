@@ -853,7 +853,7 @@ class Team:
             except ModelProviderError as e:
                 import time
 
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
 
                 last_exception = e
                 if attempt < num_attempts - 1:
@@ -1312,7 +1312,7 @@ class Team:
                     )
 
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 last_exception = e
                 if attempt < num_attempts - 1:
                     await asyncio.sleep(2**attempt)
@@ -2000,7 +2000,7 @@ class Team:
                 try:
                     future.result()
                 except Exception as e:
-                    log_warning(f"Error in memory/summary operation: {str(e)}")
+                    log_warning(f"Error in memory/summary operation: {e!s}")
 
     async def _amake_memories_and_summaries(
         self, run_messages: RunMessages, session_id: str, user_id: Optional[str] = None
@@ -2023,7 +2023,7 @@ class Team:
             try:
                 await asyncio.gather(*tasks)
             except Exception as e:
-                log_warning(f"Error in memory/summary operation: {str(e)}")
+                log_warning(f"Error in memory/summary operation: {e!s}")
 
     def _get_response_format(self) -> Optional[Union[Dict, Type[BaseModel]]]:
         self.model = cast(Model, self.model)
@@ -4810,7 +4810,7 @@ class Team:
     ):
         # Get references from the knowledge base to use in the user message
         references = None
-        self.run_response = cast(RunResponse, self.run_response)
+        self.run_response = cast(TeamRunResponse, self.run_response)
         if self.add_references and message:
             message_str: str
             if isinstance(message, str):
@@ -4866,7 +4866,7 @@ class Team:
             ):
                 user_message_content += "\n\nUse the following references from the knowledge base if it helps:\n"
                 user_message_content += "<references>\n"
-                user_message_content += self._convert_documents_to_string(references.references) + "\n"
+                user_message_content += self._convert_documents_to_string([d for d in references.references if isinstance(d, dict)]) + "\n"
                 user_message_content += "</references>"
             # Add context to user message
             if self.add_context and self.context is not None:
@@ -5009,7 +5009,7 @@ class Team:
                     if len(response_model_properties) > 0:
                         json_output_prompt += "\n<json_fields>"
                         json_output_prompt += (
-                            f"\n{json.dumps([key for key in response_model_properties.keys() if key != '$defs'])}"
+                            f"\n{json.dumps([key for key in response_model_properties if key != '$defs'])}"
                         )
                         json_output_prompt += "\n</json_fields>"
                         json_output_prompt += "\n\nHere are the properties for each field:"
@@ -5288,14 +5288,14 @@ class Team:
                         try:
                             yield f"Agent {member_agent.name}: {member_agent_run_response.content.model_dump_json(indent=2)}"  # type: ignore
                         except Exception as e:
-                            yield f"Agent {member_agent.name}: Error - {str(e)}"
+                            yield f"Agent {member_agent.name}: Error - {e!s}"
                     else:
                         try:
                             import json
 
                             yield f"Agent {member_agent.name}: {json.dumps(member_agent_run_response.content, indent=2)}"
                         except Exception as e:
-                            yield f"Agent {member_agent.name}: Error - {str(e)}"
+                            yield f"Agent {member_agent.name}: Error - {e!s}"
 
                 # Update the memory
                 member_name = member_agent.name if member_agent.name else f"agent_{member_agent_index}"
@@ -5440,14 +5440,14 @@ class Team:
                         try:
                             return f"Agent {member_name}: {response.content.model_dump_json(indent=2)}"  # type: ignore
                         except Exception as e:
-                            return f"Agent {member_name}: Error - {str(e)}"
+                            return f"Agent {member_name}: Error - {e!s}"
                     else:
                         try:
                             import json
 
                             return f"Agent {member_name}: {json.dumps(response.content, indent=2)}"
                         except Exception as e:
-                            return f"Agent {member_name}: Error - {str(e)}"
+                            return f"Agent {member_name}: Error - {e!s}"
 
                     return f"Agent {member_name}: No Response"
 
@@ -6719,7 +6719,7 @@ class Team:
             # Add the metrics message to the reasoning_messages
             run_response.extra_data.reasoning_messages.append(metrics_message)
         except Exception as e:
-            log_error(f"Failed to add reasoning metrics to extra_data: {str(e)}")
+            log_error(f"Failed to add reasoning metrics to extra_data: {e!s}")
 
     ###########################################################################
     # Knowledge
