@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from datetime import timedelta
 from os import environ
 from types import TracebackType
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from agno.tools import Toolkit
 from agno.tools.function import Function
@@ -14,7 +14,7 @@ try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.sse import sse_client
     from mcp.client.stdio import stdio_client
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import streamable_http_client
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`mcp` not installed. Please install using `pip install mcp`")
 
@@ -146,8 +146,8 @@ class MCPTools(Toolkit):
             self.server_params = StdioServerParameters(command=cmd, args=arguments, env=env)
 
         self._client = client
-        self._context = None
-        self._session_context = None
+        self._context: Any = None
+        self._session_context: Any = None
         self._initialized = False
 
     async def __aenter__(self) -> "MCPTools":
@@ -181,7 +181,7 @@ class MCPTools(Toolkit):
         session_params = await self._context.__aenter__()  # type: ignore
         read, write = session_params[0:2]
 
-        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))
+        self._session_context = ClientSession(read, write, read_timeout_seconds=float(client_timeout))
         self.session = await self._session_context.__aenter__()  # type: ignore
 
         # Initialize with the new session
@@ -193,11 +193,11 @@ class MCPTools(Toolkit):
         if self._session_context is not None:
             await self._session_context.__aexit__(exc_type, exc_val, exc_tb)
             self.session = None
-            self._session_context = None
+            self._session_context: Any = None
 
         if self._context is not None:
             await self._context.__aexit__(exc_type, exc_val, exc_tb)
-            self._context = None
+            self._context: Any = None
 
         self._initialized = False
 
@@ -239,7 +239,7 @@ class MCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
@@ -368,7 +368,7 @@ class MultiMCPTools(Toolkit):
                 stdio_transport = await self._async_exit_stack.enter_async_context(stdio_client(server_params))
                 read, write = stdio_transport
                 session = await self._async_exit_stack.enter_async_context(
-                    ClientSession(read, write, read_timeout_seconds=timedelta(seconds=self.timeout_seconds))
+                    cast(ClientSession, ClientSession(read, write, read_timeout_seconds=float(self.timeout_seconds)))
                 )
                 await self.initialize(session)
             # Handle SSE connections
@@ -377,7 +377,7 @@ class MultiMCPTools(Toolkit):
                     sse_client(**asdict(server_params))
                 )
                 read, write = client_connection
-                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
+                session = await self._async_exit_stack.enter_async_context(cast(ClientSession, ClientSession(read, write)))
                 await self.initialize(session)
 
             # Handle Streamable HTTP connections
@@ -386,7 +386,7 @@ class MultiMCPTools(Toolkit):
                     streamablehttp_client(**asdict(server_params))
                 )
                 read, write = client_connection[0:2]
-                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
+                session = await self._async_exit_stack.enter_async_context(cast(ClientSession, ClientSession(read, write)))
                 await self.initialize(session)
 
         return self
@@ -428,7 +428,7 @@ class MultiMCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
