@@ -153,11 +153,10 @@ def test_edit_file_no_response_content(mock_morph_tools, mock_failed_response):
 
     mock_morph_tools._morph_client.chat.completions.create.return_value = mock_failed_response
 
-    with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=original_content)):
-            result = mock_morph_tools.edit_file(
-                target_file=target_file, instructions="test instruction", code_edit="test edit"
-            )
+    with patch("os.path.exists", return_value=True), patch("builtins.open", mock_open(read_data=original_content)):
+        result = mock_morph_tools.edit_file(
+            target_file=target_file, instructions="test instruction", code_edit="test edit"
+        )
 
     assert f"Failed to apply edit to {target_file}: No response from Morph API" in result
 
@@ -178,11 +177,10 @@ def test_edit_file_write_error(mock_morph_tools, mock_successful_response):
         else:  # Writing to target file
             raise Exception(write_error)
 
-    with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", side_effect=mock_open_side_effect):
-            result = mock_morph_tools.edit_file(
-                target_file=target_file, instructions="test instruction", code_edit="test edit"
-            )
+    with patch("os.path.exists", return_value=True), patch("builtins.open", side_effect=mock_open_side_effect):
+        result = mock_morph_tools.edit_file(
+            target_file=target_file, instructions="test instruction", code_edit="test edit"
+        )
 
     assert f"Successfully applied edit but failed to write back to {target_file}: {write_error}" in result
     assert "Final code:" in result
@@ -197,7 +195,7 @@ def test_edit_file_empty_original_code(mock_morph_tools, mock_successful_respons
     mock_morph_tools._morph_client.chat.completions.create.return_value = mock_successful_response
 
     with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=original_content)) as mock_file:
+        with patch("builtins.open", mock_open(read_data=original_content)):
             result = mock_morph_tools.edit_file(
                 target_file=target_file, instructions="I am adding a new function", code_edit="def new_function(): pass"
             )
