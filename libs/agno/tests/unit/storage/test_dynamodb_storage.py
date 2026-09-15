@@ -20,7 +20,7 @@ def mock_dynamodb_resource():
 @pytest.fixture
 def agent_storage(mock_dynamodb_resource):
     """Create a DynamoDbStorage instance for agent mode with mocked components."""
-    mock_resource, mock_table = mock_dynamodb_resource
+    _mock_resource, mock_table = mock_dynamodb_resource
 
     # Mock table.wait_until_exists to avoid actual waiting
     mock_table.wait_until_exists = MagicMock()
@@ -36,7 +36,7 @@ def agent_storage(mock_dynamodb_resource):
 @pytest.fixture
 def workflow_storage(mock_dynamodb_resource):
     """Create a DynamoDbStorage instance for workflow mode with mocked components."""
-    mock_resource, mock_table = mock_dynamodb_resource
+    _mock_resource, mock_table = mock_dynamodb_resource
 
     # Mock table.wait_until_exists to avoid actual waiting
     mock_table.wait_until_exists = MagicMock()
@@ -358,13 +358,13 @@ def test_serialization_deserialization(agent_storage):
     from decimal import Decimal
 
     decimal_item = {
-        "int_value": Decimal("42"),
+        "int_value": Decimal(42),
         "float_value": Decimal("3.14"),
         "str_value": "test",
         "bool_value": True,
-        "list_value": [Decimal("1"), Decimal("2"), Decimal("3")],
+        "list_value": [Decimal(1), Decimal(2), Decimal(3)],
         "dict_value": {"key": "value"},
-        "nested_dict": {"nested": {"float": Decimal("1.23"), "list": [Decimal("4"), Decimal("5"), Decimal("6")]}},
+        "nested_dict": {"nested": {"float": Decimal("1.23"), "list": [Decimal(4), Decimal(5), Decimal(6)]}},
     }
 
     deserialized = storage._deserialize_item(decimal_item)

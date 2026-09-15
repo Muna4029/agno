@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.embedder.base import Embedder
 from agno.utils.log import logger
 
 try:
-    import importlib.metadata as metadata
+    from importlib import metadata
 
     from ollama import Client as OllamaClient
     from packaging import version
@@ -37,18 +39,18 @@ except Exception as e:
 class OllamaEmbedder(Embedder):
     id: str = "openhermes"
     dimensions: int = 4096
-    host: Optional[str] = None
-    timeout: Optional[Any] = None
-    options: Optional[Any] = None
-    client_kwargs: Optional[Dict[str, Any]] = None
-    ollama_client: Optional[OllamaClient] = None
+    host: str | None = None
+    timeout: Any | None = None
+    options: Any | None = None
+    client_kwargs: dict[str, Any] | None = None
+    ollama_client: OllamaClient | None = None
 
     @property
     def client(self) -> OllamaClient:
         if self.ollama_client:
             return self.ollama_client
 
-        _ollama_params: Dict[str, Any] = {
+        _ollama_params: dict[str, Any] = {
             "host": self.host,
             "timeout": self.timeout,
         }
@@ -58,8 +60,8 @@ class OllamaEmbedder(Embedder):
         self.ollama_client = OllamaClient(**_ollama_params)
         return self.ollama_client
 
-    def _response(self, text: str) -> Dict[str, Any]:
-        kwargs: Dict[str, Any] = {}
+    def _response(self, text: str) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
         if self.options is not None:
             kwargs["options"] = self.options
 
@@ -72,7 +74,7 @@ class OllamaEmbedder(Embedder):
                 return {"embeddings": embeddings}  # Return as-is if already flat
         return {"embeddings": []}  # Return an empty list if no valid embedding is found
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         try:
             response = self._response(text=text)
             embedding = response.get("embeddings", [])
@@ -84,7 +86,7 @@ class OllamaEmbedder(Embedder):
             logger.warning(e)
             return []
 
-    def get_embedding_and_usage(self, text: str) -> Tuple[List[float], Optional[Dict]]:
+    def get_embedding_and_usage(self, text: str) -> tuple[list[float], dict | None]:
         embedding = self.get_embedding(text=text)
         usage = None
         return embedding, usage

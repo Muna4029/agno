@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 import uuid
 from pathlib import Path
-from typing import IO, Any, List, Optional, Union
+from typing import IO, Any
 
 from agno.document.base import Document
 from agno.document.chunking.markdown import MarkdownChunking
@@ -13,10 +15,10 @@ from agno.utils.log import log_info, logger
 class MarkdownReader(Reader):
     """Reader for Markdown files"""
 
-    def __init__(self, chunking_strategy: Optional[ChunkingStrategy] = MarkdownChunking()) -> None:
+    def __init__(self, chunking_strategy: ChunkingStrategy | None = MarkdownChunking()) -> None:
         super().__init__(chunking_strategy=chunking_strategy)
 
-    def read(self, file: Union[Path, IO[Any]]) -> List[Document]:
+    def read(self, file: Path | IO[Any]) -> list[Document]:
         try:
             if isinstance(file, Path):
                 if not file.exists():
@@ -41,7 +43,7 @@ class MarkdownReader(Reader):
             logger.error(f"Error reading: {file}: {e}")
             return []
 
-    async def async_read(self, file: Union[Path, IO[Any]]) -> List[Document]:
+    async def async_read(self, file: Path | IO[Any]) -> list[Document]:
         try:
             if isinstance(file, Path):
                 if not file.exists():
@@ -77,7 +79,7 @@ class MarkdownReader(Reader):
             logger.error(f"Error reading asynchronously: {file}: {e}")
             return []
 
-    async def _async_chunk_document(self, document: Document) -> List[Document]:
+    async def _async_chunk_document(self, document: Document) -> list[Document]:
         if not self.chunk or not document:
             return [document]
 

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from textwrap import dedent
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from agno.agent import Agent
 from agno.document import Document
@@ -17,10 +19,10 @@ class KnowledgeTools(Toolkit):
         think: bool = True,
         search: bool = True,
         analyze: bool = True,
-        instructions: Optional[str] = None,
+        instructions: str | None = None,
         add_instructions: bool = True,
         add_few_shot: bool = False,
-        few_shot_examples: Optional[str] = None,
+        few_shot_examples: str | None = None,
         **kwargs,
     ):
         if knowledge is None:
@@ -40,7 +42,7 @@ class KnowledgeTools(Toolkit):
         # The knowledge to search
         self.knowledge: AgentKnowledge = knowledge
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if think:
             tools.append(self.think)
         if search:
@@ -56,7 +58,7 @@ class KnowledgeTools(Toolkit):
             **kwargs,
         )
 
-    def think(self, agent: Union[Agent, Team], thought: str) -> str:
+    def think(self, agent: Agent | Team, thought: str) -> str:
         """Use this tool as a scratchpad to reason about the question, refine your approach, brainstorm search terms, or revise your plan.
 
         Call `Think` whenever you need to figure out what to do next, analyze the user's question, or plan your approach.
@@ -90,7 +92,7 @@ class KnowledgeTools(Toolkit):
             logger.error(f"Error recording thought: {e}")
             return f"Error recording thought: {e}"
 
-    def search(self, agent: Union[Agent, Team], query: str) -> str:
+    def search(self, agent: Agent | Team, query: str) -> str:
         """Use this tool to search the knowledge base for relevant information.
         After thinking through the question, use this tool as many times as needed to search for relevant information.
 
@@ -104,7 +106,7 @@ class KnowledgeTools(Toolkit):
             log_debug(f"Searching knowledge base: {query}")
 
             # Get the relevant documents from the knowledge base
-            relevant_docs: List[Document] = self.knowledge.search(query=query)
+            relevant_docs: list[Document] = self.knowledge.search(query=query)
             if len(relevant_docs) == 0:
                 return "No documents found"
             return json.dumps([doc.to_dict() for doc in relevant_docs])
@@ -112,7 +114,7 @@ class KnowledgeTools(Toolkit):
             logger.error(f"Error searching knowledge base: {e}")
             return f"Error searching knowledge base: {e}"
 
-    def analyze(self, agent: Union[Agent, Team], analysis: str) -> str:
+    def analyze(self, agent: Agent | Team, analysis: str) -> str:
         """Use this tool to evaluate whether the returned documents are correct and sufficient.
         If not, go back to "Think" or "Search" with refined queries.
 

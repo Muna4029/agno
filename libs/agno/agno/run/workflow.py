@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from time import time
-from typing import Any, Dict, Optional, Union
+from typing import Any, Union
 
 from pydantic import BaseModel
 
@@ -22,9 +24,9 @@ class BaseWorkflowRunResponseEvent:
     event: str = ""
 
     # For backwards compatibility
-    content: Optional[Any] = None
+    content: Any | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = {k: v for k, v in asdict(self).items() if v is not None}
 
         if hasattr(self, "content") and self.content and isinstance(self.content, BaseModel):
@@ -52,7 +54,7 @@ class WorkflowRunResponseStartedEvent(BaseWorkflowRunResponseEvent):
 @dataclass
 class WorkflowCompletedEvent(BaseWorkflowRunResponseEvent):
     event: str = RunEvent.workflow_completed.value
-    content: Optional[Any] = None
+    content: Any | None = None
     content_type: str = "str"
 
 

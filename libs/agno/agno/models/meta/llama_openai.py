@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 
@@ -31,24 +33,24 @@ class LlamaOpenAI(OpenAILike):
     name: str = "LlamaOpenAI"
     provider: str = "LlamaOpenAI"
 
-    api_key: Optional[str] = getenv("LLAMA_API_KEY")
-    base_url: Optional[str] = "https://api.llama.com/compat/v1/"
+    api_key: str | None = getenv("LLAMA_API_KEY")
+    base_url: str | None = "https://api.llama.com/compat/v1/"
 
     # Request parameters
-    max_completion_tokens: Optional[int] = None
-    repetition_penalty: Optional[float] = None
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    top_k: Optional[int] = None
-    extra_headers: Optional[Any] = None
-    extra_query: Optional[Any] = None
-    extra_body: Optional[Any] = None
-    request_params: Optional[Dict[str, Any]] = None
+    max_completion_tokens: int | None = None
+    repetition_penalty: float | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    top_k: int | None = None
+    extra_headers: Any | None = None
+    extra_query: Any | None = None
+    extra_body: Any | None = None
+    request_params: dict[str, Any] | None = None
 
     supports_native_structured_outputs: bool = False
     supports_json_schema_outputs: bool = True
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Format a message into the format expected by Llama API.
 

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.embedder.base import Embedder
 from agno.utils.log import logger
@@ -15,13 +17,13 @@ except ImportError:
 class VoyageAIEmbedder(Embedder):
     id: str = "voyage-2"
     dimensions: int = 1024
-    request_params: Optional[Dict[str, Any]] = None
-    api_key: Optional[str] = None
+    request_params: dict[str, Any] | None = None
+    api_key: str | None = None
     base_url: str = "https://api.voyageai.com/v1/embeddings"
-    max_retries: Optional[int] = None
-    timeout: Optional[float] = None
-    client_params: Optional[Dict[str, Any]] = None
-    voyage_client: Optional[VoyageClient] = None
+    max_retries: int | None = None
+    timeout: float | None = None
+    client_params: dict[str, Any] | None = None
+    voyage_client: VoyageClient | None = None
 
     @property
     def client(self) -> VoyageClient:
@@ -40,7 +42,7 @@ class VoyageAIEmbedder(Embedder):
         return self.voyage_client
 
     def _response(self, text: str) -> EmbeddingsObject:
-        _request_params: Dict[str, Any] = {
+        _request_params: dict[str, Any] = {
             "texts": [text],
             "model": self.id,
         }
@@ -48,7 +50,7 @@ class VoyageAIEmbedder(Embedder):
             _request_params.update(self.request_params)
         return self.client.embed(**_request_params)
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         response: EmbeddingsObject = self._response(text=text)
         try:
             return response.embeddings[0]
@@ -56,7 +58,7 @@ class VoyageAIEmbedder(Embedder):
             logger.warning(e)
             return []
 
-    def get_embedding_and_usage(self, text: str) -> Tuple[List[float], Optional[Dict]]:
+    def get_embedding_and_usage(self, text: str) -> tuple[list[float], dict | None]:
         response: EmbeddingsObject = self._response(text=text)
 
         embedding = response.embeddings[0]

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal
 
 from agno.storage.base import Storage
 from agno.storage.session import Session
@@ -25,12 +27,12 @@ class SingleStoreStorage(Storage):
     def __init__(
         self,
         table_name: str,
-        schema: Optional[str] = "ai",
-        db_url: Optional[str] = None,
-        db_engine: Optional[Engine] = None,
+        schema: str | None = "ai",
+        db_url: str | None = None,
+        db_engine: Engine | None = None,
         schema_version: int = 1,
         auto_upgrade_schema: bool = False,
-        mode: Optional[Literal["agent", "team", "workflow"]] = "agent",
+        mode: Literal["agent", "team", "workflow"] | None = "agent",
     ):
         """
         This class provides Agent storage using a singlestore table.
@@ -49,7 +51,7 @@ class SingleStoreStorage(Storage):
             mode (Optional[Literal["agent", "team", "workflow"]], optional): The mode of the storage. Defaults to "agent".
         """
         super().__init__(mode)
-        _engine: Optional[Engine] = db_engine
+        _engine: Engine | None = db_engine
         if _engine is None and db_url is not None:
             _engine = create_engine(db_url, connect_args={"charset": "utf8mb4"})
 
@@ -58,8 +60,8 @@ class SingleStoreStorage(Storage):
 
         # Database attributes
         self.table_name: str = table_name
-        self.schema: Optional[str] = schema
-        self.db_url: Optional[str] = db_url
+        self.schema: str | None = schema
+        self.db_url: str | None = db_url
         self.db_engine: Engine = _engine
         self.metadata: MetaData = MetaData(schema=self.schema)
 
@@ -80,7 +82,7 @@ class SingleStoreStorage(Storage):
         return super().mode
 
     @mode.setter
-    def mode(self, value: Optional[Literal["agent", "team", "workflow"]]) -> None:
+    def mode(self, value: Literal["agent", "team", "workflow"] | None) -> None:
         """Set the mode and refresh the table if mode changes."""
         super(SingleStoreStorage, type(self)).mode.fset(self, value)  # type: ignore
         if value is not None:
@@ -148,7 +150,7 @@ class SingleStoreStorage(Storage):
             log_info(f"Creating table: {self.table_name}\n")
             self.table.create(self.db_engine)
 
-    def _read(self, session: SqlSession, session_id: str, user_id: Optional[str] = None) -> Optional[Row[Any]]:
+    def _read(self, session: SqlSession, session_id: str, user_id: str | None = None) -> Row[Any] | None:
         stmt = select(self.table).where(self.table.c.session_id == session_id)
         if user_id is not None:
             stmt = stmt.where(self.table.c.user_id == user_id)
@@ -161,9 +163,9 @@ class SingleStoreStorage(Storage):
             self.create()
         return None
 
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         with self.SqlSession.begin() as sess:
-            existing_row: Optional[Row[Any]] = self._read(session=sess, session_id=session_id, user_id=user_id)
+            existing_row: Row[Any] | None = self._read(session=sess, session_id=session_id, user_id=user_id)
             if existing_row is not None:
                 if self.mode == "agent":
                     return AgentSession.from_dict(existing_row._mapping)  # type: ignore
@@ -173,8 +175,8 @@ class SingleStoreStorage(Storage):
                     return WorkflowSession.from_dict(existing_row._mapping)  # type: ignore
             return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
-        session_ids: List[str] = []
+    def get_all_session_ids(self, user_id: str | None = None, entity_id: str | None = None) -> list[str]:
+        session_ids: list[str] = []
         try:
             with self.SqlSession.begin() as sess:
                 # get all session_ids for this user
@@ -196,11 +198,11 @@ class SingleStoreStorage(Storage):
                     if row is not None and row.session_id is not None:
                         session_ids.append(row.session_id)
         except Exception as e:
-            logger.error(f"An unexpected error occurred: {str(e)}")
+            logger.error(f"An unexpected error occurred: {e!s}")
         return session_ids
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
-        sessions: List[Session] = []
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
+        sessions: list[Session] = []
         try:
             with self.SqlSession.begin() as sess:
                 # get all sessions for this user
@@ -238,10 +240,10 @@ class SingleStoreStorage(Storage):
 
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -252,7 +254,7 @@ class SingleStoreStorage(Storage):
         Returns:
             List[Session]: List of most recent sessions
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         try:
             with self.SqlSession.begin() as sess:
                 # Build base query
@@ -338,7 +340,7 @@ class SingleStoreStorage(Storage):
             logger.error(f"Error during schema upgrade: {e}")
             raise
 
-    def upsert(self, session: Session) -> Optional[Session]:
+    def upsert(self, session: Session) -> Session | None:
         """
         Create a new session if it does not exist, otherwise update the existing session.
         """
@@ -483,7 +485,7 @@ class SingleStoreStorage(Storage):
                     return None
         return self.read(session_id=session.session_id)
 
-    def delete_session(self, session_id: Optional[str] = None):
+    def delete_session(self, session_id: str | None = None):
         if session_id is None:
             logger.warning("No session_id provided for deletion.")
             return

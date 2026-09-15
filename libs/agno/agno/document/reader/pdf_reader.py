@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from pathlib import Path
-from typing import IO, Any, List, Optional, Union
+from typing import IO, Any
 from uuid import uuid4
 
 from agno.document.base import Document
@@ -9,7 +11,7 @@ from agno.utils.http import async_fetch_with_retry, fetch_with_retry
 from agno.utils.log import log_info, logger
 
 try:
-    from pypdf import PdfReader as DocumentReader  # noqa: F401
+    from pypdf import PdfReader as DocumentReader
     from pypdf.errors import PdfStreamError
 except ImportError:
     raise ImportError("`pypdf` not installed. Please install it via `pip install pypdf`.")
@@ -31,7 +33,7 @@ def process_image_page(doc_name: str, page_number: int, page: Any) -> Document:
         image_data = image_object.data
 
         # Perform OCR on the image
-        ocr_result, elapse = ocr(image_data)
+        ocr_result, _elapse = ocr(image_data)
 
         # Extract text from OCR result
         if ocr_result:
@@ -59,10 +61,10 @@ async def async_process_image_page(doc_name: str, page_number: int, page: Any) -
     ocr = rapidocr.RapidOCR()
 
     page_text = page.extract_text() or ""
-    images_text_list: List = []
+    images_text_list: list = []
 
     # Process images in parallel
-    async def process_image(image_data: bytes) -> List[str]:
+    async def process_image(image_data: bytes) -> list[str]:
         ocr_result, _ = ocr(image_data)
         return [item[1] for item in ocr_result] if ocr_result else []
 
@@ -84,8 +86,8 @@ async def async_process_image_page(doc_name: str, page_number: int, page: Any) -
 
 
 class BasePDFReader(Reader):
-    def _build_chunked_documents(self, documents: List[Document]) -> List[Document]:
-        chunked_documents: List[Document] = []
+    def _build_chunked_documents(self, documents: list[Document]) -> list[Document]:
+        chunked_documents: list[Document] = []
         for document in documents:
             chunked_documents.extend(self.chunk_document(document))
         return chunked_documents
@@ -94,7 +96,7 @@ class BasePDFReader(Reader):
 class PDFReader(BasePDFReader):
     """Reader for PDF files"""
 
-    def read(self, pdf: Union[str, Path, IO[Any]]) -> List[Document]:
+    def read(self, pdf: str | Path | IO[Any]) -> list[Document]:
         try:
             if isinstance(pdf, str):
                 doc_name = pdf.split("/")[-1].split(".")[0].replace(" ", "_")
@@ -125,7 +127,7 @@ class PDFReader(BasePDFReader):
             return self._build_chunked_documents(documents)
         return documents
 
-    async def async_read(self, pdf: Union[str, Path, IO[Any]]) -> List[Document]:
+    async def async_read(self, pdf: str | Path | IO[Any]) -> list[Document]:
         try:
             if isinstance(pdf, str):
                 doc_name = pdf.split("/")[-1].split(".")[0].replace(" ", "_")
@@ -166,11 +168,11 @@ class PDFReader(BasePDFReader):
 class PDFUrlReader(BasePDFReader):
     """Reader for PDF files from URL"""
 
-    def __init__(self, proxy: Optional[str] = None, **kwargs):
+    def __init__(self, proxy: str | None = None, **kwargs):
         super().__init__(**kwargs)
         self.proxy = proxy
 
-    def read(self, url: str) -> List[Document]:
+    def read(self, url: str) -> list[Document]:
         if not url:
             raise ValueError("No url provided")
 
@@ -198,7 +200,7 @@ class PDFUrlReader(BasePDFReader):
             return self._build_chunked_documents(documents)
         return documents
 
-    async def async_read(self, url: str) -> List[Document]:
+    async def async_read(self, url: str) -> list[Document]:
         if not url:
             raise ValueError("No url provided")
 
@@ -239,7 +241,7 @@ class PDFUrlReader(BasePDFReader):
 class PDFImageReader(BasePDFReader):
     """Reader for PDF files with text and images extraction"""
 
-    def read(self, pdf: Union[str, Path, IO[Any]]) -> List[Document]:
+    def read(self, pdf: str | Path | IO[Any]) -> list[Document]:
         if not pdf:
             raise ValueError("No pdf provided")
 
@@ -263,7 +265,7 @@ class PDFImageReader(BasePDFReader):
 
         return documents
 
-    async def async_read(self, pdf: Union[str, Path, IO[Any]]) -> List[Document]:
+    async def async_read(self, pdf: str | Path | IO[Any]) -> list[Document]:
         if not pdf:
             raise ValueError("No pdf provided")
 
@@ -293,11 +295,11 @@ class PDFImageReader(BasePDFReader):
 class PDFUrlImageReader(BasePDFReader):
     """Reader for PDF files from URL with text and images extraction"""
 
-    def __init__(self, proxy: Optional[str] = None, **kwargs):
+    def __init__(self, proxy: str | None = None, **kwargs):
         super().__init__(**kwargs)
         self.proxy = proxy
 
-    def read(self, url: str) -> List[Document]:
+    def read(self, url: str) -> list[Document]:
         if not url:
             raise ValueError("No url provided")
 
@@ -322,7 +324,7 @@ class PDFUrlImageReader(BasePDFReader):
 
         return documents
 
-    async def async_read(self, url: str) -> List[Document]:
+    async def async_read(self, url: str) -> list[Document]:
         if not url:
             raise ValueError("No url provided")
 

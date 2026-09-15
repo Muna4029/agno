@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -15,8 +17,8 @@ except ImportError:
 class ClickUpTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        master_space_id: Optional[str] = None,
+        api_key: str | None = None,
+        master_space_id: str | None = None,
         list_tasks: bool = True,
         create_task: bool = True,
         get_task: bool = True,
@@ -36,7 +38,7 @@ class ClickUpTools(Toolkit):
         if not self.master_space_id:
             raise ValueError("MASTER_SPACE_ID not set. Please set the MASTER_SPACE_ID environment variable.")
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if list_tasks:
             tools.append(self.list_tasks)
         if create_task:
@@ -55,8 +57,8 @@ class ClickUpTools(Toolkit):
         super().__init__(name="clickup", tools=tools, **kwargs)
 
     def _make_request(
-        self, method: str, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+        self, method: str, endpoint: str, params: dict | None = None, data: dict | None = None
+    ) -> dict[str, Any]:
         """Make a request to the ClickUp API."""
         url = f"{self.base_url}/{endpoint}"
         try:
@@ -67,7 +69,7 @@ class ClickUpTools(Toolkit):
             logger.error(f"Error making request to {url}: {e}")
             return {"error": str(e)}
 
-    def _find_by_name(self, items: List[Dict[str, Any]], name: str) -> Optional[Dict[str, Any]]:
+    def _find_by_name(self, items: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
         """Find an item in a list by name using exact match or regex pattern.
 
         Args:
@@ -90,7 +92,7 @@ class ClickUpTools(Toolkit):
                 return item
         return None
 
-    def _get_space(self, space_name: str) -> Dict[str, Any]:
+    def _get_space(self, space_name: str) -> dict[str, Any]:
         """Get space information by name."""
         spaces = self._make_request("GET", f"team/{self.master_space_id}/space")
         if "error" in spaces:
@@ -105,7 +107,7 @@ class ClickUpTools(Toolkit):
             return {"error": f"Space '{space_name}' not found"}
         return space
 
-    def _get_list(self, space_id: str, list_name: str) -> Dict[str, Any]:
+    def _get_list(self, space_id: str, list_name: str) -> dict[str, Any]:
         """Get list information by name."""
         lists = self._make_request("GET", f"space/{space_id}/list")
         if "error" in lists:
@@ -120,7 +122,7 @@ class ClickUpTools(Toolkit):
             return {"error": f"List '{list_name}' not found"}
         return list_item
 
-    def _get_tasks(self, list_id: str) -> List[Dict[str, Any]]:
+    def _get_tasks(self, list_id: str) -> list[dict[str, Any]]:
         """Get tasks in a list, optionally filtered by name."""
         tasks = self._make_request("GET", f"list/{list_id}/task")
         if "error" in tasks:

@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -7,18 +9,18 @@ from agno.utils.log import log_debug
 
 
 class WorkflowRun(BaseModel):
-    input: Optional[Dict[str, Any]] = None
-    response: Optional[RunResponse] = None
+    input: dict[str, Any] | None = None
+    response: RunResponse | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class WorkflowMemory(BaseModel):
-    runs: List[WorkflowRun] = []
+    runs: list[WorkflowRun] = []
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return self.model_dump(exclude_none=True)
 
     def add_run(self, workflow_run: WorkflowRun) -> None:
@@ -31,7 +33,7 @@ class WorkflowMemory(BaseModel):
 
         self.runs = []
 
-    def deep_copy(self, *, update: Optional[Dict[str, Any]] = None) -> "WorkflowMemory":
+    def deep_copy(self, *, update: dict[str, Any] | None = None) -> WorkflowMemory:
         new_memory = self.model_copy(deep=True, update=update)
         # clear the new memory to remove any references to the old memory
         new_memory.clear()

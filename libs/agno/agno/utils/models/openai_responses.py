@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Sequence
 
 from agno.media import Image
 from agno.utils.log import logger
 
 
-def _process_bytes_image(image: bytes) -> Dict[str, Any]:
+def _process_bytes_image(image: bytes) -> dict[str, Any]:
     """Process bytes image data."""
     import base64
 
@@ -14,7 +16,7 @@ def _process_bytes_image(image: bytes) -> Dict[str, Any]:
     return {"type": "input_image", "image_url": image_url}
 
 
-def _process_image_path(image_path: Union[Path, str]) -> Dict[str, Any]:
+def _process_image_path(image_path: Path | str) -> dict[str, Any]:
     """Process image ( file path)."""
     # Process local file image
     import base64
@@ -31,16 +33,16 @@ def _process_image_path(image_path: Union[Path, str]) -> Dict[str, Any]:
         return {"type": "input_image", "image_url": image_url}
 
 
-def _process_image_url(image_url: str) -> Dict[str, Any]:
+def _process_image_url(image_url: str) -> dict[str, Any]:
     """Process image (base64 or URL)."""
 
-    if image_url.startswith("data:image") or image_url.startswith(("http://", "https://")):
+    if image_url.startswith(("data:image", "http://", "https://")):
         return {"type": "input_image", "image_url": image_url}
     else:
         raise ValueError("Image URL must start with 'data:image' or 'http(s)://'.")
 
 
-def _process_image(image: Image) -> Optional[Dict[str, Any]]:
+def _process_image(image: Image) -> dict[str, Any] | None:
     """Process an image based on the format."""
 
     if image.url is not None:
@@ -62,7 +64,7 @@ def _process_image(image: Image) -> Optional[Dict[str, Any]]:
     return image_payload
 
 
-def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
+def images_to_message(images: Sequence[Image]) -> list[dict[str, Any]]:
     """
     Add images to a message for the model. By default, we use the OpenAI image format but other Models
     can override this method to use a different image format.
@@ -78,7 +80,7 @@ def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
     """
 
     # Create a default message content with text
-    image_messages: List[Dict[str, Any]] = []
+    image_messages: list[dict[str, Any]] = []
 
     # Add images to the message content
     for image in images:
@@ -87,7 +89,7 @@ def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
             if image_data:
                 image_messages.append(image_data)
         except Exception as e:
-            logger.error(f"Failed to process image: {str(e)}")
+            logger.error(f"Failed to process image: {e!s}")
             continue
 
     return image_messages

@@ -4,8 +4,8 @@ from agno.vectordb.pgvector.pgvector import PgVector
 from agno.vectordb.search import SearchType
 
 __all__ = [
-    "Distance",
     "HNSW",
+    "Distance",
     "Ivfflat",
     "PgVector",
     "SearchType",

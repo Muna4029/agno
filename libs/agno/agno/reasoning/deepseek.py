@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Optional
-
 from agno.models.base import Model
 from agno.models.message import Message
 from agno.utils.log import logger
@@ -11,7 +9,7 @@ def is_deepseek_reasoning_model(reasoning_model: Model) -> bool:
     return reasoning_model.__class__.__name__ == "DeepSeek" and reasoning_model.id.lower() == "deepseek-reasoner"
 
 
-def get_deepseek_reasoning(reasoning_agent: "Agent", messages: List[Message]) -> Optional[Message]:  # type: ignore  # noqa: F821
+def get_deepseek_reasoning(reasoning_agent: Agent, messages: list[Message]) -> Message | None:  # type: ignore  # noqa: F821
     from agno.run.response import RunResponse
 
     # Update system message role to "system"
@@ -37,7 +35,7 @@ def get_deepseek_reasoning(reasoning_agent: "Agent", messages: List[Message]) ->
     )
 
 
-async def aget_deepseek_reasoning(reasoning_agent: "Agent", messages: List[Message]) -> Optional[Message]:  # type: ignore  # noqa: F821
+async def aget_deepseek_reasoning(reasoning_agent: Agent, messages: list[Message]) -> Message | None:  # type: ignore  # noqa: F821
     from agno.run.response import RunResponse
 
     # Update system message role to "system"

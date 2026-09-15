@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -14,9 +16,9 @@ except ImportError:
 class TrelloTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
-        token: Optional[str] = None,
+        api_key: str | None = None,
+        api_secret: str | None = None,
+        token: str | None = None,
         create_card: bool = True,
         get_board_lists: bool = True,
         move_card: bool = True,
@@ -39,7 +41,7 @@ class TrelloTools(Toolkit):
             logger.error(f"Error initializing Trello client: {e}")
             self.client = None
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if create_card:
             tools.append(self.create_card)
         if get_board_lists:

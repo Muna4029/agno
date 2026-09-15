@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.embedder.base import Embedder
 from agno.utils.log import log_error, log_info
@@ -17,19 +19,19 @@ except ImportError:
 class GeminiEmbedder(Embedder):
     id: str = "gemini-embedding-exp-03-07"
     task_type: str = "RETRIEVAL_QUERY"
-    title: Optional[str] = None
-    dimensions: Optional[int] = 1536
-    api_key: Optional[str] = None
-    request_params: Optional[Dict[str, Any]] = None
-    client_params: Optional[Dict[str, Any]] = None
-    gemini_client: Optional[GeminiClient] = None
+    title: str | None = None
+    dimensions: int | None = 1536
+    api_key: str | None = None
+    request_params: dict[str, Any] | None = None
+    client_params: dict[str, Any] | None = None
+    gemini_client: GeminiClient | None = None
 
     @property
     def client(self):
         if self.gemini_client:
             return self.gemini_client
 
-        _client_params: Dict[str, Any] = {}
+        _client_params: dict[str, Any] = {}
 
         self.api_key = self.api_key or getenv("GOOGLE_API_KEY")
         if not self.api_key:
@@ -50,7 +52,7 @@ class GeminiEmbedder(Embedder):
         if _id.startswith("models/"):
             _id = _id.split("/")[-1]
 
-        _request_params: Dict[str, Any] = {"contents": text, "model": _id, "config": {}}
+        _request_params: dict[str, Any] = {"contents": text, "model": _id, "config": {}}
         if self.dimensions:
             _request_params["config"]["output_dimensionality"] = self.dimensions
         if self.task_type:
@@ -64,7 +66,7 @@ class GeminiEmbedder(Embedder):
             _request_params.update(self.request_params)
         return self.client.models.embed_content(**_request_params)
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         response = self._response(text=text)
         try:
             if response.embeddings and len(response.embeddings) > 0:
@@ -77,7 +79,7 @@ class GeminiEmbedder(Embedder):
             log_error(f"Error extracting embeddings: {e}")
             return []
 
-    def get_embedding_and_usage(self, text: str) -> Tuple[List[float], Optional[Dict[str, Any]]]:
+    def get_embedding_and_usage(self, text: str) -> tuple[list[float], dict[str, Any] | None]:
         response = self._response(text=text)
         usage = None
         if response.metadata and hasattr(response.metadata, "billable_character_count"):

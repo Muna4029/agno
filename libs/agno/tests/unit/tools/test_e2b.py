@@ -90,44 +90,41 @@ def test_init_with_api_key():
 
 def test_init_with_env_var():
     """Test initialization with environment variable."""
-    with patch("agno.tools.e2b.Sandbox"):
-        with patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
-            tools = E2BTools()
-            # Instead of checking if the mock was called, just verify the API key is set
-            assert tools.api_key == TEST_API_KEY
+    with patch("agno.tools.e2b.Sandbox"), patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
+        tools = E2BTools()
+        # Instead of checking if the mock was called, just verify the API key is set
+        assert tools.api_key == TEST_API_KEY
 
 
 def test_init_without_api_key():
     """Test initialization without API key raises error."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="E2B_API_KEY not set"):
-            E2BTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="E2B_API_KEY not set"):
+        E2BTools()
 
 
 def test_init_with_selective_tools():
     """Test initialization with only selected tools enabled."""
-    with patch("agno.tools.e2b.Sandbox"):
-        with patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
-            tools = E2BTools(
-                run_code=True,
-                upload_file=False,
-                download_result=False,
-                filesystem=True,
-                internet_access=False,
-                sandbox_management=False,
-                command_execution=True,
-            )
+    with patch("agno.tools.e2b.Sandbox"), patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
+        tools = E2BTools(
+            run_code=True,
+            upload_file=False,
+            download_result=False,
+            filesystem=True,
+            internet_access=False,
+            sandbox_management=False,
+            command_execution=True,
+        )
 
-            # Check enabled functions
-            function_names = [func.name for func in tools.functions.values()]
-            assert "run_python_code" in function_names
-            assert "list_files" in function_names
-            assert "run_command" in function_names
+        # Check enabled functions
+        function_names = [func.name for func in tools.functions.values()]
+        assert "run_python_code" in function_names
+        assert "list_files" in function_names
+        assert "run_command" in function_names
 
-            # Check disabled functions
-            assert "upload_file" not in function_names
-            assert "download_png_result" not in function_names
-            assert "get_public_url" not in function_names
+        # Check disabled functions
+        assert "upload_file" not in function_names
+        assert "download_png_result" not in function_names
+        assert "get_public_url" not in function_names
 
 
 def test_run_python_code(mock_e2b_tools):

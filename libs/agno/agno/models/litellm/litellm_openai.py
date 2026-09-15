@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Optional
 
 from agno.models.openai.like import OpenAILike
 
@@ -21,5 +22,5 @@ class LiteLLMOpenAI(OpenAILike):
     name: str = "LiteLLM"
     provider: str = "LiteLLM"
 
-    api_key: Optional[str] = getenv("LITELLM_API_KEY")
+    api_key: str | None = getenv("LITELLM_API_KEY")
     base_url: str = "http://0.0.0.0:4000"

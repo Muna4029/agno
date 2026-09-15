@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug
@@ -29,12 +31,12 @@ class BaiduSearchTools(Toolkit):
 
     def __init__(
         self,
-        fixed_max_results: Optional[int] = None,
-        fixed_language: Optional[str] = None,
-        headers: Optional[Any] = None,
-        proxy: Optional[str] = None,
-        timeout: Optional[int] = 10,
-        debug: Optional[bool] = False,
+        fixed_max_results: int | None = None,
+        fixed_language: str | None = None,
+        headers: Any | None = None,
+        proxy: str | None = None,
+        timeout: int | None = 10,
+        debug: bool | None = False,
         **kwargs,
     ):
         self.fixed_max_results = fixed_max_results
@@ -73,7 +75,7 @@ class BaiduSearchTools(Toolkit):
 
         results = search(keyword=query, num_results=max_results)
 
-        res: List[Dict[str, str]] = []
+        res: list[dict[str, str]] = []
         for idx, item in enumerate(results, 1):
             res.append(
                 {

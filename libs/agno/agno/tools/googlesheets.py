@@ -44,11 +44,13 @@ Note: The first time you run the application, it will open a browser window for 
 A token.json file will be created to store the authentication credentials for future use.
 """
 
+from __future__ import annotations
+
 import json
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 
@@ -84,16 +86,16 @@ class GoogleSheetsTools(Toolkit):
         "write": "https://www.googleapis.com/auth/spreadsheets",
     }
 
-    service: Optional[Resource]
+    service: Resource | None
 
     def __init__(
         self,
-        scopes: Optional[List[str]] = None,
-        spreadsheet_id: Optional[str] = None,
-        spreadsheet_range: Optional[str] = None,
-        creds: Optional[Credentials] = None,
-        creds_path: Optional[str] = None,
-        token_path: Optional[str] = None,
+        scopes: list[str] | None = None,
+        spreadsheet_id: str | None = None,
+        spreadsheet_range: str | None = None,
+        creds: Credentials | None = None,
+        creds_path: str | None = None,
+        token_path: str | None = None,
         read: bool = True,
         create: bool = False,
         update: bool = False,
@@ -120,7 +122,7 @@ class GoogleSheetsTools(Toolkit):
         self.creds = creds
         self.credentials_path = creds_path
         self.token_path = token_path
-        self.service: Optional[Resource] = None
+        self.service: Resource | None = None
 
         # Determine required scopes based on operations if no custom scopes provided
         if scopes is None:
@@ -145,7 +147,7 @@ class GoogleSheetsTools(Toolkit):
                     f"Either {self.DEFAULT_SCOPES['read']} or {self.DEFAULT_SCOPES['write']} is required for read operations"
                 )
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if read:
             tools.append(self.read_sheet)
         if create:
@@ -193,7 +195,7 @@ class GoogleSheetsTools(Toolkit):
             token_file.write_text(self.creds.to_json()) if self.creds else None
 
     @authenticate
-    def read_sheet(self, spreadsheet_id: Optional[str] = None, spreadsheet_range: Optional[str] = None) -> str:
+    def read_sheet(self, spreadsheet_id: str | None = None, spreadsheet_range: str | None = None) -> str:
         """
         Read values from a Google Sheet. Prioritizes instance attributes over method parameters.
 
@@ -248,7 +250,7 @@ class GoogleSheetsTools(Toolkit):
 
     @authenticate
     def update_sheet(
-        self, data: List[List[Any]], spreadsheet_id: Optional[str] = None, range_name: Optional[str] = None
+        self, data: list[list[Any]], spreadsheet_id: str | None = None, range_name: str | None = None
     ) -> str:
         """Updates a Google Sheet with the provided data.
 
@@ -285,7 +287,7 @@ class GoogleSheetsTools(Toolkit):
 
     @authenticate
     def create_duplicate_sheet(
-        self, source_id: str, new_title: Optional[str] = None, copy_permissions: bool = True
+        self, source_id: str, new_title: str | None = None, copy_permissions: bool = True
     ) -> str:
         """Duplicate a Google Spreadsheet using the Google Drive API's copy feature.
         This ensures an exact duplicate including formatting and data.

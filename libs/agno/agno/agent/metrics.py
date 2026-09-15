@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional, Union
 
 from agno.models.message import MessageMetrics
 from agno.utils.timer import Timer
@@ -19,15 +20,15 @@ class SessionMetrics:
     reasoning_tokens: int = 0
     prompt_tokens: int = 0
     completion_tokens: int = 0
-    prompt_tokens_details: Optional[dict] = None
-    completion_tokens_details: Optional[dict] = None
+    prompt_tokens_details: dict | None = None
+    completion_tokens_details: dict | None = None
 
-    additional_metrics: Optional[dict] = None
+    additional_metrics: dict | None = None
 
-    time: Optional[float] = None
-    time_to_first_token: Optional[float] = None
+    time: float | None = None
+    time_to_first_token: float | None = None
 
-    timer: Optional[Timer] = None
+    timer: Timer | None = None
 
     def start_timer(self):
         if self.timer is None:
@@ -44,7 +45,7 @@ class SessionMetrics:
         if self.timer is not None:
             self.time_to_first_token = self.timer.elapsed
 
-    def __add__(self, other: Union["SessionMetrics", "MessageMetrics"]) -> "SessionMetrics":
+    def __add__(self, other: SessionMetrics | MessageMetrics) -> SessionMetrics:
         # Create new instance with summed basic metrics
         result = SessionMetrics(
             input_tokens=self.input_tokens + other.input_tokens,
@@ -101,7 +102,7 @@ class SessionMetrics:
 
         return result
 
-    def __radd__(self, other: Union["SessionMetrics", "MessageMetrics"]) -> "SessionMetrics":
+    def __radd__(self, other: SessionMetrics | MessageMetrics) -> SessionMetrics:
         if other == 0:  # Handle sum() starting value
             return self
         return self + other

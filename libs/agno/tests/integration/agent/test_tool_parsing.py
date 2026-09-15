@@ -1,4 +1,4 @@
-from typing import List, Optional
+from __future__ import annotations
 
 from git import Union
 
@@ -27,7 +27,7 @@ def test_tool_call_custom_tool_no_parameters():
 
 
 def test_tool_call_custom_tool_optional_parameters():
-    def get_the_weather(city: Optional[str] = None):
+    def get_the_weather(city: str | None = None):
         """
         Get the weather in a city
 
@@ -85,7 +85,7 @@ def test_tool_call_custom_tool_untyped_parameters():
 
 
 def test_tool_call_list_parameters():
-    def get_the_weather(cities: List[str]):
+    def get_the_weather(cities: list[str]):
         """
         Get the weather in a city
 

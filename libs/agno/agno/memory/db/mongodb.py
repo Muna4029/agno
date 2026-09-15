@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
-from typing import List, Optional
 
 try:
     from pymongo import MongoClient
@@ -18,9 +19,9 @@ class MongoMemoryDb(MemoryDb):
     def __init__(
         self,
         collection_name: str = "memory",
-        db_url: Optional[str] = None,
+        db_url: str | None = None,
         db_name: str = "agno",
-        client: Optional[MongoClient] = None,
+        client: MongoClient | None = None,
     ):
         """
         This class provides a memory store backed by a MongoDB collection.
@@ -31,7 +32,7 @@ class MongoMemoryDb(MemoryDb):
             db_name: Name of the database
             client: Optional existing MongoDB client
         """
-        self._client: Optional[MongoClient] = client
+        self._client: MongoClient | None = client
         if self._client is None and db_url is not None:
             self._client = MongoClient(db_url)
 
@@ -69,8 +70,8 @@ class MongoMemoryDb(MemoryDb):
             return False
 
     def read_memories(
-        self, user_id: Optional[str] = None, limit: Optional[int] = None, sort: Optional[str] = None
-    ) -> List[MemoryRow]:
+        self, user_id: str | None = None, limit: int | None = None, sort: str | None = None
+    ) -> list[MemoryRow]:
         """Read memories from the collection
         Args:
             user_id: ID of the user to read
@@ -79,7 +80,7 @@ class MongoMemoryDb(MemoryDb):
         Returns:
             List[MemoryRow]: List of memories
         """
-        memories: List[MemoryRow] = []
+        memories: list[MemoryRow] = []
         try:
             # Build query
             query = {}

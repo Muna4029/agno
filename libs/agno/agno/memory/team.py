@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from pydantic import ConfigDict
 
@@ -19,11 +19,11 @@ from agno.utils.log import log_debug, log_info, log_warning
 
 @dataclass
 class TeamRun:
-    message: Optional[Message] = None
-    member_runs: Optional[List[AgentRun]] = None
-    response: Optional[TeamRunResponse] = None
+    message: Message | None = None
+    member_runs: list[AgentRun] | None = None
+    response: TeamRunResponse | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         message = self.message.to_dict() if self.message else None
         member_responses = [run.to_dict() for run in self.member_runs] if self.member_runs else None
         response = self.response.to_dict() if self.response else None
@@ -34,7 +34,7 @@ class TeamRun:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TeamRun":
+    def from_dict(cls, data: dict[str, Any]) -> TeamRun:
         message = Message.model_validate(data.get("message")) if data.get("message") else None
         member_runs = (
             [AgentRun.model_validate(run) for run in data.get("member_runs", [])] if data.get("member_runs") else None
@@ -53,20 +53,20 @@ class TeamMemberInteraction:
 @dataclass
 class TeamContext:
     # List of team member interaction, represented as a request and a response
-    member_interactions: List[TeamMemberInteraction] = field(default_factory=list)
-    text: Optional[str] = None
+    member_interactions: list[TeamMemberInteraction] = field(default_factory=list)
+    text: str | None = None
 
 
 @dataclass
 class TeamMemory:
     # Runs between the user and agent
-    runs: List[TeamRun] = field(default_factory=list)
+    runs: list[TeamRun] = field(default_factory=list)
     # List of messages sent to the model
-    messages: List[Message] = field(default_factory=list)
+    messages: list[Message] = field(default_factory=list)
     # If True, update the system message when it changes
     update_system_message_on_change: bool = True
 
-    team_context: Optional[TeamContext] = None
+    team_context: TeamContext | None = None
 
     # Create and store personalized memories for this user
     create_user_memories: bool = False
@@ -74,22 +74,22 @@ class TeamMemory:
     update_user_memories_after_run: bool = True
 
     # MemoryDb to store personalized memories
-    db: Optional[MemoryDb] = None
+    db: MemoryDb | None = None
     # User ID for the personalized memories
-    user_id: Optional[str] = None
+    user_id: str | None = None
     retrieval: MemoryRetrieval = MemoryRetrieval.last_n
-    memories: Optional[List[Memory]] = None
-    classifier: Optional[MemoryClassifier] = None
-    manager: Optional[MemoryManager] = None
+    memories: list[Memory] | None = None
+    classifier: MemoryClassifier | None = None
+    manager: MemoryManager | None = None
 
-    num_memories: Optional[int] = None
+    num_memories: int | None = None
 
     # True when memory is being updated
     updating_memory: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _memory_dict = {}
         for key, value in self.__dict__.items():
             if value is not None and key in [
@@ -148,7 +148,7 @@ class TeamMemory:
             team_member_interactions_str += "</member_interactions>\n"
         return team_member_interactions_str
 
-    def get_team_context_images(self) -> List[ImageArtifact]:
+    def get_team_context_images(self) -> list[ImageArtifact]:
         images = []
         if self.team_context and self.team_context.member_interactions:
             for interaction in self.team_context.member_interactions:
@@ -156,7 +156,7 @@ class TeamMemory:
                     images.extend(interaction.response.images)
         return images
 
-    def get_team_context_videos(self) -> List[VideoArtifact]:
+    def get_team_context_videos(self) -> list[VideoArtifact]:
         videos = []
         if self.team_context and self.team_context.member_interactions:
             for interaction in self.team_context.member_interactions:
@@ -164,7 +164,7 @@ class TeamMemory:
                     videos.extend(interaction.response.videos)
         return videos
 
-    def get_team_context_audio(self) -> List[AudioArtifact]:
+    def get_team_context_audio(self) -> list[AudioArtifact]:
         audio = []
         if self.team_context and self.team_context.member_interactions:
             for interaction in self.team_context.member_interactions:
@@ -200,18 +200,16 @@ class TeamMemory:
                 # Add the system message to the messages list
                 self.messages.insert(0, message)
 
-    def add_messages(self, messages: List[Message]) -> None:
+    def add_messages(self, messages: list[Message]) -> None:
         """Add a list of messages to the messages list."""
         self.messages.extend(messages)
         log_debug(f"Added {len(messages)} Messages to TeamMemory")
 
-    def get_messages(self) -> List[Dict[str, Any]]:
+    def get_messages(self) -> list[dict[str, Any]]:
         """Returns the messages list as a list of dictionaries."""
         return [message.model_dump() for message in self.messages]
 
-    def get_messages_from_last_n_runs(
-        self, last_n: Optional[int] = None, skip_role: Optional[str] = None
-    ) -> List[Message]:
+    def get_messages_from_last_n_runs(self, last_n: int | None = None, skip_role: str | None = None) -> list[Message]:
         """Returns the messages from the last_n runs, excluding previously tagged history messages.
 
         Args:
@@ -244,12 +242,12 @@ class TeamMemory:
         log_debug(f"Getting messages from previous runs: {len(messages_from_history)}")
         return messages_from_history
 
-    def get_all_messages(self) -> List[Tuple[Message, Message]]:
+    def get_all_messages(self) -> list[tuple[Message, Message]]:
         """Returns a list of tuples of (user message, assistant response)."""
 
         assistant_role = ["assistant", "model", "CHATBOT"]
 
-        runs_as_message_pairs: List[Tuple[Message, Message]] = []
+        runs_as_message_pairs: list[tuple[Message, Message]] = []
         for run in self.runs:
             if run.response and run.response.messages:
                 user_message_from_run = None
@@ -313,9 +311,7 @@ class TeamMemory:
 
         self.classifier.existing_memories = self.memories
         classifier_response = self.classifier.run(input)
-        if classifier_response == "yes":
-            return True
-        return False
+        return classifier_response == "yes"
 
     async def ashould_update_memory(self, input: str) -> bool:
         """Determines if a message should be added to the memory db."""
@@ -326,11 +322,9 @@ class TeamMemory:
 
         self.classifier.existing_memories = self.memories
         classifier_response = await self.classifier.arun(input)
-        if classifier_response == "yes":
-            return True
-        return False
+        return classifier_response == "yes"
 
-    def update_memory(self, input: str, force: bool = False) -> Optional[str]:
+    def update_memory(self, input: str, force: bool = False) -> str | None:
         """Creates a memory from a message and adds it to the memory db."""
 
         if input is None or not isinstance(input, str):
@@ -362,7 +356,7 @@ class TeamMemory:
         self.updating_memory = False
         return response
 
-    async def aupdate_memory(self, input: str, force: bool = False) -> Optional[str]:
+    async def aupdate_memory(self, input: str, force: bool = False) -> str | None:
         """Creates a memory from a message and adds it to the memory db."""
         if input is None or not isinstance(input, str):
             return "Invalid message content"
@@ -393,7 +387,7 @@ class TeamMemory:
         self.updating_memory = False
         return response
 
-    def deep_copy(self) -> "TeamMemory":
+    def deep_copy(self) -> TeamMemory:
         from copy import deepcopy
 
         # Create a shallow copy of the object

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass, field
 from textwrap import dedent
-from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional, Type, Union
+from typing import Any, AsyncIterator, Iterator, Mapping
 
 from pydantic import BaseModel
 
@@ -30,8 +32,8 @@ class OllamaResponseUsage:
 
 @dataclass
 class ToolCall:
-    tool_calls: List[Dict[str, Any]] = field(default_factory=list)
-    response_usage: Optional[Mapping[str, Any]] = None
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
+    response_usage: Mapping[str, Any] | None = None
     response_is_tool_call: bool = field(default=False)
     is_closing_tool_call_tag: bool = field(default=False)
     tool_calls_counter: int = field(default=0)
@@ -51,20 +53,20 @@ class OllamaTools(Ollama):
     provider: str = "Ollama"
 
     @property
-    def request_kwargs(self) -> Dict[str, Any]:
+    def request_kwargs(self) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
         Returns:
             Dict[str, Any]: The API kwargs for the model.
         """
-        base_params: Dict[str, Any] = {
+        base_params: dict[str, Any] = {
             "format": self.format,
             "options": self.options,
             "keep_alive": self.keep_alive,
             "request_params": self.request_params,
         }
-        request_params: Dict[str, Any] = {k: v for k, v in base_params.items() if v is not None}
+        request_params: dict[str, Any] = {k: v for k, v in base_params.items() if v is not None}
         # Add additional request params if provided
         if self.request_params:
             request_params.update(self.request_params)
@@ -137,7 +139,7 @@ class OllamaTools(Ollama):
         return model_response
 
     def create_function_call_result(
-        self, function_call: FunctionCall, success: bool, output: Optional[Union[List[Any], str]], timer: Timer
+        self, function_call: FunctionCall, success: bool, output: list[Any] | str | None, timer: Timer
     ) -> Message:
         """Create a function call result message."""
         content = (
@@ -157,7 +159,7 @@ class OllamaTools(Ollama):
             metrics=MessageMetrics(time=timer.elapsed),
         )
 
-    def format_function_call_results(self, function_call_results: List[Message], messages: List[Message]) -> None:
+    def format_function_call_results(self, function_call_results: list[Message], messages: list[Message]) -> None:
         """
         Format the function call results and append them to the messages.
 
@@ -177,10 +179,10 @@ class OllamaTools(Ollama):
     def _prepare_function_calls(
         self,
         assistant_message: Message,
-        messages: List[Message],
+        messages: list[Message],
         model_response: ModelResponse,
-        functions: Optional[Dict[str, Function]] = None,
-    ) -> List[FunctionCall]:
+        functions: dict[str, Function] | None = None,
+    ) -> list[FunctionCall]:
         """
         Prepare function calls from tool calls in the assistant message.
 
@@ -204,12 +206,12 @@ class OllamaTools(Ollama):
 
     def process_response_stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         stream_data,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ModelResponse]:
         """
         Process a streaming response from the model.
@@ -229,12 +231,12 @@ class OllamaTools(Ollama):
 
     async def aprocess_response_stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         stream_data,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[ModelResponse]:
         """
         Process a streaming response from the model.
@@ -303,7 +305,6 @@ class OllamaTools(Ollama):
                         tool_call_data = ToolCall()
                     except Exception as e:
                         log_warning(e)
-                        pass
 
             # Yield content if not a tool call and content is not None
             if not tool_call_data.response_is_tool_call and content_delta is not None:
@@ -327,7 +328,7 @@ class OllamaTools(Ollama):
 
         return model_response
 
-    def get_instructions_to_generate_tool_calls(self, tools: Optional[List[Any]] = None) -> List[str]:
+    def get_instructions_to_generate_tool_calls(self, tools: list[Any] | None = None) -> list[str]:
         if tools is not None:
             return [
                 "At the very first turn you don't have <tool_results> so you shouldn't not make up the results.",
@@ -337,7 +338,7 @@ class OllamaTools(Ollama):
             ]
         return []
 
-    def get_tool_call_prompt(self, tools: Optional[List[Any]] = None) -> Optional[str]:
+    def get_tool_call_prompt(self, tools: list[Any] | None = None) -> str | None:
         if tools is not None and len(tools) > 0:
             tool_call_prompt = dedent(
                 """\
@@ -355,7 +356,7 @@ class OllamaTools(Ollama):
             )
             tool_call_prompt += "\nHere are the available tools:"
             tool_call_prompt += "\n<tools>\n"
-            tool_definitions: List[str] = []
+            tool_definitions: list[str] = []
             for tool_def in tools:
                 func_def = tool_def.get("function", {})
                 _function_def = json.dumps(
@@ -381,14 +382,14 @@ class OllamaTools(Ollama):
             return tool_call_prompt
         return None
 
-    def get_system_message_for_model(self, tools: Optional[List[Any]] = None) -> Optional[str]:
+    def get_system_message_for_model(self, tools: list[Any] | None = None) -> str | None:
         return self.get_tool_call_prompt(tools)
 
-    def get_instructions_for_model(self, tools: Optional[List[Any]] = None) -> Optional[List[str]]:
+    def get_instructions_for_model(self, tools: list[Any] | None = None) -> list[str] | None:
         return self.get_instructions_to_generate_tool_calls(tools)
 
 
-def _parse_tool_calls_from_content(response_content: str) -> List[Dict[str, Any]]:
+def _parse_tool_calls_from_content(response_content: str) -> list[dict[str, Any]]:
     """
     Parse tool calls from response content.
 

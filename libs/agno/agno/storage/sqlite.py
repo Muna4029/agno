@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import time
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import Literal
 
 from agno.storage.base import Storage
 from agno.storage.session import Session
@@ -27,12 +29,12 @@ class SqliteStorage(Storage):
     def __init__(
         self,
         table_name: str,
-        db_url: Optional[str] = None,
-        db_file: Optional[str] = None,
-        db_engine: Optional[Engine] = None,
+        db_url: str | None = None,
+        db_file: str | None = None,
+        db_engine: Engine | None = None,
         schema_version: int = 1,
         auto_upgrade_schema: bool = False,
-        mode: Optional[Literal["agent", "team", "workflow"]] = "agent",
+        mode: Literal["agent", "team", "workflow"] | None = "agent",
     ):
         """
         This class provides agent storage using a sqlite database.
@@ -50,7 +52,7 @@ class SqliteStorage(Storage):
             db_engine: The SQLAlchemy database engine to use.
         """
         super().__init__(mode)
-        _engine: Optional[Engine] = db_engine
+        _engine: Engine | None = db_engine
         if _engine is None and db_url is not None:
             _engine = create_engine(db_url)
         elif _engine is None and db_file is not None:
@@ -67,7 +69,7 @@ class SqliteStorage(Storage):
 
         # Database attributes
         self.table_name: str = table_name
-        self.db_url: Optional[str] = db_url
+        self.db_url: str | None = db_url
         self.db_engine: Engine = _engine
         self.metadata: MetaData = MetaData()
         self.inspector = inspect(self.db_engine)
@@ -84,12 +86,12 @@ class SqliteStorage(Storage):
         self.table: Table = self.get_table()
 
     @property
-    def mode(self) -> Optional[Literal["agent", "team", "workflow"]]:
+    def mode(self) -> Literal["agent", "team", "workflow"] | None:
         """Get the mode of the storage."""
         return super().mode
 
     @mode.setter
-    def mode(self, value: Optional[Literal["agent", "team", "workflow"]]) -> None:
+    def mode(self, value: Literal["agent", "team", "workflow"] | None) -> None:
         """Set the mode and refresh the table if mode changes."""
         super(SqliteStorage, type(self)).mode.fset(self, value)  # type: ignore
         if value is not None:
@@ -218,7 +220,7 @@ class SqliteStorage(Storage):
                 logger.error(f"Error creating table: {e}")
                 raise
 
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         """
         Read a Session from the database.
 
@@ -249,7 +251,7 @@ class SqliteStorage(Storage):
                 log_debug(f"Exception reading from table: {e}")
         return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: str | None = None, entity_id: str | None = None) -> list[str]:
         """
         Get all session IDs, optionally filtered by user_id and/or entity_id.
 
@@ -286,7 +288,7 @@ class SqliteStorage(Storage):
                 log_debug(f"Exception reading from table: {e}")
         return []
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
         """
         Get all sessions, optionally filtered by user_id and/or entity_id.
 
@@ -333,10 +335,10 @@ class SqliteStorage(Storage):
 
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         """
         Get the last N sessions, ordered by created_at descending.
 
@@ -413,7 +415,7 @@ class SqliteStorage(Storage):
             logger.error(f"Error during schema upgrade: {e}")
             raise
 
-    def upsert(self, session: Session, create_and_retry: bool = True) -> Optional[Session]:
+    def upsert(self, session: Session, create_and_retry: bool = True) -> Session | None:
         """
         Insert or update a Session in the database.
 
@@ -447,16 +449,16 @@ class SqliteStorage(Storage):
                     # See: https://docs.sqlalchemy.org/en/20/dialects/sqlite.html#insert-on-conflict-upsert
                     stmt = stmt.on_conflict_do_update(
                         index_elements=["session_id"],
-                        set_=dict(
-                            agent_id=session.agent_id,  # type: ignore
-                            team_session_id=session.team_session_id,  # type: ignore
-                            user_id=session.user_id,
-                            memory=session.memory,
-                            agent_data=session.agent_data,  # type: ignore
-                            session_data=session.session_data,
-                            extra_data=session.extra_data,
-                            updated_at=int(time.time()),
-                        ),  # The updated value for each column
+                        set_={
+                            "agent_id": session.agent_id,  # type: ignore
+                            "team_session_id": session.team_session_id,  # type: ignore
+                            "user_id": session.user_id,
+                            "memory": session.memory,
+                            "agent_data": session.agent_data,  # type: ignore
+                            "session_data": session.session_data,
+                            "extra_data": session.extra_data,
+                            "updated_at": int(time.time()),
+                        },  # The updated value for each column
                     )
                 elif self.mode == "team":
                     # Create an insert statement
@@ -475,16 +477,16 @@ class SqliteStorage(Storage):
                     # See: https://docs.sqlalchemy.org/en/20/dialects/sqlite.html#insert-on-conflict-upsert
                     stmt = stmt.on_conflict_do_update(
                         index_elements=["session_id"],
-                        set_=dict(
-                            team_id=session.team_id,  # type: ignore
-                            user_id=session.user_id,
-                            team_session_id=session.team_session_id,  # type: ignore
-                            memory=session.memory,
-                            team_data=session.team_data,  # type: ignore
-                            session_data=session.session_data,
-                            extra_data=session.extra_data,
-                            updated_at=int(time.time()),
-                        ),  # The updated value for each column
+                        set_={
+                            "team_id": session.team_id,  # type: ignore
+                            "user_id": session.user_id,
+                            "team_session_id": session.team_session_id,  # type: ignore
+                            "memory": session.memory,
+                            "team_data": session.team_data,  # type: ignore
+                            "session_data": session.session_data,
+                            "extra_data": session.extra_data,
+                            "updated_at": int(time.time()),
+                        },  # The updated value for each column
                     )
                 elif self.mode == "workflow":
                     # Create an insert statement
@@ -502,15 +504,15 @@ class SqliteStorage(Storage):
                     # See: https://docs.sqlalchemy.org/en/20/dialects/sqlite.html#insert-on-conflict-upsert
                     stmt = stmt.on_conflict_do_update(
                         index_elements=["session_id"],
-                        set_=dict(
-                            workflow_id=session.workflow_id,  # type: ignore
-                            user_id=session.user_id,
-                            memory=session.memory,
-                            workflow_data=session.workflow_data,  # type: ignore
-                            session_data=session.session_data,
-                            extra_data=session.extra_data,
-                            updated_at=int(time.time()),
-                        ),  # The updated value for each column
+                        set_={
+                            "workflow_id": session.workflow_id,  # type: ignore
+                            "user_id": session.user_id,
+                            "memory": session.memory,
+                            "workflow_data": session.workflow_data,  # type: ignore
+                            "session_data": session.session_data,
+                            "extra_data": session.extra_data,
+                            "updated_at": int(time.time()),
+                        },  # The updated value for each column
                     )
 
                 sess.execute(stmt)
@@ -528,7 +530,7 @@ class SqliteStorage(Storage):
                 return None
         return self.read(session_id=session.session_id)
 
-    def delete_session(self, session_id: Optional[str] = None):
+    def delete_session(self, session_id: str | None = None):
         """
         Delete a workflow session from the database.
 

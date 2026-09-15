@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from sqlalchemy import (
@@ -29,9 +31,9 @@ class SqliteMemoryDb(MemoryDb):
     def __init__(
         self,
         table_name: str = "memory",
-        db_url: Optional[str] = None,
-        db_file: Optional[str] = None,
-        db_engine: Optional[Engine] = None,
+        db_url: str | None = None,
+        db_file: str | None = None,
+        db_engine: Engine | None = None,
     ):
         """
         This class provides a memory store backed by a SQLite table.
@@ -49,7 +51,7 @@ class SqliteMemoryDb(MemoryDb):
             db_engine: The database engine to use.
         """
         self.db_file = db_file
-        _engine: Optional[Engine] = db_engine
+        _engine: Engine | None = db_engine
         if _engine is None and db_url is not None:
             _engine = create_engine(db_url)
         elif _engine is None and db_file is not None:
@@ -66,7 +68,7 @@ class SqliteMemoryDb(MemoryDb):
 
         # Database attributes
         self.table_name: str = table_name
-        self.db_url: Optional[str] = db_url
+        self.db_url: str | None = db_url
         self.db_engine: Engine = _engine
         self.metadata: MetaData = MetaData()
         self.inspector = inspect(self.db_engine)
@@ -76,7 +78,7 @@ class SqliteMemoryDb(MemoryDb):
         # Database table for memories
         self.table: Table = self.get_table()
 
-    def __dict__(self) -> Dict[str, Any]:
+    def __dict__(self) -> dict[str, Any]:
         return {
             "name": "SqliteMemoryDb",
             "table_name": self.table_name,
@@ -113,9 +115,9 @@ class SqliteMemoryDb(MemoryDb):
             return result is not None
 
     def read_memories(
-        self, user_id: Optional[str] = None, limit: Optional[int] = None, sort: Optional[str] = None
-    ) -> List[MemoryRow]:
-        memories: List[MemoryRow] = []
+        self, user_id: str | None = None, limit: int | None = None, sort: str | None = None
+    ) -> list[MemoryRow]:
+        memories: list[MemoryRow] = []
         try:
             with self.Session() as session:
                 stmt = select(self.table)

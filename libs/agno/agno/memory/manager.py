@@ -1,4 +1,7 @@
-from typing import Any, Dict, List, Optional, cast
+from __future__ import annotations
+
+import sys
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict
 
@@ -12,18 +15,18 @@ from agno.utils.log import log_debug, logger
 
 
 class MemoryManager(BaseModel):
-    model: Optional[Model] = None
-    user_id: Optional[str] = None
-    limit: Optional[int] = None
+    model: Model | None = None
+    user_id: str | None = None
+    limit: int | None = None
     # Provide the system prompt for the manager as a string
-    system_prompt: Optional[str] = None
+    system_prompt: str | None = None
     # Memory Database
-    db: Optional[MemoryDb] = None
+    db: MemoryDb | None = None
 
     # Do not set the input message here, it will be set by the run method
-    input_message: Optional[str] = None
-    _tools_for_model: Optional[List[Dict]] = None
-    _functions_for_model: Optional[Dict[str, Function]] = None
+    input_message: str | None = None
+    _tools_for_model: list[dict] | None = None
+    _functions_for_model: dict[str, Function] | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -37,7 +40,7 @@ class MemoryManager(BaseModel):
                 logger.error(
                     "Agno uses `openai` as the default model provider. Please provide a `model` or install `openai`."
                 )
-                exit(1)
+                sys.exit(1)
             self.model = OpenAIChat(id="gpt-4o")
 
     def determine_tools_for_model(self) -> None:
@@ -62,7 +65,7 @@ class MemoryManager(BaseModel):
             except Exception as e:
                 logger.warning(f"Could not add function {tool}: {e}")
 
-    def get_existing_memories(self) -> Optional[List[MemoryRow]]:
+    def get_existing_memories(self) -> list[MemoryRow] | None:
         if self.db is None:
             return None
 
@@ -137,10 +140,12 @@ class MemoryManager(BaseModel):
     def get_system_message(self) -> Message:
         # -*- Return a system message for the memory manager
         system_prompt_lines = [
-            "Your task is to generate a concise memory for the user's message. "
-            "Create a memory that captures the key information provided by the user, as if you were storing it for future reference. "
-            "The memory should be a brief, third-person statement that encapsulates the most important aspect of the user's input, without adding any extraneous details. "
-            "This memory will be used to enhance the user's experience in subsequent conversations.",
+            (
+                "Your task is to generate a concise memory for the user's message. "
+                "Create a memory that captures the key information provided by the user, as if you were storing it for future reference. "
+                "The memory should be a brief, third-person statement that encapsulates the most important aspect of the user's input, without adding any extraneous details. "
+                "This memory will be used to enhance the user's experience in subsequent conversations."
+            ),
             "You will also be provided with a list of existing memories. You may:",
             "  1. Add a new memory using the `add_memory` tool.",
             "  2. Update a memory using the `update_memory` tool.",
@@ -161,9 +166,9 @@ class MemoryManager(BaseModel):
 
     def run(
         self,
-        message: Optional[str] = None,
+        message: str | None = None,
         **kwargs: Any,
-    ) -> Optional[str]:
+    ) -> str | None:
         log_debug("*********** MemoryManager Start ***********")
 
         # Update the Model (set defaults, add logit etc.)
@@ -171,7 +176,7 @@ class MemoryManager(BaseModel):
         self.determine_tools_for_model()
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [self.get_system_message()]
+        messages_for_model: list[Message] = [self.get_system_message()]
 
         # Add the user prompt message
         user_prompt_message = Message(role="user", content=message, **kwargs) if message else None
@@ -191,16 +196,16 @@ class MemoryManager(BaseModel):
 
     async def arun(
         self,
-        message: Optional[str] = None,
+        message: str | None = None,
         **kwargs: Any,
-    ) -> Optional[str]:
+    ) -> str | None:
         log_debug("*********** Async MemoryManager Start ***********")
 
         # Update the Model (set defaults, add logit etc.)
         self.update_model()
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [self.get_system_message()]
+        messages_for_model: list[Message] = [self.get_system_message()]
         # Add the user prompt message
         user_prompt_message = Message(role="user", content=message, **kwargs) if message else None
         if user_prompt_message is not None:
