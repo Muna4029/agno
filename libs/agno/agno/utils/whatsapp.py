@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import httpx
 import requests
@@ -21,7 +21,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> Union[dict, bytes]:
+def get_media(media_id: str) -> Union[Dict[str, Any], bytes]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -51,7 +51,7 @@ def get_media(media_id: str) -> Union[dict, bytes]:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> Union[dict, bytes]:
+async def get_media_async(media_id: str) -> Union[Dict[str, Any], bytes]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -83,7 +83,7 @@ async def get_media_async(media_id: str) -> Union[dict, bytes]:
         return {"error": str(e)}
 
 
-def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
+def upload_media(media_data: bytes, mime_type: str, filename: str = "file") -> Union[str, Dict[str, Any]]:
     """
     Sends a POST request to the Facebook Graph API to upload media for WhatsApp.
 
@@ -113,6 +113,7 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
         media_id = json_resp.get("id")
         if not media_id:
             return {"error": "Media ID not found in response", "response": json_resp}
+        assert isinstance(media_id, str)
         return media_id
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
@@ -120,7 +121,7 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
         return {"error": str(e)}
 
 
-async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file"):
+async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file") -> Union[str, Dict[str, Any]]:
     """
     Sends a POST request to the Facebook Graph API to upload media for WhatsApp.
 
@@ -151,6 +152,7 @@ async def upload_media_async(media_data: bytes, mime_type: str, filename: str = 
             media_id = json_resp.get("id")
             if not media_id:
                 return {"error": "Media ID not found in response", "response": json_resp}
+            assert isinstance(media_id, str)
             return media_id
     except httpx.HTTPStatusError as e:
         return {"error": str(e)}
@@ -182,12 +184,15 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
+    image_data = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
@@ -232,12 +237,15 @@ def send_image_message(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
+    image_data = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:

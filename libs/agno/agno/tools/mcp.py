@@ -60,7 +60,7 @@ class MCPTools(Toolkit):
         server_params: Optional[Union[StdioServerParameters, SSEClientParams, StreamableHTTPClientParams]] = None,
         session: Optional[ClientSession] = None,
         timeout_seconds: int = 5,
-        client=None,
+        client: Optional[Any] = None,
         include_tools: Optional[list[str]] = None,
         exclude_tools: Optional[list[str]] = None,
         **kwargs,
@@ -160,16 +160,16 @@ class MCPTools(Toolkit):
 
         # Create a new session using stdio_client, sse_client or streamablehttp_client based on transport
         if self.transport == "sse":
-            sse_params = asdict(self.server_params) if self.server_params is not None else {}  # type: ignore
+            sse_params = asdict(self.server_params) if self.server_params is not None else {}
             if "url" not in sse_params:
                 sse_params["url"] = self.url
-            self._context = sse_client(**sse_params)  # type: ignore
+            self._context = sse_client(**sse_params)
             client_timeout = min(self.timeout_seconds, sse_params.get("timeout", self.timeout_seconds))
         elif self.transport == "streamable-http":
-            streamable_http_params = asdict(self.server_params) if self.server_params is not None else {}  # type: ignore
+            streamable_http_params = asdict(self.server_params) if self.server_params is not None else {}
             if "url" not in streamable_http_params:
                 streamable_http_params["url"] = self.url
-            self._context = streamablehttp_client(**streamable_http_params)  # type: ignore
+            self._context = streamablehttp_client(**streamable_http_params)
             params_timeout = streamable_http_params.get("timeout", self.timeout_seconds)
             if isinstance(params_timeout, timedelta):
                 params_timeout = int(params_timeout.total_seconds())
@@ -177,20 +177,20 @@ class MCPTools(Toolkit):
         else:
             if self.server_params is None:
                 raise ValueError("server_params must be provided when using stdio transport.")
-            self._context = stdio_client(self.server_params)  # type: ignore
+            self._context = stdio_client(self.server_params)
             client_timeout = self.timeout_seconds
 
         session_params = await self._context.__aenter__()  # type: ignore
         read, write = session_params[0:2]
 
-        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))  # type: ignore
+        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))
         self.session = await self._session_context.__aenter__()  # type: ignore
 
         # Initialize with the new session
         await self.initialize()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Optional[type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
         """Exit the async context manager."""
         if self._session_context is not None:
             await self._session_context.__aexit__(exc_type, exc_val, exc_tb)
@@ -282,10 +282,10 @@ class MultiMCPTools(Toolkit):
             List[Union[SSEClientParams, StdioServerParameters, StreamableHTTPClientParams]]
         ] = None,
         timeout_seconds: int = 5,
-        client=None,
+        client: Optional[Any] = None,
         include_tools: Optional[list[str]] = None,
         exclude_tools: Optional[list[str]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Initialize the MCP toolkit.
@@ -398,7 +398,7 @@ class MultiMCPTools(Toolkit):
         exc_type: Union[type[BaseException], None],
         exc_val: Union[BaseException, None],
         exc_tb: Union[TracebackType, None],
-    ):
+    ) -> None:
         """Exit the async context manager."""
         await self._async_exit_stack.aclose()
 
