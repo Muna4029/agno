@@ -4,6 +4,8 @@ from typing import Optional
 import httpx
 import requests
 
+import json
+
 from agno.utils.log import log_debug, log_error
 
 
@@ -46,7 +48,10 @@ def get_media(media_id: str) -> dict:
         response = requests.get(media_url, headers=headers)
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         data = response.content
-        return data
+        try:
+            return json.loads(data.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            raise ValueError(f"Failed to parse media response as JSON: {e}")
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
@@ -78,7 +83,10 @@ async def get_media_async(media_id: str) -> dict:
             response = await client.get(media_url, headers=headers)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
             data = response.content
-        return data
+        try:
+            return json.loads(data.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            raise ValueError(f"Failed to parse media response as JSON: {e}")
     except httpx.HTTPStatusError as e:
         return {"error": str(e)}
 
