@@ -2,7 +2,7 @@ import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any, AsyncGenerator, Dict, Iterator, List, Optional, Type, Union
 
 import httpx
 from pydantic import BaseModel
@@ -268,7 +268,7 @@ class Cerebras(Model):
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> AsyncIterator[ChatChunkResponse]:
+    ) -> AsyncGenerator[Any, None]:
         """
         Sends an asynchronous streaming chat completion request to the Cerebras API.
 
