@@ -72,7 +72,7 @@ class Cerebras(Model):
         if not self.api_key:
             self.api_key = getenv("CEREBRAS_API_KEY")
             if not self.api_key:
-                log_error("CEREBRAS_API_KEY not set. Please set the CEREBRAS_API_KEY environment variable.")
+                log_error("CEREBRAS_API_KEY not set. Please set the CEREBRAS_API_KEY environment variable.")  # type: ignore
 
         # Define base client params
         base_params = {
@@ -132,7 +132,7 @@ class Cerebras(Model):
     def get_request_params(
         self,
         tools: Optional[List[Dict[str, Any]]] = None,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
     ) -> Dict[str, Any]:
         """
         Returns keyword arguments for API requests.
@@ -198,7 +198,7 @@ class Cerebras(Model):
     def invoke(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> ChatCompletion:
@@ -220,7 +220,7 @@ class Cerebras(Model):
     async def ainvoke(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> ChatCompletion:
@@ -242,7 +242,7 @@ class Cerebras(Model):
     def invoke_stream(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> Iterator[ChatChunkResponse]:
@@ -260,12 +260,12 @@ class Cerebras(Model):
             messages=[self._format_message(m) for m in messages],  # type: ignore
             stream=True,
             **self.get_request_params(response_format=response_format, tools=tools),
-        )  # type: ignore
+        )
 
     async def ainvoke_stream(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> AsyncIterator[ChatChunkResponse]:
@@ -337,7 +337,7 @@ class Cerebras(Model):
 
         return message_dict
 
-    def parse_provider_response(self, response: ChatCompletionResponse, **kwargs) -> ModelResponse:
+    def parse_provider_response(self, response: ChatCompletionResponse, **kwargs: Any) -> ModelResponse:
         """
         Parse the Cerebras response into a ModelResponse.
 
@@ -376,7 +376,7 @@ class Cerebras(Model):
                     for tool_call in message.tool_calls
                 ]
             except Exception as e:
-                log_warning(f"Error processing tool calls: {e}")
+                log_warning(f"Error processing tool calls: {e}")  # type: ignore
 
         # Add usage metrics
         if response.usage:
@@ -403,7 +403,7 @@ class Cerebras(Model):
         # Get the first choice (assuming single response)
         if response_delta.choices is not None:
             choice: ChatChunkResponseChoice = response_delta.choices[0]
-            choice_delta: ChatChunkResponseChoiceDelta = choice.delta
+            choice_delta: Optional[ChatChunkResponseChoiceDelta] = choice.delta
 
             if choice_delta:
                 # Add content

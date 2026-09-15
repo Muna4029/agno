@@ -13,7 +13,7 @@ try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.sse import sse_client
     from mcp.client.stdio import get_default_environment, stdio_client
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import streamable_http_client
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`mcp` not installed. Please install using `pip install mcp`")
 
@@ -60,10 +60,10 @@ class MCPTools(Toolkit):
         server_params: Optional[Union[StdioServerParameters, SSEClientParams, StreamableHTTPClientParams]] = None,
         session: Optional[ClientSession] = None,
         timeout_seconds: int = 5,
-        client=None,
+        client: Optional[Any] = None,
         include_tools: Optional[list[str]] = None,
         exclude_tools: Optional[list[str]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Initialize the MCP toolkit.
@@ -158,7 +158,7 @@ class MCPTools(Toolkit):
                 await self.initialize()
             return self
 
-        # Create a new session using stdio_client, sse_client or streamablehttp_client based on transport
+        # Create a new session using stdio_client, sse_client or streamable_http_client based on transport
         if self.transport == "sse":
             sse_params = asdict(self.server_params) if self.server_params is not None else {}  # type: ignore
             if "url" not in sse_params:
@@ -169,7 +169,7 @@ class MCPTools(Toolkit):
             streamable_http_params = asdict(self.server_params) if self.server_params is not None else {}  # type: ignore
             if "url" not in streamable_http_params:
                 streamable_http_params["url"] = self.url
-            self._context = streamablehttp_client(**streamable_http_params)  # type: ignore
+            self._context = streamable_http_client(**streamable_http_params)  # type: ignore
             params_timeout = streamable_http_params.get("timeout", self.timeout_seconds)
             if isinstance(params_timeout, timedelta):
                 params_timeout = int(params_timeout.total_seconds())
@@ -183,14 +183,19 @@ class MCPTools(Toolkit):
         session_params = await self._context.__aenter__()  # type: ignore
         read, write = session_params[0:2]
 
-        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))  # type: ignore
+        self._session_context = ClientSession(read, write, read_timeout_seconds=float(client_timeout))  # type: ignore
         self.session = await self._session_context.__aenter__()  # type: ignore
 
         # Initialize with the new session
         await self.initialize()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: Union[type[BaseException], None],
+        exc_val: Union[BaseException, None],
+        exc_tb: Union[TracebackType, None],
+    ) -> None:
         """Exit the async context manager."""
         if self._session_context is not None:
             await self._session_context.__aexit__(exc_type, exc_val, exc_tb)
@@ -241,7 +246,7 @@ class MCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
@@ -282,10 +287,10 @@ class MultiMCPTools(Toolkit):
             List[Union[SSEClientParams, StdioServerParameters, StreamableHTTPClientParams]]
         ] = None,
         timeout_seconds: int = 5,
-        client=None,
+        client: Optional[Any] = None,
         include_tools: Optional[list[str]] = None,
         exclude_tools: Optional[list[str]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Initialize the MCP toolkit.
@@ -305,7 +310,7 @@ class MultiMCPTools(Toolkit):
 
         if urls is not None:
             if urls_transports is None:
-                log_warning(
+                log_warning(  # type: ignore
                     "The default transport 'sse' will be used. You can explicitly set the transports by providing the urls_transports parameter."
                 )
             else:
@@ -370,7 +375,7 @@ class MultiMCPTools(Toolkit):
                 stdio_transport = await self._async_exit_stack.enter_async_context(stdio_client(server_params))
                 read, write = stdio_transport
                 session = await self._async_exit_stack.enter_async_context(
-                    ClientSession(read, write, read_timeout_seconds=timedelta(seconds=self.timeout_seconds))
+                    ClientSession(read, write, read_timeout_seconds=float(self.timeout_seconds))  # type: ignore[attr-defined]
                 )
                 await self.initialize(session)
             # Handle SSE connections
@@ -379,16 +384,16 @@ class MultiMCPTools(Toolkit):
                     sse_client(**asdict(server_params))
                 )
                 read, write = client_connection
-                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
+                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))  # type: ignore[attr-defined]
                 await self.initialize(session)
 
             # Handle Streamable HTTP connections
             elif isinstance(server_params, StreamableHTTPClientParams):
                 client_connection = await self._async_exit_stack.enter_async_context(
-                    streamablehttp_client(**asdict(server_params))
+                    streamable_http_client(**asdict(server_params))
                 )
                 read, write = client_connection[0:2]
-                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))
+                session = await self._async_exit_stack.enter_async_context(ClientSession(read, write))  # type: ignore[attr-defined]
                 await self.initialize(session)
 
         return self
@@ -398,7 +403,7 @@ class MultiMCPTools(Toolkit):
         exc_type: Union[type[BaseException], None],
         exc_val: Union[BaseException, None],
         exc_tb: Union[TracebackType, None],
-    ):
+    ) -> None:
         """Exit the async context manager."""
         await self._async_exit_stack.aclose()
 
@@ -430,7 +435,7 @@ class MultiMCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
