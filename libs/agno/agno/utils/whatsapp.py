@@ -1,8 +1,8 @@
 import os
 from typing import Optional
 
-import httpx
-import requests
+import httpx  # type: ignore
+import requests  # type: ignore
 
 from agno.utils.log import log_debug, log_error
 
