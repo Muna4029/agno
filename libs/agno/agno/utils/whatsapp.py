@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import httpx
 import requests
@@ -21,7 +21,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> Union[dict, bytes]:
+def get_media(media_id: str) -> Union[Dict[str, Any], bytes]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -51,7 +51,7 @@ def get_media(media_id: str) -> Union[dict, bytes]:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> Union[dict, bytes]:
+async def get_media_async(media_id: str) -> Union[Dict[str, Any], bytes]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -83,7 +83,7 @@ async def get_media_async(media_id: str) -> Union[dict, bytes]:
         return {"error": str(e)}
 
 
-def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
+def upload_media(media_data: bytes, mime_type: str, filename: str = "file") -> Union[str, Dict[str, Any]]:
     """
     Sends a POST request to the Facebook Graph API to upload media for WhatsApp.
 
@@ -110,7 +110,7 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
         response = requests.post(url, headers=headers, data=data, files=files)
         response.raise_for_status()  # Raise an error for bad responses
         json_resp = response.json()
-        media_id = json_resp.get("id")
+        media_id: str = json_resp.get("id")
         if not media_id:
             return {"error": "Media ID not found in response", "response": json_resp}
         return media_id
@@ -120,7 +120,7 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
         return {"error": str(e)}
 
 
-async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file"):
+async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file") -> Union[str, Dict[str, Any]]:
     """
     Sends a POST request to the Facebook Graph API to upload media for WhatsApp.
 
@@ -148,7 +148,7 @@ async def upload_media_async(media_data: bytes, mime_type: str, filename: str = 
             response = await client.post(url, headers=headers, data=data, files=files)
             response.raise_for_status()  # Raise an error for bad responses
             json_resp = response.json()
-            media_id = json_resp.get("id")
+            media_id: str = json_resp.get("id")
             if not media_id:
                 return {"error": "Media ID not found in response", "response": json_resp}
             return media_id
@@ -162,7 +162,7 @@ async def send_image_message_async(
     media_id: str,
     recipient: str,
     text: Optional[str] = None,
-):
+) -> None:
     """Send an image message to a WhatsApp user (asynchronous version).
 
     Args:
@@ -182,12 +182,15 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    image_data: Dict[str, Any] = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
+    data: Dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
@@ -212,7 +215,7 @@ def send_image_message(
     media_id: str,
     recipient: str,
     text: Optional[str] = None,
-):
+) -> None:
     """Send an image message to a WhatsApp user (synchronous version).
 
     Args:
@@ -232,12 +235,15 @@ def send_image_message(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    image_data: Dict[str, Any] = {"id": media_id}
+    if text is not None:
+        image_data["caption"] = text
+    data: Dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": image_data,
     }
 
     try:
@@ -256,9 +262,9 @@ def send_image_message(
         raise
 
 
-def typing_indicator(message_id: Optional[str] = None):
+def typing_indicator(message_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     if not message_id:
-        return
+        return None
 
     phone_number_id = get_phone_number_id()
 
@@ -276,13 +282,14 @@ def typing_indicator(message_id: Optional[str] = None):
     try:
         response = requests.post(url, headers=headers, data=data)
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        return None
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
 
-async def typing_indicator_async(message_id: Optional[str] = None):
+async def typing_indicator_async(message_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     if not message_id:
-        return
+        return None
 
     phone_number_id = get_phone_number_id()
 
@@ -301,5 +308,6 @@ async def typing_indicator_async(message_id: Optional[str] = None):
         async with httpx.AsyncClient() as client:
             response = await client.post(url, headers=headers, data=data)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+            return None
     except httpx.HTTPStatusError as e:
         return {"error": str(e)}

@@ -106,7 +106,7 @@ debug_on: bool = False
 debug_level: Literal[1, 2] = 1
 
 
-def set_log_level_to_debug(source_type: Optional[str] = None, level: Literal[1, 2] = 1):
+def set_log_level_to_debug(source_type: Optional[str] = None, level: Literal[1, 2] = 1) -> None:
     if source_type is None:
         use_agent_logger()
 
@@ -120,7 +120,7 @@ def set_log_level_to_debug(source_type: Optional[str] = None, level: Literal[1, 
     debug_level = level
 
 
-def set_log_level_to_info(source_type: Optional[str] = None):
+def set_log_level_to_info(source_type: Optional[str] = None) -> None:
     _logger = logging.getLogger(LOGGER_NAME if source_type is None else f"{LOGGER_NAME}-{source_type}")
     _logger.setLevel(logging.INFO)
 
@@ -140,25 +140,25 @@ def center_header(message: str, symbol: str = "*") -> str:
     return f"{header.center(terminal_width - 20, symbol)}"
 
 
-def use_team_logger():
+def use_team_logger() -> None:
     """Switch the default logger to use team_logger"""
     global logger
     logger = team_logger
 
 
-def use_agent_logger():
+def use_agent_logger() -> None:
     """Switch the default logger to use the default agent logger"""
     global logger
     logger = agent_logger
 
 
-def use_workflow_logger():
+def use_workflow_logger() -> None:
     """Switch the default logger to use workflow_logger"""
     global logger
     logger = workflow_logger
 
 
-def log_debug(msg, center: bool = False, symbol: str = "*", log_level: Literal[1, 2] = 1, *args, **kwargs):
+def log_debug(msg: str, center: bool = False, symbol: str = "*", log_level: Literal[1, 2] = 1, *args: Any, **kwargs: Any) -> None:
     global logger
     global debug_on
     global debug_level
@@ -168,21 +168,21 @@ def log_debug(msg, center: bool = False, symbol: str = "*", log_level: Literal[1
             logger.debug(msg, center, symbol, *args, **kwargs)
 
 
-def log_info(msg, center: bool = False, symbol: str = "*", *args, **kwargs):
+def log_info(msg: str, center: bool = False, symbol: str = "*", *args: Any, **kwargs: Any) -> None:
     global logger
     logger.info(msg, center, symbol, *args, **kwargs)
 
 
-def log_warning(msg, *args, **kwargs):
+def log_warning(msg: str, *args: Any, **kwargs: Any) -> None:
     global logger
     logger.warning(msg, *args, **kwargs)
 
 
-def log_error(msg, *args, **kwargs):
+def log_error(msg: str, *args: Any, **kwargs: Any) -> None:
     global logger
     logger.error(msg, *args, **kwargs)
 
 
-def log_exception(msg, *args, **kwargs):
+def log_exception(msg: str, *args: Any, **kwargs: Any) -> None:
     global logger
     logger.exception(msg, *args, **kwargs)
