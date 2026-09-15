@@ -252,6 +252,14 @@ class TeamRunResponse:
 
     @property
     def is_cancelled(self):
+
+    @property
+    def tools_requiring_confirmation(self):
+        return [t for t in self.tools if t.requires_confirmation] if self.tools else []
+
+    @property
+    def tools_requiring_user_input(self):
+        return [t for t in self.tools if t.requires_user_input] if self.tools else []
         return self.status == RunStatus.cancelled
 
     def to_dict(self) -> Dict[str, Any]:
