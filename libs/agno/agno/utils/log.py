@@ -135,28 +135,28 @@ def use_agent_logger():
     logger = agent_logger
 
 
-def log_debug(msg, center: bool = False, symbol: str = "*", *args, **kwargs):
+def log_debug(msg, center: bool = False, symbol: str = "*", *args, **kwargs) -> None:
     global logger
     global debug_on
     if debug_on:
         logger.debug(msg, center, symbol, *args, **kwargs)
 
 
-def log_info(msg, center: bool = False, symbol: str = "*", *args, **kwargs):
+def log_info(msg, center: bool = False, symbol: str = "*", *args, **kwargs) -> None:
     global logger
     logger.info(msg, center, symbol, *args, **kwargs)
 
 
-def log_warning(msg, *args, **kwargs):
+def log_warning(msg, *args, **kwargs) -> None:
     global logger
     logger.warning(msg, *args, **kwargs)
 
 
-def log_error(msg, *args, **kwargs):
+def log_error(msg, *args, **kwargs) -> None:
     global logger
     logger.error(msg, *args, **kwargs)
 
 
-def log_exception(msg, *args, **kwargs):
+def log_exception(msg, *args, **kwargs) -> None:
     global logger
     logger.exception(msg, *args, **kwargs)

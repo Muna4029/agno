@@ -33,7 +33,7 @@ def get_entrypoint_for_tool(tool: MCPTool, session: ClientSession):
             result: CallToolResult = await session.call_tool(tool_name, kwargs)  # type: ignore
 
             # Return an error if the tool call failed
-            if result.isError:
+            if result.is_error:
                 raise Exception(f"Error from MCP tool '{tool_name}': {result.content}")
 
             # Process the result content
