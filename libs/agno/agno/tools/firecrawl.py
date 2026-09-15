@@ -5,11 +5,6 @@ from typing import Any, Dict, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
-try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
-except ImportError:
-    raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
-
 
 class CustomJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder that handles non-serializable types by converting them to strings."""
@@ -48,6 +43,11 @@ class FirecrawlTools(Toolkit):
         api_url: Optional[str] = "https://api.firecrawl.dev",
         **kwargs,
     ):
+        try:
+            from firecrawl import FirecrawlApp  # type: ignore[attr-defined]
+        except ImportError:
+            raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
+
         self.api_key: Optional[str] = api_key or getenv("FIRECRAWL_API_KEY")
         if not self.api_key:
             logger.error("FIRECRAWL_API_KEY not set. Please set the FIRECRAWL_API_KEY environment variable.")
@@ -100,6 +100,8 @@ class FirecrawlTools(Toolkit):
         Returns:
             The results of the crawling.
         """
+        from firecrawl import ScrapeOptions  # type: ignore[attr-defined]
+
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
@@ -128,6 +130,8 @@ class FirecrawlTools(Toolkit):
             query (str): The query to search for.
             limit (int): The maximum number of results to return.
         """
+        from firecrawl import ScrapeOptions  # type: ignore[attr-defined]
+
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
