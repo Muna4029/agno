@@ -1,8 +1,8 @@
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 import httpx
 from pydantic import BaseModel
@@ -132,7 +132,7 @@ class Cerebras(Model):
     def get_request_params(
         self,
         tools: Optional[List[Dict[str, Any]]] = None,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
     ) -> Dict[str, Any]:
         """
         Returns keyword arguments for API requests.
@@ -198,7 +198,7 @@ class Cerebras(Model):
     def invoke(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> ChatCompletion:
@@ -213,14 +213,14 @@ class Cerebras(Model):
         """
         return self.get_client().chat.completions.create(
             model=self.id,
-            messages=[self._format_message(m) for m in messages],  # type: ignore
+            messages=[self._format_message(m) for m in messages],
             **self.get_request_params(response_format=response_format, tools=tools),
         )
 
     async def ainvoke(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> ChatCompletion:
@@ -235,14 +235,14 @@ class Cerebras(Model):
         """
         return await self.get_async_client().chat.completions.create(
             model=self.id,
-            messages=[self._format_message(m) for m in messages],  # type: ignore
+            messages=[self._format_message(m) for m in messages],
             **self.get_request_params(response_format=response_format, tools=tools),
         )
 
     def invoke_stream(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> Iterator[ChatChunkResponse]:
@@ -257,15 +257,15 @@ class Cerebras(Model):
         """
         yield from self.get_client().chat.completions.create(
             model=self.id,
-            messages=[self._format_message(m) for m in messages],  # type: ignore
+            messages=[self._format_message(m) for m in messages],
             stream=True,
             **self.get_request_params(response_format=response_format, tools=tools),
-        )  # type: ignore
+        )
 
     async def ainvoke_stream(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> AsyncIterator[ChatChunkResponse]:
@@ -280,12 +280,12 @@ class Cerebras(Model):
         """
         async_stream = await self.get_async_client().chat.completions.create(
             model=self.id,
-            messages=[self._format_message(m) for m in messages],  # type: ignore
+            messages=[self._format_message(m) for m in messages],
             stream=True,
             **self.get_request_params(response_format=response_format, tools=tools),
         )
-        async for chunk in async_stream:  # type: ignore
-            yield chunk  # type: ignore
+        async for chunk in async_stream:
+            yield chunk
 
     def _format_message(self, message: Message) -> Dict[str, Any]:
         """
@@ -337,7 +337,7 @@ class Cerebras(Model):
 
         return message_dict
 
-    def parse_provider_response(self, response: ChatCompletionResponse, **kwargs) -> ModelResponse:
+    def parse_provider_response(self, response: ChatCompletionResponse, **kwargs: Any) -> ModelResponse:
         """
         Parse the Cerebras response into a ModelResponse.
 
