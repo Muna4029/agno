@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 from agno.models.openai.chat import OpenAIChat
 
@@ -17,7 +18,7 @@ class OpenAILike(OpenAIChat):
 
     id: str = "not-provided"
     name: str = "OpenAILike"
-    api_key: Optional[str] = "not-provided"
+    api_key: str | None = "not-provided"
 
     default_role_map = {
         "system": "system",

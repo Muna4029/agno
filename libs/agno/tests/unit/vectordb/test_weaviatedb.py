@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import json
-from typing import List
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -45,7 +46,7 @@ def weaviate_db(mock_weaviate_client, mock_embedder):
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Fixture to create sample documents"""
     return [
         Document(

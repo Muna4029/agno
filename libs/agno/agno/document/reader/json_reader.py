@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import asyncio
 import json
 from io import BytesIO
 from pathlib import Path
-from typing import IO, Any, List, Union
+from typing import IO, Any
 from uuid import uuid4
 
 from agno.document.base import Document
@@ -15,7 +17,7 @@ class JSONReader(Reader):
 
     chunk: bool = False
 
-    def read(self, path: Union[Path, IO[Any]]) -> List[Document]:
+    def read(self, path: Path | IO[Any]) -> list[Document]:
         try:
             if isinstance(path, Path):
                 if not path.exists():
@@ -54,7 +56,7 @@ class JSONReader(Reader):
         except Exception:
             raise
 
-    async def async_read(self, path: Union[Path, IO[Any]]) -> List[Document]:
+    async def async_read(self, path: Path | IO[Any]) -> list[Document]:
         """Asynchronously read JSON files.
 
         Args:

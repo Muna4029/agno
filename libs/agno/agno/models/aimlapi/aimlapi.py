@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Optional
+from typing import Any
 
 from agno.models.message import Message
 from agno.models.openai.like import OpenAILike
@@ -24,11 +26,11 @@ class AIMLApi(OpenAILike):
     name: str = "AIMLApi"
     provider: str = "AIMLApi"
 
-    api_key: Optional[str] = getenv("AIMLAPI_API_KEY")
+    api_key: str | None = getenv("AIMLAPI_API_KEY")
     base_url: str = "https://api.aimlapi.com/v1"
     max_tokens: int = 4096
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Minimal additional formatter that only replaces None with empty string.
 

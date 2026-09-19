@@ -1,4 +1,5 @@
-from typing import Union
+from __future__ import annotations
+
 from urllib.parse import quote
 
 from fastapi import FastAPI
@@ -12,7 +13,7 @@ from agno.utils.log import logger
 
 
 def serve_playground_app(
-    app: Union[str, FastAPI],
+    app: str | FastAPI,
     *,
     scheme: str = "http",
     host: str = "localhost",

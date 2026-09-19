@@ -3,8 +3,8 @@ from agno.playground.playground import Playground, PlaygroundSettings
 from agno.playground.serve import serve_playground_app
 
 __all__ = [
-    "deploy_playground_app",
     "Playground",
     "PlaygroundSettings",
+    "deploy_playground_app",
     "serve_playground_app",
 ]

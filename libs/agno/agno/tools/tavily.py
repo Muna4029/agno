@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
@@ -14,7 +16,7 @@ except ImportError:
 class TavilyTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         search: bool = True,
         max_tokens: int = 6000,
         include_answer: bool = True,
@@ -33,7 +35,7 @@ class TavilyTools(Toolkit):
         self.include_answer: bool = include_answer
         self.format: Literal["json", "markdown"] = format
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if search:
             if use_search_context:
                 tools.append(self.web_search_with_tavily)
@@ -58,7 +60,7 @@ class TavilyTools(Toolkit):
             query=query, search_depth=self.search_depth, include_answer=self.include_answer, max_results=max_results
         )
 
-        clean_response: Dict[str, Any] = {"query": query}
+        clean_response: dict[str, Any] = {"query": query}
         if "answer" in response:
             clean_response["answer"] = response["answer"]
 

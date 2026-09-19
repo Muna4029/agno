@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from base64 import b64encode
 from os import getenv
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -19,7 +21,7 @@ except ImportError:
 class CartesiaTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model_id: str = "sonic-2",
         default_voice_id: str = "78ab82d5-25be-4f7d-82b3-7ad64e5b85b2",
         text_to_speech_enabled: bool = True,
@@ -36,7 +38,7 @@ class CartesiaTools(Toolkit):
         self.model_id = model_id
         self.default_voice_id = default_voice_id
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if voice_localize_enabled:
             tools.append(self.localize_voice)
         if text_to_speech_enabled:
@@ -91,7 +93,7 @@ class CartesiaTools(Toolkit):
         description: str,
         language: str,
         original_speaker_gender: str,
-        voice_id: Optional[str] = None,
+        voice_id: str | None = None,
     ) -> str:
         """Create a new voice localized to a different language.
 
@@ -128,9 +130,9 @@ class CartesiaTools(Toolkit):
 
     def text_to_speech(
         self,
-        agent: Union[Agent, Team],
+        agent: Agent | Team,
         transcript: str,
-        voice_id: Optional[str] = None,
+        voice_id: str | None = None,
     ) -> str:
         """
         Convert text to speechß.
@@ -159,7 +161,7 @@ class CartesiaTools(Toolkit):
                 "encoding": "mp3",
             }
 
-            params: Dict[str, Any] = {
+            params: dict[str, Any] = {
                 "model_id": self.model_id,
                 "transcript": transcript,
                 "voice": {"mode": "id", "id": effective_voice_id},

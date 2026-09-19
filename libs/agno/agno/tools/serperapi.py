@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Optional
 
 import requests
 
@@ -24,7 +25,7 @@ class SerperApiTools(Toolkit):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         location: str = "us",
         num_results: int = 10,
     ):
@@ -46,7 +47,7 @@ class SerperApiTools(Toolkit):
         self.num_results = num_results
         self.register(self.search_google)
 
-    def search_google(self, query: str, location: Optional[str] = None) -> str:
+    def search_google(self, query: str, location: str | None = None) -> str:
         """
         Searches Google for the provided query using the Serper API.
 

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.infra.base import InfraBase
 from agno.utils.log import logger
@@ -11,12 +13,12 @@ class InfraResource(InfraBase):
     # Resource name (required)
     name: str
     # Resource type
-    resource_type: Optional[str] = None
+    resource_type: str | None = None
     # List of resource types to match for filtering
-    resource_type_list: Optional[List[str]] = None
+    resource_type_list: list[str] | None = None
 
     # -*- Cached Data
-    active_resource: Optional[Any] = None
+    active_resource: Any | None = None
     resource_created: bool = False
     resource_updated: bool = False
     resource_deleted: bool = False
@@ -44,17 +46,17 @@ class InfraResource(InfraBase):
             return self.__class__.__name__
         return self.resource_type
 
-    def get_resource_type_list(self) -> List[str]:
+    def get_resource_type_list(self) -> list[str]:
         if self.resource_type_list is None:
             return [self.get_resource_type().lower()]
 
-        type_list: List[str] = [resource_type.lower() for resource_type in self.resource_type_list]
+        type_list: list[str] = [resource_type.lower() for resource_type in self.resource_type_list]
         if self.get_resource_type() not in type_list:
             type_list.append(self.get_resource_type().lower())
         return type_list
 
-    def get_input_file_path(self) -> Optional[Path]:
-        workspace_dir: Optional[Path] = self.workspace_dir
+    def get_input_file_path(self) -> Path | None:
+        workspace_dir: Path | None = self.workspace_dir
         if workspace_dir is None:
             from agno.workspace.helpers import get_workspace_dir_from_env
 
@@ -77,8 +79,8 @@ class InfraResource(InfraBase):
                 return input_dir_path.joinpath(input_file_name)
         return None
 
-    def get_output_file_path(self) -> Optional[Path]:
-        workspace_dir: Optional[Path] = self.workspace_dir
+    def get_output_file_path(self) -> Path | None:
+        workspace_dir: Path | None = self.workspace_dir
         if workspace_dir is None:
             from agno.workspace.helpers import get_workspace_dir_from_env
 
@@ -99,7 +101,7 @@ class InfraResource(InfraBase):
         return None
 
     def save_output_file(self) -> bool:
-        output_file_path: Optional[Path] = self.get_output_file_path()
+        output_file_path: Path | None = self.get_output_file_path()
         if output_file_path is not None:
             try:
                 from agno.utils.yaml_io import write_yaml_file
@@ -108,14 +110,14 @@ class InfraResource(InfraBase):
                     output_file_path.parent.mkdir(parents=True, exist_ok=True)
                     output_file_path.touch(exist_ok=True)
                 write_yaml_file(output_file_path, self.active_resource)
-                logger.info(f"Resource saved to: {str(output_file_path)}")
+                logger.info(f"Resource saved to: {output_file_path!s}")
                 return True
             except Exception as e:
                 logger.error(f"Could not write {self.get_resource_name()} to file: {e}")
         return False
 
-    def read_resource_from_file(self) -> Optional[Dict[str, Any]]:
-        output_file_path: Optional[Path] = self.get_output_file_path()
+    def read_resource_from_file(self) -> dict[str, Any] | None:
+        output_file_path: Path | None = self.get_output_file_path()
         if output_file_path is not None:
             try:
                 from agno.utils.yaml_io import read_yaml_file
@@ -131,12 +133,12 @@ class InfraResource(InfraBase):
         return None
 
     def delete_output_file(self) -> bool:
-        output_file_path: Optional[Path] = self.get_output_file_path()
+        output_file_path: Path | None = self.get_output_file_path()
         if output_file_path is not None:
             try:
                 if output_file_path.exists() and output_file_path.is_file():
                     output_file_path.unlink()
-                    logger.debug(f"Output file deleted: {str(output_file_path)}")
+                    logger.debug(f"Output file deleted: {output_file_path!s}")
                     return True
             except Exception as e:
                 logger.error(f"Could not delete output file: {e}")
@@ -144,9 +146,9 @@ class InfraResource(InfraBase):
 
     def matches_filters(
         self,
-        group_filter: Optional[str] = None,
-        name_filter: Optional[str] = None,
-        type_filter: Optional[str] = None,
+        group_filter: str | None = None,
+        name_filter: str | None = None,
+        type_filter: str | None = None,
     ) -> bool:
         if group_filter is not None:
             group_name = self.get_group_name()
@@ -167,9 +169,9 @@ class InfraResource(InfraBase):
 
     def should_create(
         self,
-        group_filter: Optional[str] = None,
-        name_filter: Optional[str] = None,
-        type_filter: Optional[str] = None,
+        group_filter: str | None = None,
+        name_filter: str | None = None,
+        type_filter: str | None = None,
     ) -> bool:
         if not self.enabled or self.skip_create:
             return False
@@ -177,9 +179,9 @@ class InfraResource(InfraBase):
 
     def should_delete(
         self,
-        group_filter: Optional[str] = None,
-        name_filter: Optional[str] = None,
-        type_filter: Optional[str] = None,
+        group_filter: str | None = None,
+        name_filter: str | None = None,
+        type_filter: str | None = None,
     ) -> bool:
         if not self.enabled or self.skip_delete:
             return False
@@ -187,9 +189,9 @@ class InfraResource(InfraBase):
 
     def should_update(
         self,
-        group_filter: Optional[str] = None,
-        name_filter: Optional[str] = None,
-        type_filter: Optional[str] = None,
+        group_filter: str | None = None,
+        name_filter: str | None = None,
+        type_filter: str | None = None,
     ) -> bool:
         if not self.enabled or self.skip_update:
             return False
@@ -199,7 +201,6 @@ class InfraResource(InfraBase):
         return hash(f"{self.get_resource_type()}:{self.get_resource_name()}")
 
     def __eq__(self, other):
-        if isinstance(other, InfraResource):
-            if other.get_resource_type() == self.get_resource_type():
-                return self.get_resource_name() == other.get_resource_name()
+        if isinstance(other, InfraResource) and other.get_resource_type() == self.get_resource_type():
+            return self.get_resource_name() == other.get_resource_name()
         return False

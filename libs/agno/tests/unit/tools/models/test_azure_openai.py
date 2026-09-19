@@ -187,7 +187,7 @@ def test_invalid_parameters(azure_openai_tools, mock_agent):
         azure_openai_tools.generate_image(agent=mock_agent, prompt="A test prompt for size", size="invalid-size")
 
         # Verify the API call used the corrected size
-        args, kwargs = mock_post.call_args
+        _args, kwargs = mock_post.call_args
         assert kwargs["json"]["prompt"] == "A test prompt for size"
         assert kwargs["json"]["size"] == "1024x1024"
         assert kwargs["json"]["model"] == "dall-e-3"  # Default model

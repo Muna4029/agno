@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -14,11 +16,11 @@ except ImportError:
 class CustomApiTools(Toolkit):
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        api_key: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None,
+        base_url: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        api_key: str | None = None,
+        headers: dict[str, str] | None = None,
         verify_ssl: bool = True,
         timeout: int = 30,
         make_request: bool = True,
@@ -32,19 +34,19 @@ class CustomApiTools(Toolkit):
         self.verify_ssl = verify_ssl
         self.timeout = timeout
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if make_request:
             tools.append(self.make_request)
 
         super().__init__(name="api_tools", tools=tools, **kwargs)
 
-    def _get_auth(self) -> Optional[HTTPBasicAuth]:
+    def _get_auth(self) -> HTTPBasicAuth | None:
         """Get authentication object if credentials are provided."""
         if self.username and self.password:
             return HTTPBasicAuth(self.username, self.password)
         return None
 
-    def _get_headers(self, additional_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    def _get_headers(self, additional_headers: dict[str, str] | None = None) -> dict[str, str]:
         """Combine default headers with additional headers."""
         headers = self.default_headers.copy()
         if self.api_key:
@@ -57,10 +59,10 @@ class CustomApiTools(Toolkit):
         self,
         endpoint: str,
         method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"] = "GET",
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        json_data: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        json_data: dict[str, Any] | None = None,
     ) -> str:
         """Make an HTTP request to the API.
 
@@ -109,10 +111,10 @@ class CustomApiTools(Toolkit):
             return json.dumps(result, indent=2)
 
         except requests.exceptions.RequestException as e:
-            error_message = f"Request failed: {str(e)}"
+            error_message = f"Request failed: {e!s}"
             logger.error(error_message)
             return json.dumps({"error": error_message}, indent=2)
         except Exception as e:
-            error_message = f"Unexpected error: {str(e)}"
+            error_message = f"Unexpected error: {e!s}"
             logger.error(error_message)
             return json.dumps({"error": error_message}, indent=2)

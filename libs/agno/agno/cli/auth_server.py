@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Optional
 from urllib.parse import parse_qs, quote, urlparse
 
 from agno.cli.settings import agno_cli_settings
@@ -232,7 +233,7 @@ def get_port_for_auth_server():
             return port
 
 
-def get_auth_token_from_web_flow(port: int) -> Optional[str]:
+def get_auth_token_from_web_flow(port: int) -> str | None:
     """
     GET request: curl http://localhost:9191
     POST request: curl -d "foo=bar&bin=baz" http://localhost:9191

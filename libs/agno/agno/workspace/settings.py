@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional
 
 from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,17 +16,17 @@ class WorkspaceSettings(BaseSettings):
     # Path to the workspace root
     ws_root: Path
     # Workspace git repo url
-    ws_repo: Optional[str] = None
+    ws_repo: str | None = None
     # default env for agno ws commands
-    default_env: Optional[str] = "dev"
+    default_env: str | None = "dev"
     # default infra for agno ws commands
-    default_infra: Optional[str] = None
+    default_infra: str | None = None
 
     # Image Settings
     # Repository for images
     image_repo: str = "agnohq"
     # 'name:tag' for the image
-    image_name: Optional[str] = None
+    image_name: str | None = None
     # If True, build images locally
     build_images: bool = False
     # If True, push images after building
@@ -39,19 +38,19 @@ class WorkspaceSettings(BaseSettings):
 
     # Test Settings
     test_env: str = "test"
-    test_key: Optional[str] = None
+    test_key: str | None = None
 
     # Development Settings
     dev_env: str = "dev"
-    dev_key: Optional[str] = None
+    dev_key: str | None = None
 
     # Staging Settings
     stg_env: str = "stg"
-    stg_key: Optional[str] = None
+    stg_key: str | None = None
 
     # Production Settings
     prd_env: str = "prd"
-    prd_key: Optional[str] = None
+    prd_key: str | None = None
 
     # ag cli settings
     # Set to True if Agno should continue creating
@@ -67,31 +66,31 @@ class WorkspaceSettings(BaseSettings):
 
     # AWS settings
     # Region for AWS resources
-    aws_region: Optional[str] = None
+    aws_region: str | None = None
     # Profile for AWS resources
-    aws_profile: Optional[str] = None
+    aws_profile: str | None = None
     # AWS Subnet Ids
-    aws_subnet_ids: List[str] = Field(default_factory=list)
+    aws_subnet_ids: list[str] = Field(default_factory=list)
     # Public subnets. Will be added to aws_subnet_ids if provided and aws_subnet_ids is empty.
     # Note: not added to aws_subnet_ids if aws_subnet_ids is provided.
-    aws_public_subnets: List[str] = Field(default_factory=list)
+    aws_public_subnets: list[str] = Field(default_factory=list)
     # Private subnets. Will be added to aws_subnet_ids if provided and aws_subnet_ids is empty.
     # Note: not added to aws_subnet_ids if aws_subnet_ids is provided.
-    aws_private_subnets: List[str] = Field(default_factory=list)
+    aws_private_subnets: list[str] = Field(default_factory=list)
     # AWS Availability Zone
-    aws_az1: Optional[str] = None
-    aws_az2: Optional[str] = None
-    aws_az3: Optional[str] = None
-    aws_az4: Optional[str] = None
-    aws_az5: Optional[str] = None
+    aws_az1: str | None = None
+    aws_az2: str | None = None
+    aws_az3: str | None = None
+    aws_az4: str | None = None
+    aws_az5: str | None = None
     # Security Group Ids
-    aws_security_group_ids: List[str] = Field(default_factory=list)
+    aws_security_group_ids: list[str] = Field(default_factory=list)
 
     # Other Settings
     # Use cached resource if available, i.e. skip resource creation if the resource already exists
     use_cache: bool = True
     # WorkspaceSchema provided by the api
-    ws_schema: Optional[WorkspaceSchema] = None
+    ws_schema: WorkspaceSchema | None = None
 
     model_config = SettingsConfigDict(extra="allow")
 

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
 from math import sqrt
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 
 try:
     from sqlalchemy.dialects import postgresql
@@ -41,18 +43,18 @@ class PgVector(VectorDb):
         self,
         table_name: str,
         schema: str = "ai",
-        db_url: Optional[str] = None,
-        db_engine: Optional[Engine] = None,
-        embedder: Optional[Embedder] = None,
+        db_url: str | None = None,
+        db_engine: Engine | None = None,
+        embedder: Embedder | None = None,
         search_type: SearchType = SearchType.vector,
-        vector_index: Union[Ivfflat, HNSW] = HNSW(),
+        vector_index: Ivfflat | HNSW = HNSW(),
         distance: Distance = Distance.cosine,
         prefix_match: bool = False,
         vector_score_weight: float = 0.5,
         content_language: str = "english",
         schema_version: int = 1,
         auto_upgrade_schema: bool = False,
-        reranker: Optional[Reranker] = None,
+        reranker: Reranker | None = None,
     ):
         """
         Initialize the PgVector instance.
@@ -90,7 +92,7 @@ class PgVector(VectorDb):
         # Database settings
         self.table_name: str = table_name
         self.schema: str = schema
-        self.db_url: Optional[str] = db_url
+        self.db_url: str | None = db_url
         self.db_engine: Engine = db_engine
         self.metadata: MetaData = MetaData(schema=self.schema)
 
@@ -101,7 +103,7 @@ class PgVector(VectorDb):
             embedder = OpenAIEmbedder()
             log_info("Embedder not provided, using OpenAIEmbedder as default.")
         self.embedder: Embedder = embedder
-        self.dimensions: Optional[int] = self.embedder.dimensions
+        self.dimensions: int | None = self.embedder.dimensions
 
         if self.dimensions is None:
             raise ValueError("Embedder.dimensions must be set.")
@@ -111,7 +113,7 @@ class PgVector(VectorDb):
         # Distance metric
         self.distance: Distance = distance
         # Index for the table
-        self.vector_index: Union[Ivfflat, HNSW] = vector_index
+        self.vector_index: Ivfflat | HNSW = vector_index
         # Enable prefix matching for full-text search
         self.prefix_match: bool = prefix_match
         # Weight for the vector similarity score in hybrid search
@@ -125,7 +127,7 @@ class PgVector(VectorDb):
         self.auto_upgrade_schema: bool = auto_upgrade_schema
 
         # Reranker instance
-        self.reranker: Optional[Reranker] = reranker
+        self.reranker: Reranker | None = reranker
 
         # Database session
         self.Session: scoped_session = scoped_session(sessionmaker(bind=self.db_engine))
@@ -289,8 +291,8 @@ class PgVector(VectorDb):
 
     def insert(
         self,
-        documents: List[Document],
-        filters: Optional[Dict[str, Any]] = None,
+        documents: list[Document],
+        filters: dict[str, Any] | None = None,
         batch_size: int = 100,
     ) -> None:
         """
@@ -347,7 +349,7 @@ class PgVector(VectorDb):
             logger.error(f"Error inserting documents: {e}")
             raise
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents asynchronously by running in a thread."""
         await asyncio.to_thread(self.insert, documents, filters)
 
@@ -362,8 +364,8 @@ class PgVector(VectorDb):
 
     def upsert(
         self,
-        documents: List[Document],
-        filters: Optional[Dict[str, Any]] = None,
+        documents: list[Document],
+        filters: dict[str, Any] | None = None,
         batch_size: int = 100,
     ) -> None:
         """
@@ -431,11 +433,11 @@ class PgVector(VectorDb):
             logger.error(f"Error upserting documents: {e}")
             raise
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Upsert documents asynchronously by running in a thread."""
         await asyncio.to_thread(self.upsert, documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a search based on the configured search type.
 
@@ -457,13 +459,11 @@ class PgVector(VectorDb):
             logger.error(f"Invalid search type '{self.search_type}'.")
             return []
 
-    async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+    async def async_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """Search asynchronously by running in a thread."""
         return await asyncio.to_thread(self.search, query, limit, filters)
 
-    def vector_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def vector_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a vector similarity search.
 
@@ -532,7 +532,7 @@ class PgVector(VectorDb):
                 return []
 
             # Process the results and convert to Document objects
-            search_results: List[Document] = []
+            search_results: list[Document] = []
             for result in results:
                 search_results.append(
                     Document(
@@ -570,7 +570,7 @@ class PgVector(VectorDb):
         processed_words = [word + "*" for word in words]
         return " ".join(processed_words)
 
-    def keyword_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def keyword_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a keyword search on the 'content' column.
 
@@ -629,7 +629,7 @@ class PgVector(VectorDb):
                 return []
 
             # Process the results and convert to Document objects
-            search_results: List[Document] = []
+            search_results: list[Document] = []
             for result in results:
                 search_results.append(
                     Document(
@@ -653,8 +653,8 @@ class PgVector(VectorDb):
         self,
         query: str,
         limit: int = 5,
-        filters: Optional[Dict[str, Any]] = None,
-    ) -> List[Document]:
+        filters: dict[str, Any] | None = None,
+    ) -> list[Document]:
         """
         Perform a hybrid search combining vector similarity and full-text search.
 
@@ -753,7 +753,7 @@ class PgVector(VectorDb):
                 return []
 
             # Process the results and convert to Document objects
-            search_results: List[Document] = []
+            search_results: list[Document] = []
             for result in results:
                 search_results.append(
                     Document(

@@ -1,4 +1,6 @@
-from typing import Any, Dict, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -7,13 +9,13 @@ class UserSchema(BaseModel):
     """Schema for user data returned by the API."""
 
     id_user: str
-    email: Optional[str] = None
-    username: Optional[str] = None
-    name: Optional[str] = None
-    email_verified: Optional[bool] = False
-    is_active: Optional[bool] = True
-    is_machine: Optional[bool] = False
-    user_data: Optional[Dict[str, Any]] = None
+    email: str | None = None
+    username: str | None = None
+    name: str | None = None
+    email_verified: bool | None = False
+    is_active: bool | None = True
+    is_machine: bool | None = False
+    user_data: dict[str, Any] | None = None
 
 
 class EmailPasswordAuthSchema(BaseModel):
@@ -31,5 +33,5 @@ class TeamSchema(BaseModel):
 
 
 class TeamIdentifier(BaseModel):
-    id_team: Optional[str] = None
-    team_url: Optional[str] = None
+    id_team: str | None = None
+    team_url: str | None = None

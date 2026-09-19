@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
-from typing import List, Literal, Optional
+from typing import Literal
 from uuid import UUID
 
 from agno.storage.base import Storage
@@ -22,10 +24,10 @@ class MongoDbStorage(Storage):
     def __init__(
         self,
         collection_name: str,
-        db_url: Optional[str] = None,
+        db_url: str | None = None,
         db_name: str = "agno",
-        client: Optional[MongoClient] = None,
-        mode: Optional[Literal["agent", "team", "workflow"]] = "agent",
+        client: MongoClient | None = None,
+        mode: Literal["agent", "team", "workflow"] | None = "agent",
     ):
         """
         This class provides agent storage using MongoDB.
@@ -37,7 +39,7 @@ class MongoDbStorage(Storage):
             client: Optional existing MongoDB client
         """
         super().__init__(mode)
-        self._client: Optional[MongoClient] = client
+        self._client: MongoClient | None = client
         if self._client is None and db_url is not None:
             self._client = MongoClient(db_url)
         elif self._client is None:
@@ -68,7 +70,7 @@ class MongoDbStorage(Storage):
             logger.error(f"Error creating indexes: {e}")
             raise
 
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         """Read a Session from MongoDB
         Args:
             session_id: ID of the session to read
@@ -96,7 +98,7 @@ class MongoDbStorage(Storage):
             logger.error(f"Error reading session: {e}")
             return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: str | None = None, entity_id: str | None = None) -> list[str]:
         """Get all session IDs matching the criteria
         Args:
             user_id: ID of the user to read
@@ -123,7 +125,7 @@ class MongoDbStorage(Storage):
             logger.error(f"Error getting session IDs: {e}")
             return []
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
         """Get all sessions matching the criteria
         Args:
             user_id: ID of the user to read
@@ -144,7 +146,7 @@ class MongoDbStorage(Storage):
                     query["workflow_id"] = entity_id
 
             cursor = self.collection.find(query).sort("created_at", -1)
-            sessions: List[Session] = []
+            sessions: list[Session] = []
             for doc in cursor:
                 # Remove MongoDB _id before converting to AgentSession
                 doc.pop("_id", None)
@@ -167,10 +169,10 @@ class MongoDbStorage(Storage):
 
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -200,11 +202,11 @@ class MongoDbStorage(Storage):
             if limit is not None:
                 cursor = cursor.limit(limit)
 
-            sessions: List[Session] = []
+            sessions: list[Session] = []
             for doc in cursor:
                 # Remove MongoDB _id before converting to Session object
                 doc.pop("_id", None)
-                session: Optional[Session] = None
+                session: Session | None = None
 
                 if self.mode == "agent":
                     session = AgentSession.from_dict(doc)
@@ -222,7 +224,7 @@ class MongoDbStorage(Storage):
             logger.error(f"Error getting last {limit} sessions: {e}")
             return []
 
-    def upsert(self, session: Session, create_and_retry: bool = True) -> Optional[Session]:
+    def upsert(self, session: Session, create_and_retry: bool = True) -> Session | None:
         """Upsert a session
         Args:
             session (Session): The session to upsert
@@ -265,7 +267,7 @@ class MongoDbStorage(Storage):
             logger.warning(f"Error upserting session: {e}")
             return None
 
-    def delete_session(self, session_id: Optional[str] = None) -> None:
+    def delete_session(self, session_id: str | None = None) -> None:
         """Delete an agent session
         Args:
             session_id: ID of the session to delete
@@ -297,7 +299,6 @@ class MongoDbStorage(Storage):
 
     def upgrade_schema(self) -> None:
         """Placeholder for schema upgrades"""
-        pass
 
     def __deepcopy__(self, memo):
         """Create a deep copy of the MongoDbStorage instance"""

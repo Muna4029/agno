@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional, Type, Union
+from typing import Any, AsyncIterator, Iterator, Mapping
 
 from pydantic import BaseModel
 
@@ -30,14 +32,14 @@ class LiteLLM(Model):
     name: str = "LiteLLM"
     provider: str = "LiteLLM"
 
-    api_key: Optional[str] = None
-    api_base: Optional[str] = None
-    max_tokens: Optional[int] = None
+    api_key: str | None = None
+    api_base: str | None = None
+    max_tokens: int | None = None
     temperature: float = 0.7
     top_p: float = 1.0
-    request_params: Optional[Dict[str, Any]] = None
+    request_params: dict[str, Any] | None = None
 
-    client: Optional[Any] = None
+    client: Any | None = None
 
     def __post_init__(self):
         """Initialize the model after the dataclass initialization."""
@@ -67,7 +69,7 @@ class LiteLLM(Model):
         self.client = litellm
         return self.client
 
-    def _format_messages(self, messages: List[Message]) -> List[Dict[str, Any]]:
+    def _format_messages(self, messages: list[Message]) -> list[dict[str, Any]]:
         """Format messages for LiteLLM API."""
         formatted_messages = []
         for m in messages:
@@ -105,14 +107,14 @@ class LiteLLM(Model):
 
         return formatted_messages
 
-    def get_request_kwargs(self, tools: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    def get_request_kwargs(self, tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
         Returns:
             Dict[str, Any]: The API kwargs for the model.
         """
-        base_params: Dict[str, Any] = {
+        base_params: dict[str, Any] = {
             "model": self.id,
             "temperature": self.temperature,
             "top_p": self.top_p,
@@ -129,7 +131,7 @@ class LiteLLM(Model):
             base_params["tool_choice"] = "auto"
 
         # Add additional request params if provided
-        request_params: Dict[str, Any] = {k: v for k, v in base_params.items() if v is not None}
+        request_params: dict[str, Any] = {k: v for k, v in base_params.items() if v is not None}
         if self.request_params:
             request_params.update(self.request_params)
 
@@ -137,10 +139,10 @@ class LiteLLM(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Mapping[str, Any]:
         """Sends a chat completion request to the LiteLLM API."""
         completion_kwargs = self.get_request_kwargs(tools=tools)
@@ -149,10 +151,10 @@ class LiteLLM(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[Mapping[str, Any]]:
         """Sends a streaming chat completion request to the LiteLLM API."""
         completion_kwargs = self.get_request_kwargs(tools=tools)
@@ -162,10 +164,10 @@ class LiteLLM(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Mapping[str, Any]:
         """Sends an asynchronous chat completion request to the LiteLLM API."""
         completion_kwargs = self.get_request_kwargs(tools=tools)
@@ -174,10 +176,10 @@ class LiteLLM(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[Any]:
         """Sends an asynchronous streaming chat request to the LiteLLM API."""
         completion_kwargs = self.get_request_kwargs(tools=tools)
@@ -255,7 +257,7 @@ class LiteLLM(Model):
         return model_response
 
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Build tool calls from streamed tool call data.
 
@@ -270,7 +272,7 @@ class LiteLLM(Model):
             return []
 
         # Group tool calls by index
-        tool_calls_by_index: Dict[int, Dict[str, Any]] = {}
+        tool_calls_by_index: dict[int, dict[str, Any]] = {}
 
         for tc in tool_calls_data:
             # Get index (default to 0)

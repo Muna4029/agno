@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from dataclasses import dataclass
-from typing import Dict, List, Literal, Optional
+from typing import Literal
 
 from agno.document.base import Document
 from agno.document.chunking.strategy import ChunkingStrategy
@@ -15,18 +17,18 @@ except ImportError:
 
 @dataclass
 class FirecrawlReader(Reader):
-    api_key: Optional[str] = None
-    params: Optional[Dict] = None
+    api_key: str | None = None
+    params: dict | None = None
     mode: Literal["scrape", "crawl"] = "scrape"
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        params: Optional[Dict] = None,
+        api_key: str | None = None,
+        params: dict | None = None,
         mode: Literal["scrape", "crawl"] = "scrape",
         chunk: bool = True,
         chunk_size: int = 5000,
-        chunking_strategy: Optional[ChunkingStrategy] = None,
+        chunking_strategy: ChunkingStrategy | None = None,
     ) -> None:
         # Initialise base Reader (handles chunk_size / strategy)
         super().__init__(chunk=chunk, chunk_size=chunk_size, chunking_strategy=chunking_strategy)
@@ -36,7 +38,7 @@ class FirecrawlReader(Reader):
         self.params = params
         self.mode = mode
 
-    def scrape(self, url: str) -> List[Document]:
+    def scrape(self, url: str) -> list[Document]:
         """
         Scrapes a website and returns a list of documents.
 
@@ -76,7 +78,7 @@ class FirecrawlReader(Reader):
             documents.append(Document(name=url, id=url, content=content))
         return documents
 
-    async def async_scrape(self, url: str) -> List[Document]:
+    async def async_scrape(self, url: str) -> list[Document]:
         """
         Asynchronously scrapes a website and returns a list of documents.
 
@@ -91,7 +93,7 @@ class FirecrawlReader(Reader):
         # Use asyncio.to_thread to run the synchronous scrape in a thread
         return await asyncio.to_thread(self.scrape, url)
 
-    def crawl(self, url: str) -> List[Document]:
+    def crawl(self, url: str) -> list[Document]:
         """
         Crawls a website and returns a list of documents.
 
@@ -130,7 +132,7 @@ class FirecrawlReader(Reader):
 
         return documents
 
-    async def async_crawl(self, url: str) -> List[Document]:
+    async def async_crawl(self, url: str) -> list[Document]:
         """
         Asynchronously crawls a website and returns a list of documents.
 
@@ -145,7 +147,7 @@ class FirecrawlReader(Reader):
         # Use asyncio.to_thread to run the synchronous crawl in a thread
         return await asyncio.to_thread(self.crawl, url)
 
-    def read(self, url: str) -> List[Document]:
+    def read(self, url: str) -> list[Document]:
         """
         Reads from a URL based on the mode setting.
 
@@ -162,7 +164,7 @@ class FirecrawlReader(Reader):
         else:
             raise NotImplementedError(f"Mode {self.mode} not implemented")
 
-    async def async_read(self, url: str) -> List[Document]:
+    async def async_read(self, url: str) -> list[Document]:
         """
         Asynchronously reads from a URL based on the mode setting.
 

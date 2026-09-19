@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Optional
 
 from typer import launch as typer_launch
 
@@ -38,11 +39,9 @@ def authenticate_user() -> None:
     print_heading("Authenticating with agno.com")
 
     auth_server_port = get_port_for_auth_server()
-    redirect_uri = "http%3A%2F%2Flocalhost%3A{}%2Fauth".format(auth_server_port)
-    auth_url = "{}?source=cli&action=signin&redirection_supported=true&redirecturi={}".format(
-        agno_cli_settings.cli_auth_url, redirect_uri
-    )
-    print_info("\nYour browser will be opened to visit:\n{}".format(auth_url))
+    redirect_uri = f"http%3A%2F%2Flocalhost%3A{auth_server_port}%2Fauth"
+    auth_url = f"{agno_cli_settings.cli_auth_url}?source=cli&action=signin&redirection_supported=true&redirecturi={redirect_uri}"
+    print_info(f"\nYour browser will be opened to visit:\n{auth_url}")
     typer_launch(auth_url)
     print_info("\nWaiting for a response from the browser...\n")
 
@@ -51,11 +50,11 @@ def authenticate_user() -> None:
         logger.error("Could not authenticate, please set AGNO_API_KEY or try again")
         return
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
-    existing_user: Optional[UserSchema] = agno_config.user if agno_config is not None else None
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
+    existing_user: UserSchema | None = agno_config.user if agno_config is not None else None
     # Authenticate the user and claim any workspaces from anon user
     try:
-        user: Optional[UserSchema] = authenticate_and_get_user(auth_token=auth_token, existing_user=existing_user)
+        user: UserSchema | None = authenticate_and_get_user(auth_token=auth_token, existing_user=existing_user)
     except Exception as e:
         logger.exception(e)
         logger.error("Could not authenticate, please set AGNO_API_KEY or try again")
@@ -74,10 +73,10 @@ def authenticate_user() -> None:
     else:
         agno_config.user = user
 
-    print_info("Welcome {}".format(user.email))
+    print_info(f"Welcome {user.email}")
 
 
-def initialize_agno(reset: bool = False, login: bool = False) -> Optional[AgnoCliConfig]:
+def initialize_agno(reset: bool = False, login: bool = False) -> AgnoCliConfig | None:
     """Initialize Agno on the users machine.
 
     Steps:
@@ -114,7 +113,7 @@ def initialize_agno(reset: bool = False, login: bool = False) -> Optional[AgnoCl
     else:
         raise Exception("Something went wrong, please try again")
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if agno_config is None:
         logger.debug("Creating new AgnoCliConfig")
         agno_config = AgnoCliConfig()
@@ -136,15 +135,15 @@ def initialize_agno(reset: bool = False, login: bool = False) -> Optional[AgnoCl
 def start_resources(
     agno_config: AgnoCliConfig,
     resources_file_path: Path,
-    target_env: Optional[str] = None,
-    target_infra: Optional[str] = None,
-    target_group: Optional[str] = None,
-    target_name: Optional[str] = None,
-    target_type: Optional[str] = None,
-    dry_run: Optional[bool] = False,
-    auto_confirm: Optional[bool] = False,
-    force: Optional[bool] = None,
-    pull: Optional[bool] = False,
+    target_env: str | None = None,
+    target_infra: str | None = None,
+    target_group: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
+    dry_run: bool | None = False,
+    auto_confirm: bool | None = False,
+    force: bool | None = None,
+    pull: bool | None = False,
 ) -> None:
     print_heading(f"Starting resources in: {resources_file_path}")
     logger.debug(f"\ttarget_env   : {target_env}")
@@ -164,7 +163,7 @@ def start_resources(
         return
 
     # Get resources to deploy
-    resource_groups_to_create: List[InfraResources] = WorkspaceConfig.get_resources_from_file(
+    resource_groups_to_create: list[InfraResources] = WorkspaceConfig.get_resources_from_file(
         resource_file=resources_file_path,
         env=target_env,
         infra=target_infra,
@@ -213,14 +212,14 @@ def start_resources(
 def stop_resources(
     agno_config: AgnoCliConfig,
     resources_file_path: Path,
-    target_env: Optional[str] = None,
-    target_infra: Optional[str] = None,
-    target_group: Optional[str] = None,
-    target_name: Optional[str] = None,
-    target_type: Optional[str] = None,
-    dry_run: Optional[bool] = False,
-    auto_confirm: Optional[bool] = False,
-    force: Optional[bool] = None,
+    target_env: str | None = None,
+    target_infra: str | None = None,
+    target_group: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
+    dry_run: bool | None = False,
+    auto_confirm: bool | None = False,
+    force: bool | None = None,
 ) -> None:
     print_heading(f"Stopping resources in: {resources_file_path}")
     logger.debug(f"\ttarget_env   : {target_env}")
@@ -239,7 +238,7 @@ def stop_resources(
         return
 
     # Get resource groups to shutdown
-    resource_groups_to_shutdown: List[InfraResources] = WorkspaceConfig.get_resources_from_file(
+    resource_groups_to_shutdown: list[InfraResources] = WorkspaceConfig.get_resources_from_file(
         resource_file=resources_file_path,
         env=target_env,
         infra=target_infra,
@@ -287,14 +286,14 @@ def stop_resources(
 def patch_resources(
     agno_config: AgnoCliConfig,
     resources_file_path: Path,
-    target_env: Optional[str] = None,
-    target_infra: Optional[str] = None,
-    target_group: Optional[str] = None,
-    target_name: Optional[str] = None,
-    target_type: Optional[str] = None,
-    dry_run: Optional[bool] = False,
-    auto_confirm: Optional[bool] = False,
-    force: Optional[bool] = None,
+    target_env: str | None = None,
+    target_infra: str | None = None,
+    target_group: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
+    dry_run: bool | None = False,
+    auto_confirm: bool | None = False,
+    force: bool | None = None,
 ) -> None:
     print_heading(f"Updating resources in: {resources_file_path}")
     logger.debug(f"\ttarget_env   : {target_env}")
@@ -313,7 +312,7 @@ def patch_resources(
         return
 
     # Get resource groups to update
-    resource_groups_to_patch: List[InfraResources] = WorkspaceConfig.get_resources_from_file(
+    resource_groups_to_patch: list[InfraResources] = WorkspaceConfig.get_resources_from_file(
         resource_file=resources_file_path,
         env=target_env,
         infra=target_infra,

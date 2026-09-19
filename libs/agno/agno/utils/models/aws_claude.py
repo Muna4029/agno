@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.media import Image
 from agno.models.message import Message
@@ -22,7 +24,7 @@ ROLE_MAP = {
 }
 
 
-def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
+def _format_image_for_message(image: Image) -> dict[str, Any] | None:
     """
     Add an image to a message by converting it to base64 encoded format.
     """
@@ -108,7 +110,7 @@ def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
         return None
 
 
-def format_messages(messages: List[Message]) -> Tuple[List[Dict[str, str]], str]:
+def format_messages(messages: list[Message]) -> tuple[list[dict[str, str]], str]:
     """
     Process the list of messages and separate them into API messages and system messages.
 
@@ -119,8 +121,8 @@ def format_messages(messages: List[Message]) -> Tuple[List[Dict[str, str]], str]
         Tuple[List[Dict[str, str]], str]: A tuple containing the list of API messages and the concatenated system messages.
     """
 
-    chat_messages: List[Dict[str, str]] = []
-    system_messages: List[str] = []
+    chat_messages: list[dict[str, str]] = []
+    system_messages: list[str] = []
 
     for message in messages:
         content = message.content or ""

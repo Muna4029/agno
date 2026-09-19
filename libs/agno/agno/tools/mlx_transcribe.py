@@ -15,9 +15,11 @@ optimized for Apple Silicon processors. It supports various audio formats and
 provides high-quality transcription capabilities.
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_info, logger
@@ -31,41 +33,41 @@ except ImportError:
 class MLXTranscribeTools(Toolkit):
     def __init__(
         self,
-        base_dir: Optional[Path] = None,
+        base_dir: Path | None = None,
         read_files_in_base_dir: bool = True,
         path_or_hf_repo: str = "mlx-community/whisper-large-v3-turbo",
-        verbose: Optional[bool] = None,
-        temperature: Optional[Union[float, Tuple[float, ...]]] = None,
-        compression_ratio_threshold: Optional[float] = None,
-        logprob_threshold: Optional[float] = None,
-        no_speech_threshold: Optional[float] = None,
-        condition_on_previous_text: Optional[bool] = None,
-        initial_prompt: Optional[str] = None,
-        word_timestamps: Optional[bool] = None,
-        prepend_punctuations: Optional[str] = None,
-        append_punctuations: Optional[str] = None,
-        clip_timestamps: Optional[Union[str, List[float]]] = None,
-        hallucination_silence_threshold: Optional[float] = None,
-        decode_options: Optional[dict] = None,
+        verbose: bool | None = None,
+        temperature: float | tuple[float, ...] | None = None,
+        compression_ratio_threshold: float | None = None,
+        logprob_threshold: float | None = None,
+        no_speech_threshold: float | None = None,
+        condition_on_previous_text: bool | None = None,
+        initial_prompt: str | None = None,
+        word_timestamps: bool | None = None,
+        prepend_punctuations: str | None = None,
+        append_punctuations: str | None = None,
+        clip_timestamps: str | list[float] | None = None,
+        hallucination_silence_threshold: float | None = None,
+        decode_options: dict | None = None,
         **kwargs,
     ):
         self.base_dir: Path = base_dir or Path.cwd()
         self.path_or_hf_repo: str = path_or_hf_repo
-        self.verbose: Optional[bool] = verbose
-        self.temperature: Optional[Union[float, Tuple[float, ...]]] = temperature
-        self.compression_ratio_threshold: Optional[float] = compression_ratio_threshold
-        self.logprob_threshold: Optional[float] = logprob_threshold
-        self.no_speech_threshold: Optional[float] = no_speech_threshold
-        self.condition_on_previous_text: Optional[bool] = condition_on_previous_text
-        self.initial_prompt: Optional[str] = initial_prompt
-        self.word_timestamps: Optional[bool] = word_timestamps
-        self.prepend_punctuations: Optional[str] = prepend_punctuations
-        self.append_punctuations: Optional[str] = append_punctuations
-        self.clip_timestamps: Optional[Union[str, List[float]]] = clip_timestamps
-        self.hallucination_silence_threshold: Optional[float] = hallucination_silence_threshold
-        self.decode_options: Optional[dict] = decode_options
+        self.verbose: bool | None = verbose
+        self.temperature: float | tuple[float, ...] | None = temperature
+        self.compression_ratio_threshold: float | None = compression_ratio_threshold
+        self.logprob_threshold: float | None = logprob_threshold
+        self.no_speech_threshold: float | None = no_speech_threshold
+        self.condition_on_previous_text: bool | None = condition_on_previous_text
+        self.initial_prompt: str | None = initial_prompt
+        self.word_timestamps: bool | None = word_timestamps
+        self.prepend_punctuations: str | None = prepend_punctuations
+        self.append_punctuations: str | None = append_punctuations
+        self.clip_timestamps: str | list[float] | None = clip_timestamps
+        self.hallucination_silence_threshold: float | None = hallucination_silence_threshold
+        self.decode_options: dict | None = decode_options
 
-        tools: List[Any] = [self.transcribe]
+        tools: list[Any] = [self.transcribe]
         if read_files_in_base_dir:
             tools.append(self.read_files)
 
@@ -87,7 +89,7 @@ class MLXTranscribeTools(Toolkit):
                 return "No audio file path provided"
 
             log_info(f"Transcribing audio file {audio_file_path}")
-            transcription_kwargs: Dict[str, Any] = {
+            transcription_kwargs: dict[str, Any] = {
                 "path_or_hf_repo": self.path_or_hf_repo,
             }
             if self.verbose is not None:

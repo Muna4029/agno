@@ -98,9 +98,8 @@ MOCK_TIMEZONE_RESPONSE = {
 @pytest.fixture
 def google_maps_tools():
     """Create a GoogleMapTools instance with a mock API key."""
-    with patch.dict("os.environ", {"GOOGLE_MAPS_API_KEY": "AIzaTest"}):
-        with patch("google.maps.places_v1.PlacesClient"):
-            return GoogleMapTools()
+    with patch.dict("os.environ", {"GOOGLE_MAPS_API_KEY": "AIzaTest"}), patch("google.maps.places_v1.PlacesClient"):
+        return GoogleMapTools()
 
 
 @pytest.fixture
@@ -234,9 +233,8 @@ def test_error_handling(google_maps_tools):
 
 def test_initialization_without_api_key():
     """Test initialization without API key."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="GOOGLE_MAPS_API_KEY is not set"):
-            GoogleMapTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="GOOGLE_MAPS_API_KEY is not set"):
+        GoogleMapTools()
 
 
 def test_search_places_success(google_maps_tools):

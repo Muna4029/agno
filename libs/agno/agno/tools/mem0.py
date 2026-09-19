@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from agno.agent import Agent
 from agno.tools.toolkit import Toolkit
@@ -15,9 +17,9 @@ except ImportError:
 class Mem0Tools(Toolkit):
     def __init__(
         self,
-        config: Optional[Dict[str, Any]] = None,
-        api_key: Optional[str] = None,
-        user_id: Optional[str] = None,
+        config: dict[str, Any] | None = None,
+        api_key: str | None = None,
+        user_id: str | None = None,
         infer: bool = True,
         **kwargs,
     ):
@@ -33,7 +35,7 @@ class Mem0Tools(Toolkit):
         )
         self.api_key = api_key or getenv("MEM0_API_KEY")
         self.user_id = user_id
-        self.client: Union[Memory, MemoryClient]
+        self.client: Memory | MemoryClient
         self.infer = infer
 
         try:
@@ -53,7 +55,7 @@ class Mem0Tools(Toolkit):
     def _get_user_id(
         self,
         method_name: str,
-        agent: Optional[Agent] = None,
+        agent: Agent | None = None,
     ) -> str:
         """Resolve the user ID"""
         resolved_user_id = self.user_id
@@ -73,7 +75,7 @@ class Mem0Tools(Toolkit):
     def add_memory(
         self,
         agent: Agent,
-        content: Union[str, Dict[str, str]],
+        content: str | dict[str, str],
     ) -> str:
         """Add facts to the user's memory.
         Args:

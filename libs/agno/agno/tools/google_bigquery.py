@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -15,12 +17,12 @@ class GoogleBigQueryTools(Toolkit):
     def __init__(
         self,
         dataset: str,
-        project: Optional[str] = None,
-        location: Optional[str] = None,
-        list_tables: Optional[bool] = True,
-        describe_table: Optional[bool] = True,
-        run_sql_query: Optional[bool] = True,
-        credentials: Optional[Any] = None,
+        project: str | None = None,
+        location: str | None = None,
+        list_tables: bool | None = True,
+        describe_table: bool | None = True,
+        run_sql_query: bool | None = True,
+        credentials: Any | None = None,
         **kwargs,
     ):
         self.project = project or getenv("GOOGLE_CLOUD_PROJECT")
@@ -36,7 +38,7 @@ class GoogleBigQueryTools(Toolkit):
         # Initialize the BQ CLient
         self.client = bigquery.Client(project=self.project, credentials=credentials)
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if list_tables:
             tools.append(self.list_tables)
         if describe_table:

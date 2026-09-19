@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import List, Optional
 
 from agno.memory.row import MemoryRow
 
@@ -17,12 +18,12 @@ class MemoryDb(ABC):
 
     @abstractmethod
     def read_memories(
-        self, user_id: Optional[str] = None, limit: Optional[int] = None, sort: Optional[str] = None
-    ) -> List[MemoryRow]:
+        self, user_id: str | None = None, limit: int | None = None, sort: str | None = None
+    ) -> list[MemoryRow]:
         raise NotImplementedError
 
     @abstractmethod
-    def upsert_memory(self, memory: MemoryRow) -> Optional[MemoryRow]:
+    def upsert_memory(self, memory: MemoryRow) -> MemoryRow | None:
         raise NotImplementedError
 
     @abstractmethod

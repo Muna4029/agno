@@ -1,7 +1,7 @@
-from typing import Optional
+from __future__ import annotations
 
 
-def remove_indent(s: Optional[str]) -> Optional[str]:
+def remove_indent(s: str | None) -> str | None:
     """
     Remove the indent from a string.
 
