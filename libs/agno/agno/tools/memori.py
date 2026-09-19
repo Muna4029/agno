@@ -6,9 +6,37 @@ from agno.tools.toolkit import Toolkit
 from agno.utils.log import log_debug, log_error, log_info, log_warning
 
 try:
-    from memori import Memori, create_memory_tool
+    from memori import Memori
 except ImportError:
     raise ImportError("`memorisdk` package not found. Please install it with `pip install memorisdk`")
+
+
+class _MemoryTool:
+    """Internal wrapper that adapts Memori.recall to a tool interface."""
+
+    def __init__(self, memori: Memori):
+        self._memori = memori
+
+    def execute(self, query: str) -> list:
+        """Search memory for the given query."""
+        result = self._memori.recall(query)
+        if isinstance(result, list):
+            return [
+                {"content": getattr(r, "content", str(r)), "score": getattr(r, "similarity", getattr(r, "rank_score", 0.0))}
+                for r in result
+            ]
+        if isinstance(result, dict):
+            facts = result.get("facts", [])
+            return [
+                {"content": getattr(r, "content", str(r)), "score": getattr(r, "similarity", getattr(r, "rank_score", 0.0))}
+                for r in facts
+            ]
+        return []
+
+
+def create_memory_tool(memori: Memori) -> _MemoryTool:
+    """Create a memory tool from a Memori instance."""
+    return _MemoryTool(memori)
 
 
 class MemoriTools(Toolkit):
