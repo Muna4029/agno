@@ -13,10 +13,10 @@ from agno.models.response import ModelResponse
 from agno.utils.log import log_error, log_warning
 
 try:
-    from cerebras.cloud.sdk import AsyncCerebras as AsyncCerebrasClient
-    from cerebras.cloud.sdk import Cerebras as CerebrasClient
-    from cerebras.cloud.sdk.types.chat import ChatCompletion
-    from cerebras.cloud.sdk.types.chat.chat_completion import (
+    from cerebras.cloud.sdk import AsyncCerebras as AsyncCerebrasClient  # type: ignore[import-not-found]
+    from cerebras.cloud.sdk import Cerebras as CerebrasClient  # type: ignore[import-not-found]
+    from cerebras.cloud.sdk.types.chat import ChatCompletion  # type: ignore[import-not-found]
+    from cerebras.cloud.sdk.types.chat.chat_completion import (  # type: ignore[import-not-found]
         ChatChunkResponse,
         ChatChunkResponseChoice,
         ChatChunkResponseChoiceDelta,
@@ -132,7 +132,7 @@ class Cerebras(Model):
     def get_request_kwargs(
         self,
         tools: Optional[List[Dict[str, Any]]] = None,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
     ) -> Dict[str, Any]:
         """
         Returns keyword arguments for API requests.
@@ -196,7 +196,7 @@ class Cerebras(Model):
     def invoke(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> ChatCompletion:
@@ -211,14 +211,14 @@ class Cerebras(Model):
         """
         return self.get_client().chat.completions.create(
             model=self.id,
-            messages=[self._format_message(m) for m in messages],  # type: ignore
+            messages=[self._format_message(m) for m in messages],
             **self.get_request_kwargs(response_format=response_format, tools=tools),
         )
 
     async def ainvoke(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> ChatCompletion:
@@ -233,14 +233,14 @@ class Cerebras(Model):
         """
         return await self.get_async_client().chat.completions.create(
             model=self.id,
-            messages=[self._format_message(m) for m in messages],  # type: ignore
+            messages=[self._format_message(m) for m in messages],
             **self.get_request_kwargs(response_format=response_format, tools=tools),
         )
 
     def invoke_stream(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
     ) -> Iterator[ChatChunkResponse]:
@@ -255,18 +255,18 @@ class Cerebras(Model):
         """
         yield from self.get_client().chat.completions.create(
             model=self.id,
-            messages=[self._format_message(m) for m in messages],  # type: ignore
+            messages=[self._format_message(m) for m in messages],
             stream=True,
             **self.get_request_kwargs(response_format=response_format, tools=tools),
-        )  # type: ignore
+        )
 
     async def ainvoke_stream(
         self,
         messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[Dict[str, Any], Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> AsyncIterator[ChatChunkResponse]:
+    ) -> AsyncIterator[ChatChunkResponse]:  # type: ignore[override]
         """
         Sends an asynchronous streaming chat completion request to the Cerebras API.
 
@@ -278,12 +278,12 @@ class Cerebras(Model):
         """
         async_stream = await self.get_async_client().chat.completions.create(
             model=self.id,
-            messages=[self._format_message(m) for m in messages],  # type: ignore
+            messages=[self._format_message(m) for m in messages],
             stream=True,
             **self.get_request_kwargs(response_format=response_format, tools=tools),
         )
-        async for chunk in async_stream:  # type: ignore
-            yield chunk  # type: ignore
+        async for chunk in async_stream:
+            yield chunk
 
     def _format_message(self, message: Message) -> Dict[str, Any]:
         """
@@ -335,7 +335,7 @@ class Cerebras(Model):
 
         return message_dict
 
-    def parse_provider_response(self, response: ChatCompletionResponse, **kwargs) -> ModelResponse:
+    def parse_provider_response(self, response: ChatCompletionResponse, **kwargs: Any) -> ModelResponse:
         """
         Parse the Cerebras response into a ModelResponse.
 
