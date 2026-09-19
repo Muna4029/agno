@@ -1,7 +1,7 @@
 from dataclasses import asdict, dataclass, field
 from os import getenv
 from textwrap import dedent
-from typing import TYPE_CHECKING, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -31,7 +31,7 @@ class AccuracyEvaluation:
     score: int
     reason: str
 
-    def print_eval(self, console: Optional["Console"] = None):
+    def print_eval(self, console: Optional["Console"] = None) -> None:
         from rich.box import ROUNDED
         from rich.console import Console
         from rich.markdown import Markdown
@@ -65,10 +65,10 @@ class AccuracyResult:
     max_score: float = field(init=False)
     std_dev_score: float = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.compute_stats()
 
-    def compute_stats(self):
+    def compute_stats(self) -> None:
         import statistics
 
         if self.results and len(self.results) > 0:
@@ -79,7 +79,7 @@ class AccuracyResult:
             self.max_score = max(_results)
             self.std_dev_score = statistics.stdev(_results) if len(_results) > 1 else 0
 
-    def print_summary(self, console: Optional["Console"] = None):
+    def print_summary(self, console: Optional["Console"] = None) -> None:
         from rich.box import ROUNDED
         from rich.console import Console
         from rich.table import Table
@@ -103,7 +103,7 @@ class AccuracyResult:
         summary_table.add_row("Standard Deviation", f"{self.std_dev_score:.2f}")
         console.print(summary_table)
 
-    def print_results(self, console: Optional["Console"] = None):
+    def print_results(self, console: Optional["Console"] = None) -> None:
         from rich.box import ROUNDED
         from rich.console import Console
         from rich.table import Table
@@ -133,9 +133,9 @@ class AccuracyEval:
     """Interface to evaluate the accuracy of an Agent or Team, given a prompt and expected answer"""
 
     # Input to evaluate
-    input: Union[str, Callable]
+    input: Union[str, Callable[..., Any]]
     # Expected answer to the input
-    expected_output: Union[str, Callable]
+    expected_output: Union[str, Callable[..., Any]]
     # Agent to evaluate
     agent: Optional[Agent] = None
     # Team to evaluate
@@ -414,7 +414,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
 
         if self.monitoring:
             log_eval_run(
-                run_id=self.eval_id,  # type: ignore
+                run_id=self.eval_id,
                 run_data=asdict(self.result),
                 eval_type=EvalType.ACCURACY,
                 agent_id=agent_id,
@@ -523,7 +523,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         # Log results to the Agno platform if requested
         if self.monitoring:
             await async_log_eval_run(
-                run_id=self.eval_id,  # type: ignore
+                run_id=self.eval_id,
                 run_data=asdict(self.result),
                 eval_type=EvalType.ACCURACY,
                 agent_id=self.agent.agent_id if self.agent is not None else None,
@@ -618,7 +618,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
                 evaluated_entity_name = None
 
             log_eval_run(
-                run_id=self.eval_id,  # type: ignore
+                run_id=self.eval_id,
                 run_data=asdict(self.result),
                 eval_type=EvalType.ACCURACY,
                 name=self.name if self.name is not None else None,
@@ -706,7 +706,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
                 evaluated_entity_name = self.team.name
 
             await async_log_eval_run(
-                run_id=self.eval_id,  # type: ignore
+                run_id=self.eval_id,
                 run_data=asdict(self.result),
                 eval_type=EvalType.ACCURACY,
                 name=self.name if self.name is not None else None,
