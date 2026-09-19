@@ -13,7 +13,7 @@ try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.sse import sse_client
     from mcp.client.stdio import get_default_environment, stdio_client
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import streamable_http_client as streamablehttp_client
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`mcp` not installed. Please install using `pip install mcp`")
 
@@ -241,7 +241,7 @@ class MCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
@@ -370,7 +370,7 @@ class MultiMCPTools(Toolkit):
                 stdio_transport = await self._async_exit_stack.enter_async_context(stdio_client(server_params))
                 read, write = stdio_transport
                 session = await self._async_exit_stack.enter_async_context(
-                    ClientSession(read, write, read_timeout_seconds=timedelta(seconds=self.timeout_seconds))
+                    ClientSession(read, write, read_timeout_seconds=float(self.timeout_seconds))
                 )
                 await self.initialize(session)
             # Handle SSE connections
@@ -430,7 +430,7 @@ class MultiMCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,

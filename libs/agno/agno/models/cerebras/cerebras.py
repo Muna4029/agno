@@ -403,7 +403,7 @@ class Cerebras(Model):
         # Get the first choice (assuming single response)
         if response_delta.choices is not None:
             choice: ChatChunkResponseChoice = response_delta.choices[0]
-            choice_delta: ChatChunkResponseChoiceDelta = choice.delta
+            choice_delta: Optional[ChatChunkResponseChoiceDelta] = choice.delta
 
             if choice_delta:
                 # Add content
