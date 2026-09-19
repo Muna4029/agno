@@ -1048,7 +1048,7 @@ class Agent:
                     )
                     return response
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 if isinstance(e, StopAgentRun):
                     raise e
                 last_exception = e
@@ -1475,7 +1475,7 @@ class Agent:
                         messages=messages,
                     )
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 if isinstance(e, StopAgentRun):
                     raise e
                 last_exception = e
@@ -1744,7 +1744,7 @@ class Agent:
                     )
                     return response
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 if isinstance(e, StopAgentRun):
                     raise e
                 last_exception = e
@@ -2169,7 +2169,7 @@ class Agent:
                         messages=messages,
                     )
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 if isinstance(e, StopAgentRun):
                     raise e
                 last_exception = e
@@ -3398,7 +3398,7 @@ class Agent:
                 try:
                     future.result()
                 except Exception as e:
-                    log_warning(f"Error in memory/summary operation: {str(e)}")
+                    log_warning(f"Error in memory/summary operation: {e!s}")
 
     async def _amake_memories_and_summaries(
         self,
@@ -3449,7 +3449,7 @@ class Agent:
             try:
                 await asyncio.gather(*tasks)
             except Exception as e:
-                log_warning(f"Error in memory/summary operation: {str(e)}")
+                log_warning(f"Error in memory/summary operation: {e!s}")
 
     def _raise_if_async_tools(self) -> None:
         """Raise an exception if any tools contain async functions"""
@@ -4086,9 +4086,7 @@ class Agent:
         """
         self.agent_session = None
         if self.memory is not None:
-            if isinstance(self.memory, AgentMemory):
-                self.memory.clear()
-            elif isinstance(self.memory, Memory):
+            if isinstance(self.memory, AgentMemory) or isinstance(self.memory, Memory):
                 self.memory.clear()
         self.session_id = str(uuid4())
         self.load_session(force=True)
@@ -4530,7 +4528,7 @@ class Agent:
         ):
             user_msg_content += "\n\nUse the following references from the knowledge base if it helps:\n"
             user_msg_content += "<references>\n"
-            user_msg_content += self.convert_documents_to_string(references.references) + "\n"
+            user_msg_content += self.convert_documents_to_string([d for d in references.references if isinstance(d, dict)]) + "\n"
             user_msg_content += "</references>"
         # 4.2 Add context to user message
         if self.add_context and self.context is not None:
@@ -4909,18 +4907,7 @@ class Agent:
             return field_value.deep_copy()
 
         # For storage, model and reasoning_model, use a deep copy
-        elif field_name in ("storage", "model", "reasoning_model"):
-            try:
-                return deepcopy(field_value)
-            except Exception:
-                try:
-                    return copy(field_value)
-                except Exception as e:
-                    log_warning(f"Failed to copy field: {field_name} - {e}")
-                    return field_value
-
-        # For compound types, attempt a deep copy
-        elif isinstance(field_value, (list, dict, set)):
+        elif field_name in ("storage", "model", "reasoning_model") or isinstance(field_value, (list, dict, set)):
             try:
                 return deepcopy(field_value)
             except Exception:
@@ -7497,7 +7484,7 @@ class Agent:
             # Log the error but don't crash
             from agno.utils.log import log_error
 
-            log_error(f"Failed to add reasoning metrics to extra_data: {str(e)}")
+            log_error(f"Failed to add reasoning metrics to extra_data: {e!s}")
 
     def _get_effective_filters(self, knowledge_filters: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """
