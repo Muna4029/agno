@@ -7,7 +7,6 @@ from uuid import uuid4
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from fastapi.params import Body
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel
 
 from agno.agent.agent import Agent, RunResponse
 from agno.app.playground.operator import (
@@ -425,7 +424,7 @@ def get_async_playground_router(
                 parsed_run_response = RunResponse.from_dict(payload.run_response_data)
             except Exception as e:
                 raise HTTPException(
-                    status_code=400, detail=f"Invalid structure or content for run_response_data: {str(e)}"
+                    status_code=400, detail=f"Invalid structure or content for run_response_data: {e!s}"
                 )
         elif not run_id:  # run_id is still a path parameter and crucial
             raise HTTPException(status_code=400, detail="run_id is required to continue a run.")
@@ -627,7 +626,7 @@ def get_async_playground_router(
                 )
         except Exception as e:
             # Handle unexpected runtime errors
-            raise HTTPException(status_code=500, detail=f"Error running workflow: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error running workflow: {e!s}")
 
     @playground_router.get("/workflows/{workflow_id}/sessions", response_model=List[WorkflowSessionResponse])
     async def get_all_workflow_sessions(workflow_id: str, user_id: Optional[str] = Query(None, min_length=1)):
@@ -646,7 +645,7 @@ def get_async_playground_router(
                 user_id=user_id, entity_id=workflow_id
             )  # type: ignore
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error retrieving sessions: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error retrieving sessions: {e!s}")
 
         # Return the sessions
         return [
@@ -676,7 +675,7 @@ def get_async_playground_router(
         try:
             workflow_session: Optional[WorkflowSession] = workflow.storage.read(session_id, user_id)  # type: ignore
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error retrieving session: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error retrieving session: {e!s}")
 
         if not workflow_session:
             raise HTTPException(status_code=404, detail="Session not found")
@@ -835,7 +834,7 @@ def get_async_playground_router(
         try:
             all_team_sessions: List[TeamSession] = team.storage.get_all_sessions(user_id=user_id, entity_id=team_id)  # type: ignore
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error retrieving sessions: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error retrieving sessions: {e!s}")
 
         team_sessions: List[TeamSessionResponse] = []
         for session in all_team_sessions:
@@ -862,7 +861,7 @@ def get_async_playground_router(
         try:
             team_session: Optional[TeamSession] = team.storage.read(session_id, user_id)  # type: ignore
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error retrieving session: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error retrieving session: {e!s}")
 
         if not team_session:
             raise HTTPException(status_code=404, detail="Session not found")
