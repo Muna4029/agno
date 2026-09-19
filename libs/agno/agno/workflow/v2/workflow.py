@@ -1,14 +1,12 @@
 import asyncio
+from collections.abc import AsyncIterator, Awaitable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from os import getenv
 from typing import (
     Any,
-    AsyncIterator,
-    Awaitable,
     Callable,
     Dict,
-    Iterator,
     List,
     Literal,
     Optional,
@@ -1229,13 +1227,13 @@ class Workflow:
             except Exception as e:
                 logger.error(f"Background workflow execution failed: {e}")
                 workflow_run_response.status = RunStatus.error
-                workflow_run_response.content = f"Background execution failed: {str(e)}"
+                workflow_run_response.content = f"Background execution failed: {e!s}"
                 self.update_background_status(self.run_id or "", RunStatus.error)
 
         # Create and start asyncio task
         try:
             loop = asyncio.get_running_loop()
-            task = loop.create_task(execute_workflow_background())
+            loop.create_task(execute_workflow_background())
         except RuntimeError:
             # No event loop, use threading fallback
             import threading
@@ -1330,13 +1328,13 @@ class Workflow:
             except Exception as e:
                 logger.error(f"Background workflow execution failed: {e}")
                 workflow_run_response.status = RunStatus.error
-                workflow_run_response.content = f"Background execution failed: {str(e)}"
+                workflow_run_response.content = f"Background execution failed: {e!s}"
                 self.update_background_status(self.run_id or "", RunStatus.error)
 
         # Create and start asyncio task
         try:
             loop = asyncio.get_running_loop()
-            task = loop.create_task(execute_workflow_background())
+            loop.create_task(execute_workflow_background())
         except RuntimeError:
             # No event loop, use threading fallback
             import threading
@@ -2048,7 +2046,7 @@ class Workflow:
                 traceback.print_exc()
                 response_timer.stop()
                 error_panel = create_panel(
-                    content=f"Workflow execution failed: {str(e)}", title="Execution Error", border_style="red"
+                    content=f"Workflow execution failed: {e!s}", title="Execution Error", border_style="red"
                 )
                 console.print(error_panel)  # type: ignore
 
@@ -2598,7 +2596,7 @@ class Workflow:
                 traceback.print_exc()
                 response_timer.stop()
                 error_panel = create_panel(
-                    content=f"Workflow execution failed: {str(e)}", title="Execution Error", border_style="red"
+                    content=f"Workflow execution failed: {e!s}", title="Execution Error", border_style="red"
                 )
                 console.print(error_panel)  # type: ignore
 
@@ -2821,7 +2819,7 @@ class Workflow:
                 traceback.print_exc()
                 response_timer.stop()
                 error_panel = create_panel(
-                    content=f"Workflow execution failed: {str(e)}", title="Execution Error", border_style="red"
+                    content=f"Workflow execution failed: {e!s}", title="Execution Error", border_style="red"
                 )
                 console.print(error_panel)  # type: ignore
 
@@ -3371,7 +3369,7 @@ class Workflow:
                 traceback.print_exc()
                 response_timer.stop()
                 error_panel = create_panel(
-                    content=f"Workflow execution failed: {str(e)}", title="Execution Error", border_style="red"
+                    content=f"Workflow execution failed: {e!s}", title="Execution Error", border_style="red"
                 )
                 console.print(error_panel)  # type: ignore
 
