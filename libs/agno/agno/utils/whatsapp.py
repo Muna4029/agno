@@ -1,8 +1,8 @@
 import os
 from typing import Optional, Union
 
-import httpx
-import requests
+import httpx  # type: ignore[import-not-found]
+import requests  # type: ignore[import-untyped]
 
 from agno.utils.log import log_debug, log_error
 
@@ -39,6 +39,8 @@ def get_media(media_id: str) -> Union[dict, bytes]:
         data = response.json()
 
         media_url = data.get("url")
+        if media_url is None:
+            return {"error": "Media URL not found in response"}
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
@@ -70,6 +72,8 @@ async def get_media_async(media_id: str) -> Union[dict, bytes]:
             data = response.json()
 
         media_url = data.get("url")
+        if media_url is None:
+            return {"error": "Media URL not found in response"}
     except httpx.HTTPStatusError as e:
         return {"error": str(e)}
 
@@ -83,7 +87,7 @@ async def get_media_async(media_id: str) -> Union[dict, bytes]:
         return {"error": str(e)}
 
 
-def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
+def upload_media(media_data: bytes, mime_type: str, filename: str = "file") -> Union[str, dict]:
     """
     Sends a POST request to the Facebook Graph API to upload media for WhatsApp.
 
@@ -120,7 +124,7 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
         return {"error": str(e)}
 
 
-async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file"):
+async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file") -> Union[str, dict]:
     """
     Sends a POST request to the Facebook Graph API to upload media for WhatsApp.
 
@@ -162,7 +166,7 @@ async def send_image_message_async(
     media_id: str,
     recipient: str,
     text: Optional[str] = None,
-):
+) -> None:
     """Send an image message to a WhatsApp user (asynchronous version).
 
     Args:
@@ -212,7 +216,7 @@ def send_image_message(
     media_id: str,
     recipient: str,
     text: Optional[str] = None,
-):
+) -> None:
     """Send an image message to a WhatsApp user (synchronous version).
 
     Args:
@@ -256,9 +260,9 @@ def send_image_message(
         raise
 
 
-def typing_indicator(message_id: Optional[str] = None):
+def typing_indicator(message_id: Optional[str] = None) -> Optional[dict]:
     if not message_id:
-        return
+        return None
 
     phone_number_id = get_phone_number_id()
 
@@ -276,13 +280,14 @@ def typing_indicator(message_id: Optional[str] = None):
     try:
         response = requests.post(url, headers=headers, data=data)
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        return None
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
 
-async def typing_indicator_async(message_id: Optional[str] = None):
+async def typing_indicator_async(message_id: Optional[str] = None) -> Optional[dict]:
     if not message_id:
-        return
+        return None
 
     phone_number_id = get_phone_number_id()
 
@@ -301,5 +306,6 @@ async def typing_indicator_async(message_id: Optional[str] = None):
         async with httpx.AsyncClient() as client:
             response = await client.post(url, headers=headers, data=data)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        return None
     except httpx.HTTPStatusError as e:
         return {"error": str(e)}
