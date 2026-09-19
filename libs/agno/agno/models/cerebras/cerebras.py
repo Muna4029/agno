@@ -13,17 +13,17 @@ from agno.models.response import ModelResponse
 from agno.utils.log import log_error, log_warning
 
 try:
-    from cerebras.cloud.sdk import AsyncCerebras as AsyncCerebrasClient
-    from cerebras.cloud.sdk import Cerebras as CerebrasClient
-    from cerebras.cloud.sdk.types.chat import ChatCompletion
-    from cerebras.cloud.sdk.types.chat.chat_completion import (
+    from cerebras.cloud.sdk import AsyncCerebras as AsyncCerebrasClient  # type: ignore[import-not-found]
+    from cerebras.cloud.sdk import Cerebras as CerebrasClient  # type: ignore[import-not-found]
+    from cerebras.cloud.sdk.types.chat import ChatCompletion  # type: ignore[import-not-found]
+    from cerebras.cloud.sdk.types.chat.chat_completion import (  # type: ignore[import-not-found]
         ChatChunkResponse,
         ChatChunkResponseChoice,
         ChatChunkResponseChoiceDelta,
         ChatCompletionResponse,
         ChatCompletionResponseChoice,
         ChatCompletionResponseChoiceMessage,
-    )
+    )  # type: ignore[import-not-found]
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`cerebras-cloud-sdk` not installed. Please install using `pip install cerebras-cloud-sdk`")
 
@@ -266,7 +266,7 @@ class Cerebras(Model):
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> AsyncIterator[ChatChunkResponse]:
+    ) -> Any:
         """
         Sends an asynchronous streaming chat completion request to the Cerebras API.
 
