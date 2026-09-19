@@ -409,6 +409,7 @@ module = [
   "qdrant_client.*",
   "rapidocr_onnxruntime.*",
   "redis.*",
+  "rich.*",
   "replicate.*",
   "requests.*",
   "scrapegraph_py.*",
