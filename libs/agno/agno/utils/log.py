@@ -158,7 +158,7 @@ def use_workflow_logger():
     logger = workflow_logger
 
 
-def log_debug(msg, center: bool = False, symbol: str = "*", log_level: Literal[1, 2] = 1, *args, **kwargs):
+def log_debug(msg: str, center: bool = False, symbol: str = "*", log_level: Literal[1, 2] = 1, *args: Any, **kwargs: Any) -> None:
     global logger
     global debug_on
     global debug_level
@@ -168,17 +168,17 @@ def log_debug(msg, center: bool = False, symbol: str = "*", log_level: Literal[1
             logger.debug(msg, center, symbol, *args, **kwargs)
 
 
-def log_info(msg, center: bool = False, symbol: str = "*", *args, **kwargs):
+def log_info(msg: str, center: bool = False, symbol: str = "*", *args: Any, **kwargs: Any) -> None:
     global logger
     logger.info(msg, center, symbol, *args, **kwargs)
 
 
-def log_warning(msg, *args, **kwargs):
+def log_warning(msg: str, *args: Any, **kwargs: Any) -> None:
     global logger
     logger.warning(msg, *args, **kwargs)
 
 
-def log_error(msg, *args, **kwargs):
+def log_error(msg: str, *args: Any, **kwargs: Any) -> None:
     global logger
     logger.error(msg, *args, **kwargs)
 
