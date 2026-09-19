@@ -279,6 +279,7 @@ agno = ["py.typed"]
 include = ["LICENSE"]
 
 [tool.pytest.ini_options]
+addopts = "-v --tb=long"
 log_cli = true
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
