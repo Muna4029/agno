@@ -51,7 +51,7 @@ class AccuracyEvaluation:
         results_table.add_row("Input", self.input)
         results_table.add_row("Output", self.output)
         results_table.add_row("Expected Output", self.expected_output)
-        results_table.add_row("Accuracy Score", f"{str(self.score)}/10")
+        results_table.add_row("Accuracy Score", f"{self.score!s}/10")
         results_table.add_row("Accuracy Reason", Markdown(self.reason))
         console.print(results_table)
 
@@ -123,7 +123,7 @@ class AccuracyResult:
             results_table.add_row("Input", result.input)
             results_table.add_row("Output", result.output)
             results_table.add_row("Expected Output", result.expected_output)
-            results_table.add_row("Accuracy Score", f"{str(result.score)}/10")
+            results_table.add_row("Accuracy Score", f"{result.score!s}/10")
             results_table.add_row("Accuracy Reason", result.reason)
         console.print(results_table)
 
