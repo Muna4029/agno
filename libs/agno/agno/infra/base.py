@@ -91,10 +91,11 @@ class InfraBase(BaseModel):
         if self.cached_workspace_dir is not None:
             return self.cached_workspace_dir
 
-        if self.workspace_root is not None:
+        ws_root = self.workspace_root
+        if ws_root is not None:
             from agno.workspace.helpers import get_workspace_dir_path
 
-            workspace_dir = get_workspace_dir_path(self.workspace_root)
+            workspace_dir = get_workspace_dir_path(ws_root)
             if workspace_dir is not None:
                 self.cached_workspace_dir = workspace_dir
                 return workspace_dir
