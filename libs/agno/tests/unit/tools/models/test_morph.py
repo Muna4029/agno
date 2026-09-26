@@ -94,7 +94,7 @@ def test_edit_file_success_with_file_reading(mock_morph_tools, mock_successful_r
     mock_morph_tools._morph_client.chat.completions.create.return_value = mock_successful_response
 
     with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=original_content)) as mock_file:
+        with patch("builtins.open", mock_open(read_data=original_content)):
             result = mock_morph_tools.edit_file(target_file=target_file, instructions=instructions, code_edit=code_edit)
 
     # Verify file operations
@@ -125,7 +125,7 @@ def test_edit_file_success_with_provided_original_code(mock_morph_tools, mock_su
     mock_morph_tools._morph_client.chat.completions.create.return_value = mock_successful_response
 
     with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=file_content)) as mock_file:
+        with patch("builtins.open", mock_open(read_data=file_content)):
             result = mock_morph_tools.edit_file(
                 target_file=target_file, instructions=instructions, code_edit=code_edit, original_code=provided_original
             )
@@ -197,7 +197,7 @@ def test_edit_file_empty_original_code(mock_morph_tools, mock_successful_respons
     mock_morph_tools._morph_client.chat.completions.create.return_value = mock_successful_response
 
     with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=original_content)) as mock_file:
+        with patch("builtins.open", mock_open(read_data=original_content)):
             result = mock_morph_tools.edit_file(
                 target_file=target_file, instructions="I am adding a new function", code_edit="def new_function(): pass"
             )
@@ -242,7 +242,7 @@ def test_edit_file_always_writes_to_file(mock_morph_tools, mock_successful_respo
     mock_morph_tools._morph_client.chat.completions.create.return_value = mock_successful_response
 
     with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=original_content)) as mock_file:
+        with patch("builtins.open", mock_open(read_data=original_content)):
             result = mock_morph_tools.edit_file(
                 target_file=target_file, instructions="test instruction", code_edit="test edit"
             )
