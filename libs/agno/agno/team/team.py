@@ -1831,9 +1831,10 @@ class Team:
                 if model_response_event.content is not None:
                     if self.should_parse_structured_output:
                         full_model_response.content = model_response_event.content
-                        content_type = self.response_model.__name__
-                        run_response.content_type = content_type
-                        self._convert_response_to_structured_format(full_model_response)
+                        if self.response_model is not None:
+                            content_type = self.response_model.__name__
+                            run_response.content_type = content_type
+                            self._convert_response_to_structured_format(full_model_response)
                     else:
                         full_model_response.content = (full_model_response.content or "") + model_response_event.content
                     should_yield = True
