@@ -6,7 +6,8 @@ from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
+    from firecrawl import Firecrawl
+    from firecrawl.types import ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:
     raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
@@ -55,7 +56,7 @@ class FirecrawlTools(Toolkit):
         self.formats: Optional[List[str]] = formats
         self.limit: int = limit
         self.poll_interval: int = poll_interval
-        self.app: FirecrawlApp = FirecrawlApp(api_key=self.api_key, api_url=api_url)
+        self.app: Firecrawl = Firecrawl(api_key=self.api_key, base_url=api_url)
         self.search_params = search_params
 
         # Start with scrape by default. But if crawl is set, then set scrape to False.
@@ -87,7 +88,7 @@ class FirecrawlTools(Toolkit):
         if self.formats:
             params["formats"] = self.formats
 
-        scrape_result = self.app.scrape_url(url, **params)
+        scrape_result = self.app.scrape(url, **params)
         return json.dumps(scrape_result.model_dump(), cls=CustomJSONEncoder)
 
     def crawl_website(self, url: str, limit: Optional[int] = None) -> str:
@@ -108,7 +109,7 @@ class FirecrawlTools(Toolkit):
 
         params["poll_interval"] = self.poll_interval
 
-        crawl_result = self.app.crawl_url(url, **params)
+        crawl_result = self.app.crawl(url, **params)
         return json.dumps(crawl_result.model_dump(), cls=CustomJSONEncoder)
 
     def map_website(self, url: str) -> str:
@@ -118,7 +119,7 @@ class FirecrawlTools(Toolkit):
             url (str): The URL to map.
 
         """
-        map_result = self.app.map_url(url)
+        map_result = self.app.map(url)
         return json.dumps(map_result.model_dump(), cls=CustomJSONEncoder)
 
     def search(self, query: str, limit: Optional[int] = None):
