@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union, cast
 
 from agno.document import Document
 from agno.knowledge.agent import AgentKnowledge
@@ -23,7 +23,7 @@ class DocumentKnowledgeBase(AgentKnowledge):
         for item in self.documents:
             if isinstance(item, dict) and "document" in item:
                 # Handle document with metadata
-                document = item["document"]
+                document = cast(Document, item["document"])
                 config = item.get("metadata", {})
                 if config:
                     log_info(f"Adding metadata {config} to document: {document.name}")
@@ -62,7 +62,7 @@ class DocumentKnowledgeBase(AgentKnowledge):
         for item in self.documents:
             if isinstance(item, dict) and "document" in item:
                 # Handle document with metadata
-                document = item["document"]
+                document = cast(Document, item["document"])
                 config = item.get("metadata", {})
                 if config:
                     log_info(f"Adding metadata {config} to document: {document.name}")
