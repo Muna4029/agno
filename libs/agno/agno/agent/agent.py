@@ -291,7 +291,7 @@ class Agent:
         session_id: Optional[str] = None,
         session_name: Optional[str] = None,
         session_state: Optional[Dict[str, Any]] = None,
-        search_previous_sessions_history: Optional[bool] = False,
+        search_previous_sessions_history: bool = False,
         number_of_sessions: Optional[int] = None,
         context: Optional[Dict[str, Any]] = None,
         add_context: bool = False,
@@ -2080,7 +2080,7 @@ class Agent:
         if self.search_previous_sessions_history:
             agent_tools.append(
                 self.get_previous_sessions_messages_function(
-                    number_of_sessions=self.number_of_sessions,
+                    number_of_sessions=self.number_of_sessions if self.number_of_sessions is not None else 3,
                 )
             )
 
