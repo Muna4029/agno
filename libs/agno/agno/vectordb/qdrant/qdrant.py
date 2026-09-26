@@ -125,7 +125,7 @@ class Qdrant(VectorDb):
 
         if self.search_type in [SearchType.keyword, SearchType.hybrid]:
             try:
-                from fastembed import SparseTextEmbedding
+                from fastembed import SparseTextEmbedding  # type: ignore[import-not-found]
 
                 default_kwargs = {"model_name": DEFAULT_SPARSE_MODEL}
                 if fastembed_kwargs:
@@ -321,12 +321,12 @@ class Qdrant(VectorDb):
             if self.use_named_vectors:
                 vector = {self.dense_vector_name: document.embedding}
             else:
-                vector = document.embedding
+                vector = document.embedding  # type: ignore[assignment]
 
             if self.search_type == SearchType.vector:
                 # For vector search, maintain backward compatibility with unnamed vectors
                 document.embed(embedder=self.embedder)
-                vector = document.embedding
+                vector = document.embedding  # type: ignore[assignment]
             else:
                 # For other search types, use named vectors
                 vector = {}
