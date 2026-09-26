@@ -31,6 +31,9 @@ class WorkflowSession:
     # Extra Data stored with this workflow session
     extra_data: Optional[Dict[str, Any]] = None
 
+    # Memory: stores agent memory as a dictionary
+    memory: Optional[Dict[str, Any]] = None
+
     # The unix timestamp when this session was created
     created_at: Optional[int] = None
     # The unix timestamp when this session was last updated
@@ -58,6 +61,7 @@ class WorkflowSession:
             "session_data": self.session_data,
             "workflow_data": self.workflow_data,
             "extra_data": self.extra_data,
+            "memory": self.memory,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
@@ -84,6 +88,7 @@ class WorkflowSession:
             session_data=data.get("session_data"),
             workflow_data=data.get("workflow_data"),
             extra_data=data.get("extra_data"),
+            memory=data.get("memory"),
             created_at=data.get("created_at"),
             updated_at=data.get("updated_at"),
         )
