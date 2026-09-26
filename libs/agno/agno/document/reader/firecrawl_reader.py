@@ -8,7 +8,7 @@ from agno.document.reader.base import Reader
 from agno.utils.log import log_debug, logger
 
 try:
-    from firecrawl import FirecrawlApp  # type: ignore[attr-defined]
+    from firecrawl.v1 import FirecrawlApp  # type: ignore[attr-defined]
 except ImportError:
     raise ImportError("The `firecrawl` package is not installed. Please install it via `pip install firecrawl-py`.")
 
