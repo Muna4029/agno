@@ -1,5 +1,5 @@
 from os import getenv
-from typing import Optional
+from typing import Optional, Union, cast, List
 
 import requests
 
@@ -8,7 +8,6 @@ from agno.media import Audio, File, Image, Video
 from agno.team.team import Team, TeamRunResponse
 from agno.utils.log import log_info, log_warning
 
-from typing import List
 from agno.tools.function import UserInputField
 
 from textwrap import dedent
@@ -138,14 +137,14 @@ class DiscordClient:
                     )
                     await self._handle_response_in_thread(team_response, thread)
 
-    async def _handle_hitl(self, run_response: RunResponse | TeamRunResponse, thread: discord.Thread):
-        for tool in run_response.tools_requiring_confirmation:
+    async def _handle_hitl(self, run_response: Union[RunResponse, TeamRunResponse], thread: discord.Thread):
+        for tool in run_response.tools_requiring_confirmation:  # type: ignore[union-attr]
             view = RequiresConfirmationView()
             await thread.send(f"Tool requiring confirmation: {tool.tool_name}", view=view)
             await view.wait()
             tool.confirmed = view.value if view.value is not None else False
 
-        for tool in run_response.tools_requiring_user_input:
+        for tool in run_response.tools_requiring_user_input:  # type: ignore[union-attr]
             input_schema: List[UserInputField] = tool.user_input_schema
             RequiresUserInputModal = type(
                 "RequiresUserInputModal",
@@ -167,12 +166,12 @@ class DiscordClient:
             await thread.send_modal(RequiresUserInputModal())
 
         if self.agent:
-            return await self.agent.acontinue_run(run_response=run_response, )
+            return await self.agent.acontinue_run(run_response=cast(RunResponse, run_response))  # type: ignore[arg-type]
         return None
 
-    async def _handle_response_in_thread(self, response: RunResponse, thread: discord.TextChannel):
+    async def _handle_response_in_thread(self, response: Union[RunResponse, TeamRunResponse], thread: discord.TextChannel):
         if response.is_paused:
-            response = await self._handle_hitl(response, thread)
+            response = await self._handle_hitl(response, thread)  # type: ignore[assignment]
 
         if response.reasoning_content:
             await self._send_discord_messages(
