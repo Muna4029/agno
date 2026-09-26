@@ -121,7 +121,7 @@ class Qdrant(VectorDb):
 
         if self.search_type in [SearchType.keyword, SearchType.hybrid]:
             try:
-                from fastembed import SparseTextEmbedding
+                from fastembed import SparseTextEmbedding  # type: ignore[import-not-found]
 
                 default_kwargs = {"model_name": DEFAULT_SPARSE_MODEL}
                 if fastembed_kwargs:
