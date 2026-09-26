@@ -6,7 +6,8 @@ from agno.tools.toolkit import Toolkit
 from agno.utils.log import log_debug, log_error, log_info, log_warning
 
 try:
-    from memori import Memori, create_memory_tool
+    from memori import Memori
+    from memori.tools import create_memory_tool
 except ImportError:
     raise ImportError("`memorisdk` package not found. Please install it with `pip install memorisdk`")
 
