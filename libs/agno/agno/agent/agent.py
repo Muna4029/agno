@@ -5205,7 +5205,7 @@ class Agent:
             log_warning(f"Error searching knowledge base: {e}")
             raise e
 
-    def convert_documents_to_string(self, docs: List[Dict[str, Any]]) -> str:
+    def convert_documents_to_string(self, docs: Sequence[Union[Dict[str, Any], str]]) -> str:
         if docs is None or len(docs) == 0:
             return ""
 

@@ -4810,7 +4810,7 @@ class Team:
     ):
         # Get references from the knowledge base to use in the user message
         references = None
-        self.run_response = cast(RunResponse, self.run_response)
+        self.run_response = cast(TeamRunResponse, self.run_response)
         if self.add_references and message:
             message_str: str
             if isinstance(message, str):
@@ -6841,7 +6841,7 @@ class Team:
             log_warning(f"Error searching knowledge base: {e}")
             raise e
 
-    def _convert_documents_to_string(self, docs: List[Dict[str, Any]]) -> str:
+    def _convert_documents_to_string(self, docs: Sequence[Union[Dict[str, Any], str]]) -> str:
         if docs is None or len(docs) == 0:
             return ""
 
