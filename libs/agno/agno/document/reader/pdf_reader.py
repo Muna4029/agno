@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from typing import IO, Any, List, Optional, Union
+from typing import IO, Any, List, Optional, Union, cast
 
 from agno.document.base import Document
 from agno.document.reader.base import Reader
@@ -12,6 +12,62 @@ try:
     from pypdf.errors import PdfStreamError
 except ImportError:
     raise ImportError("`pypdf` not installed. Please install it via `pip install pypdf`.")
+
+
+def _extract_page_text(page: Any) -> str:
+    text = page.extract_text() or ""
+    if text.strip():
+        return text
+
+    try:
+        text = page.extract_text(extraction_mode="layout") or ""
+    except TypeError:
+        text = ""
+    return text
+
+
+def _extract_page_content(doc_name: str, page_number: int, page: Any) -> str:
+    text = _extract_page_text(page)
+    if text.strip():
+        return text
+
+    try:
+        import rapidocr_onnxruntime as rapidocr
+    except ImportError:
+        return text
+
+    ocr = rapidocr.RapidOCR()
+    images_text_list = []
+    for image_object in getattr(page, "images", []) or []:
+        image_data = getattr(image_object, "data", None)
+        if image_data is None:
+            continue
+        ocr_result, _ = ocr(image_data)
+        if ocr_result:
+            images_text_list += [item[1] for item in ocr_result]
+
+    images_text = "\n".join(images_text_list)
+    return text if text.strip() else images_text
+
+
+def _extract_documents_with_pdfplumber(pdf: Union[str, Path, IO[Any]], doc_name: str) -> List[Document]:
+    import pdfplumber
+
+    if hasattr(pdf, "seek"):
+        pdf.seek(0)
+
+    documents: List[Document] = []
+    with pdfplumber.open(cast(Any, pdf)) as pdf_file:
+        for page_number, page in enumerate(pdf_file.pages, start=1):
+            documents.append(
+                Document(
+                    name=doc_name,
+                    id=f"{doc_name}_{page_number}",
+                    meta_data={"page": page_number},
+                    content=page.extract_text() or "",
+                )
+            )
+    return documents
 
 
 def process_image_page(doc_name: str, page_number: int, page: Any) -> Document:
@@ -96,11 +152,14 @@ class PDFReader(BasePDFReader):
     def read(self, pdf: Union[str, Path, IO[Any]]) -> List[Document]:
         try:
             if isinstance(pdf, str):
-                # Use the full path to ensure uniqueness
-                doc_name = pdf.replace("/", "_").replace(" ", "_")
+                # Extract filename from path
+                doc_name = Path(pdf).stem.replace(" ", "_")
+            elif isinstance(pdf, Path):
+                # Use just the filename without extension
+                doc_name = pdf.stem.replace(" ", "_")
             else:
-                # Use the full path for file objects as well
-                doc_name = pdf.name.replace("/", "_").replace(" ", "_")
+                # Use the filename for file objects
+                doc_name = Path(pdf.name).stem.replace(" ", "_")
         except Exception:
             doc_name = "pdf"
 
@@ -119,9 +178,11 @@ class PDFReader(BasePDFReader):
                     name=doc_name,
                     id=f"{doc_name}_{page_number}",
                     meta_data={"page": page_number},
-                    content=page.extract_text(),
+                    content=_extract_page_content(doc_name, page_number, page),
                 )
             )
+        if not any(document.content.strip() for document in documents):
+            documents = _extract_documents_with_pdfplumber(pdf, doc_name)
         if self.chunk:
             return self._build_chunked_documents(documents)
         return documents
@@ -129,11 +190,14 @@ class PDFReader(BasePDFReader):
     async def async_read(self, pdf: Union[str, Path, IO[Any]]) -> List[Document]:
         try:
             if isinstance(pdf, str):
-                # Use the full path to ensure uniqueness
-                doc_name = pdf.replace("/", "_").replace(" ", "_")
+                # Extract filename from path
+                doc_name = Path(pdf).stem.replace(" ", "_")
+            elif isinstance(pdf, Path):
+                # Use just the filename without extension
+                doc_name = pdf.stem.replace(" ", "_")
             else:
-                # Use the full path for file objects as well
-                doc_name = pdf.name.replace("/", "_").replace(" ", "_")
+                # Use the filename for file objects
+                doc_name = Path(pdf.name).stem.replace(" ", "_")
         except Exception:
             doc_name = "pdf"
 
@@ -150,7 +214,7 @@ class PDFReader(BasePDFReader):
                 name=doc_name,
                 id=f"{doc_name}_{page_number}",
                 meta_data={"page": page_number},
-                content=page.extract_text(),
+                content=_extract_page_content(doc_name, page_number, page),
             )
 
         # Process pages in parallel using asyncio.gather
@@ -160,6 +224,8 @@ class PDFReader(BasePDFReader):
                 for page_number, page in enumerate(doc_reader.pages, start=1)
             ]
         )
+        if not any(document.content.strip() for document in documents):
+            documents = _extract_documents_with_pdfplumber(pdf, doc_name)
 
         if self.chunk:
             return self._build_chunked_documents(documents)
@@ -194,9 +260,11 @@ class PDFUrlReader(BasePDFReader):
                     name=doc_name,
                     id=f"{doc_name}_{page_number}",
                     meta_data={"page": page_number},
-                    content=page.extract_text(),
+                    content=_extract_page_content(doc_name, page_number, page),
                 )
             )
+        if not any(document.content.strip() for document in documents):
+            documents = _extract_documents_with_pdfplumber(BytesIO(response.content), doc_name)
         if self.chunk:
             return self._build_chunked_documents(documents)
         return documents
@@ -223,7 +291,7 @@ class PDFUrlReader(BasePDFReader):
                 name=doc_name,
                 id=f"{doc_name}_{page_number}",
                 meta_data={"page": page_number},
-                content=page.extract_text(),
+                content=_extract_page_content(doc_name, page_number, page),
             )
 
         # Process pages in parallel using asyncio.gather
@@ -233,6 +301,8 @@ class PDFUrlReader(BasePDFReader):
                 for page_number, page in enumerate(doc_reader.pages, start=1)
             ]
         )
+        if not any(document.content.strip() for document in documents):
+            documents = _extract_documents_with_pdfplumber(BytesIO(response.content), doc_name)
 
         if self.chunk:
             return self._build_chunked_documents(documents)
