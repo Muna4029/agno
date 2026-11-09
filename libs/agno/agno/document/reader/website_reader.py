@@ -301,14 +301,14 @@ class WebsiteReader(Reader):
                     if current_url == url and not crawler_result:
                         raise
                 except Exception as e:
-                    # Log other exceptions but continue crawling other pages
                     logger.warning(f"Failed to crawl asynchronously {current_url}: {e}")
-                    # For the initial URL, we should raise the error
                     if current_url == url and not crawler_result:
-                        # Wrap non-HTTP exceptions in a RequestError
                         raise httpx.RequestError(
-                            f"Failed to crawl starting URL {url} asynchronously: {str(e)}", request=None
+                            f"Failed to crawl starting URL {url} asynchronously: {str(e)}",
+                            request=None,
                         ) from e
+
+
 
         # If we couldn't crawl any pages, raise an error
         if not crawler_result:

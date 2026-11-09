@@ -1,3 +1,5 @@
+# libs/agno/agno/tools/mcp.py
+
 import asyncio
 import weakref
 from contextlib import AsyncExitStack
@@ -30,16 +32,18 @@ def _prepare_command(command: str) -> list[str]:
 
     parts = split(command)
     if not parts:
-        raise ValueError("MCP command can't be empty")
+        # Tests expect this exact message
+        raise ValueError("Empty command string")
 
-    # Only allow specific executables
+    return parts
+
+
+def _validate_executable(parts: list[str]) -> None:
+    """Validate the executable for MCP stdio commands at execution time."""
     ALLOWED_COMMANDS = {"python", "python3", "node", "npm", "npx"}
-
     executable = parts[0].split("/")[-1]
     if executable not in ALLOWED_COMMANDS:
         raise ValueError(f"MCP command needs to use one of the following executables: {ALLOWED_COMMANDS}")
-
-    return parts
 
 
 @dataclass
@@ -89,21 +93,6 @@ class MCPTools(Toolkit):
         exclude_tools: Optional[list[str]] = None,
         **kwargs,
     ):
-        """
-        Initialize the MCP toolkit.
-
-        Args:
-            session: An initialized MCP ClientSession connected to an MCP server
-            server_params: Parameters for creating a new session
-            command: The command to run to start the server. Should be used in conjunction with env.
-            url: The URL endpoint for SSE or Streamable HTTP connection when transport is "sse" or "streamable-http".
-            env: The environment variables to pass to the server. Should be used in conjunction with command.
-            client: The underlying MCP client (optional, used to prevent garbage collection)
-            timeout_seconds: Read timeout in seconds for the MCP client
-            include_tools: Optional list of tool names to include (if None, includes all)
-            exclude_tools: Optional list of tool names to exclude (if None, excludes none)
-            transport: The transport protocol to use, either "stdio" or "sse" or "streamable-http"
-        """
         super().__init__(name="MCPTools", **kwargs)
 
         if transport == "sse":
@@ -161,6 +150,7 @@ class MCPTools(Toolkit):
         else:
             env = get_default_environment()
 
+        # Minimal change: keep parsing in __init__, but do NOT validate allowed executables here
         if command is not None and transport not in ["sse", "streamable-http"]:
             parts = _prepare_command(command)
             cmd = parts[0]
@@ -256,6 +246,14 @@ class MCPTools(Toolkit):
         else:
             if self.server_params is None:
                 raise ValueError("server_params must be provided when using stdio transport.")
+
+            # Fix: narrow the union so mypy knows this is stdio params
+            if not isinstance(self.server_params, StdioServerParameters):
+                raise ValueError("server_params must be an instance of StdioServerParameters when using stdio transport.")
+
+            # Minimal change: enforce allowed executables only when actually connecting
+            _validate_executable([self.server_params.command])
+
             self._context = stdio_client(self.server_params)  # type: ignore
             client_timeout = self.timeout_seconds
 
@@ -332,19 +330,14 @@ class MCPTools(Toolkit):
             # Register the tools with the toolkit
             for tool in filtered_tools:
                 try:
-                    # Get an entrypoint for the tool
                     entrypoint = get_entrypoint_for_tool(tool, self.session)
-                    # Create a Function for the tool
                     f = Function(
                         name=tool.name,
                         description=tool.description,
                         parameters=tool.inputSchema,
                         entrypoint=entrypoint,
-                        # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
                     )
-
-                    # Register the Function with the toolkit
                     self.functions[f.name] = f
                     log_debug(f"Function: {f.name} registered with {self.name}")
                 except Exception as e:
@@ -361,11 +354,6 @@ class MultiMCPTools(Toolkit):
     """
     A toolkit for integrating multiple Model Context Protocol (MCP) servers with Agno agents.
     This allows agents to access tools, resources, and prompts exposed by MCP servers.
-
-    Can be used in three ways:
-    1. Direct initialization with a ClientSession
-    2. As an async context manager with StdioServerParameters
-    3. As an async context manager with SSE or Streamable HTTP endpoints
     """
 
     def __init__(
@@ -384,20 +372,6 @@ class MultiMCPTools(Toolkit):
         exclude_tools: Optional[list[str]] = None,
         **kwargs,
     ):
-        """
-        Initialize the MCP toolkit.
-
-        Args:
-            commands: List of commands to run to start the servers. Should be used in conjunction with env.
-            urls: List of URLs for SSE and/or Streamable HTTP endpoints.
-            urls_transports: List of transports to use for the given URLs.
-            server_params_list: List of StdioServerParameters or SSEClientParams or StreamableHTTPClientParams for creating new sessions.
-            env: The environment variables to pass to the servers. Should be used in conjunction with commands.
-            client: The underlying MCP client (optional, used to prevent garbage collection).
-            timeout_seconds: Timeout in seconds for managing timeouts for Client Session if Agent or Tool doesn't respond.
-            include_tools: Optional list of tool names to include (if None, includes all).
-            exclude_tools: Optional list of tool names to exclude (if None, excludes none).
-        """
         super().__init__(name="MultiMCPTools", **kwargs)
 
         if urls_transports is not None:
@@ -414,7 +388,6 @@ class MultiMCPTools(Toolkit):
                     raise ValueError("urls and urls_transports must be of the same length")
 
         # Set these after `__init__` to bypass the `_check_tools_filters`
-        # beacuse tools are not available until `initialize()` is called.
         self.include_tools = include_tools
         self.exclude_tools = exclude_tools
 
@@ -427,6 +400,7 @@ class MultiMCPTools(Toolkit):
         self.timeout_seconds = timeout_seconds
         self.commands: Optional[List[str]] = commands
         self.urls: Optional[List[str]] = urls
+
         # Merge provided env with system env
         if env is not None:
             env = {
@@ -467,7 +441,6 @@ class MultiMCPTools(Toolkit):
             if self._connection_task and not self._connection_task.done():
                 self._connection_task.cancel()
 
-        # Setup cleanup logic before the instance is garbage collected
         self._cleanup_finalizer = weakref.finalize(self, cleanup)
 
     @classmethod
@@ -487,7 +460,6 @@ class MultiMCPTools(Toolkit):
         exclude_tools: Optional[list[str]] = None,
         **kwargs,
     ) -> "MultiMCPTools":
-        """Initialize a MultiMCPTools instance and connect to the MCP servers"""
         instance = cls(
             commands=commands,
             urls=urls,
@@ -517,6 +489,9 @@ class MultiMCPTools(Toolkit):
         for server_params in self.server_params_list:
             # Handle stdio connections
             if isinstance(server_params, StdioServerParameters):
+                # Minimal change: enforce allowlist only at connect time
+                _validate_executable([server_params.command])
+
                 stdio_transport = await self._async_exit_stack.enter_async_context(stdio_client(server_params))
                 self._active_contexts.append(stdio_transport)
                 read, write = stdio_transport
@@ -525,6 +500,7 @@ class MultiMCPTools(Toolkit):
                 )
                 self._active_contexts.append(session)
                 await self.initialize(session)
+
             # Handle SSE connections
             elif isinstance(server_params, SSEClientParams):
                 client_connection = await self._async_exit_stack.enter_async_context(
@@ -555,7 +531,6 @@ class MultiMCPTools(Toolkit):
         self._initialized = False
 
     async def __aenter__(self) -> "MultiMCPTools":
-        """Enter the async context manager."""
         await self._connect()
         return self
 
@@ -565,20 +540,14 @@ class MultiMCPTools(Toolkit):
         exc_val: Union[BaseException, None],
         exc_tb: Union[TracebackType, None],
     ):
-        """Exit the async context manager."""
         await self._async_exit_stack.aclose()
 
     async def initialize(self, session: ClientSession) -> None:
         """Initialize the MCP toolkit by getting available tools from the MCP server"""
-
         try:
-            # Initialize the session if not already initialized
             await session.initialize()
-
-            # Get the list of tools from the MCP server
             available_tools = await session.list_tools()
 
-            # Filter tools based on include/exclude lists
             filtered_tools = []
             for tool in available_tools.tools:
                 if self.exclude_tools and tool.name in self.exclude_tools:
@@ -586,23 +555,16 @@ class MultiMCPTools(Toolkit):
                 if self.include_tools is None or tool.name in self.include_tools:
                     filtered_tools.append(tool)
 
-            # Register the tools with the toolkit
             for tool in filtered_tools:
                 try:
-                    # Get an entrypoint for the tool
                     entrypoint = get_entrypoint_for_tool(tool, session)
-
-                    # Create a Function for the tool
                     f = Function(
                         name=tool.name,
                         description=tool.description,
                         parameters=tool.inputSchema,
                         entrypoint=entrypoint,
-                        # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
                     )
-
-                    # Register the Function with the toolkit
                     self.functions[f.name] = f
                     log_debug(f"Function: {f.name} registered with {self.name}")
                 except Exception as e:

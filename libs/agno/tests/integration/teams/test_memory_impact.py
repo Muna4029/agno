@@ -6,9 +6,9 @@ from typing import List, Tuple
 
 import pytest
 
-from agno.agent.agent import Agent
-from agno.models.openai.chat import OpenAIChat
-from agno.team.team import Team
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+from agno.team import Team
 
 
 class MemoryMonitor:
@@ -243,9 +243,9 @@ def test_team_memory_impact_with_gc_monitoring(agent_storage, team_storage, memo
 
         # Check that runs are in memory
         assert session_id in memory.runs, "Session runs not found in memory"
-        assert len(memory.runs[session_id]) == len(prompts), (
-            f"Expected {len(prompts)} runs, got {len(memory.runs[session_id])}"
-        )
+        assert len(memory.runs[session_id]) == len(
+            prompts
+        ), f"Expected {len(prompts)} runs, got {len(memory.runs[session_id])}"
 
         print("✅ Team memory impact test completed successfully")
         print(f"✅ Stored {len(memory.runs[session_id])} runs in memory")

@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Union
 
 from agno.agent import Agent
 from agno.reasoning.step import NextAction, ReasoningStep
-from agno.team.team import Team
+from agno.team import Team
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error
 
