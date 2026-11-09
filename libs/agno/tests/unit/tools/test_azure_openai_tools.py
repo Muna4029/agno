@@ -184,6 +184,8 @@ def test_generate_image_missing_credentials(azure_openai_tools, mock_agent):
         azure_openai_tools.api_key = None
         azure_openai_tools.azure_endpoint = None
         azure_openai_tools.dalle_deployment = None
+        # Remove dalle_base_url to simulate uninitialized state
+        del azure_openai_tools.dalle_base_url
 
         # Call the generate_image function
         result = azure_openai_tools.generate_image(agent=mock_agent, prompt="A test prompt")
