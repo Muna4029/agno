@@ -2,8 +2,8 @@ import gc
 import tracemalloc
 from typing import List, Tuple
 
-from agno.agent.agent import Agent
-from agno.models.openai.chat import OpenAIChat
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
 
 
 class MemoryMonitor:
@@ -168,7 +168,7 @@ def test_agent_memory_impact_with_gc_monitoring(agent_storage, memory):
 
         # Verify that memory usage is reasonable
         # The agent should not leak excessive memory
-        assert final_memory < 10, f"Final memory usage too high: {final_memory:.2f} MB"
+        assert final_memory < 10 * 1024 * 1024, f"Final memory usage too high: {final_memory:.2f} bytes"
 
         # Verify that garbage collection is working
         # After GC, memory should not be significantly higher than before
@@ -194,9 +194,9 @@ def test_agent_memory_impact_with_gc_monitoring(agent_storage, memory):
 
         # Check that runs are in memory
         assert session_id in memory.runs, "Session runs not found in memory"
-        assert len(memory.runs[session_id]) == len(prompts), (
-            f"Expected {len(prompts)} runs, got {len(memory.runs[session_id])}"
-        )
+        assert len(memory.runs[session_id]) == len(
+            prompts
+        ), f"Expected {len(prompts)} runs, got {len(memory.runs[session_id])}"
 
         print("✅ Memory impact test completed successfully")
         print(f"✅ Created {len(user_memories)} user memories")
