@@ -562,12 +562,12 @@ def get_async_playground_router(
         for session in all_workflow_sessions:
             title = get_session_title_from_workflow_session(session)
             workflow_sessions.append(
-                {
-                    "title": title,
-                    "session_id": session.session_id,
-                    "session_name": session.session_data.get("session_name") if session.session_data else None,
-                    "created_at": session.created_at,
-                }
+                WorkflowSessionResponse(
+                    title=title,
+                    session_id=session.session_id,
+                    session_name=session.session_data.get("session_name") if session.session_data else None,
+                    created_at=session.created_at,
+                )
             )
         return workflow_sessions
 
