@@ -4180,10 +4180,11 @@ class Agent:
             return
 
         agent_session_from_db = self.storage.read(session_id=session_id)
+        agent_session_memory = getattr(agent_session_from_db, "memory", None)
         if (
             agent_session_from_db is not None
-            and agent_session_from_db.memory is not None
-            and "runs" in agent_session_from_db.memory  # type: ignore
+            and agent_session_memory is not None
+            and "runs" in agent_session_memory
         ):
             if isinstance(self.memory, AgentMemory):
                 return
@@ -4192,7 +4193,7 @@ class Agent:
                     self.memory.runs = {}  # type: ignore
                 if session_id not in self.memory.runs:  # type: ignore
                     self.memory.runs[session_id] = []  # type: ignore
-                for run in agent_session_from_db.memory["runs"]:  # type: ignore
+                for run in agent_session_memory["runs"]:
                     run_session_id = run["session_id"]
                     skip = False
                     for existing_run in self.memory.runs[run_session_id]:  # type: ignore
