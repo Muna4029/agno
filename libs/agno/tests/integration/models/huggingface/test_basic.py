@@ -1,7 +1,7 @@
 import pytest
 from pydantic import BaseModel, Field
 
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent, RunResponse
 from agno.exceptions import ModelProviderError
 from agno.memory import AgentMemory
 from agno.memory.classifier import MemoryClassifier

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import tarfile
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import cast
 
 from rich import box
 from rich.panel import Panel
@@ -12,7 +14,7 @@ from agno.utils.log import logger
 
 
 def create_deployment_info(
-    app: str, root: Path, elapsed_time: str = "[waiting...]", status: Optional[str] = None, error: Optional[str] = None
+    app: str, root: Path, elapsed_time: str = "[waiting...]", status: str | None = None, error: str | None = None
 ) -> Text:
     """Create a formatted text display showing deployment information.
 
@@ -154,7 +156,7 @@ def cleanup_archive(tar_path: Path) -> None:
 def deploy_playground_app(
     app: str,
     name: str,
-    root: Optional[Path] = None,
+    root: Path | None = None,
 ) -> None:
     """Deploy a playground application to agno-cloud.
 
@@ -195,7 +197,7 @@ def deploy_playground_app(
         root = cast(Path, root)
         try:
             deployment_info = create_deployment_info(app=app, root=root, status="Initializing...")
-            panels: List[Panel] = [create_info_panel(deployment_info=deployment_info)]
+            panels: list[Panel] = [create_info_panel(deployment_info=deployment_info)]
 
             status = Status(
                 "[bold blue]Initializing playground...[/bold blue]",
@@ -240,7 +242,7 @@ def deploy_playground_app(
             panels.pop()
             live_display.update(Group(*panels))
         except Exception as e:
-            status.update(f"[bold red]Deployment failed: {str(e)}[/bold red]")
+            status.update(f"[bold red]Deployment failed: {e!s}[/bold red]")
             panels[0] = create_error_panel(
                 create_deployment_info(app=app, root=root, elapsed_time=f"{response_timer.elapsed:.1f}s", error=str(e))
             )

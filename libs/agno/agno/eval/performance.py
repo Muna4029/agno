@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import gc
 import tracemalloc
 from dataclasses import dataclass, field
 from os import getenv
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING, Callable
 from uuid import uuid4
 
 from agno.api.schemas.evals import EvalType
@@ -23,7 +25,7 @@ class PerformanceResult:
     """
 
     # Run time performance in seconds
-    run_times: List[float] = field(default_factory=list)
+    run_times: list[float] = field(default_factory=list)
     avg_run_time: float = field(init=False)
     min_run_time: float = field(init=False)
     max_run_time: float = field(init=False)
@@ -32,7 +34,7 @@ class PerformanceResult:
     p95_run_time: float = field(init=False)
 
     # Memory performance in MiB
-    memory_usages: List[float] = field(default_factory=list)
+    memory_usages: list[float] = field(default_factory=list)
     avg_memory_usage: float = field(init=False)
     min_memory_usage: float = field(init=False)
     max_memory_usage: float = field(init=False)
@@ -47,7 +49,7 @@ class PerformanceResult:
         """Compute a variety of statistics for both runtime and memory usage."""
         import statistics
 
-        def safe_stats(data: List[float]):
+        def safe_stats(data: list[float]):
             """Compute stats for a non-empty list of floats."""
             data_sorted = sorted(data)  # ensure data is sorted for correct percentile
             avg = statistics.mean(data_sorted)
@@ -95,7 +97,7 @@ class PerformanceResult:
             self.median_memory_usage = 0
             self.p95_memory_usage = 0
 
-    def print_summary(self, console: Optional["Console"] = None):
+    def print_summary(self, console: Console | None = None):
         """
         Prints a summary table of the computed stats.
         """
@@ -121,7 +123,7 @@ class PerformanceResult:
 
         console.print(perf_table)
 
-    def print_results(self, console: Optional["Console"] = None):
+    def print_results(self, console: Console | None = None):
         """
         Prints individual run results in tabular form.
         """
@@ -160,7 +162,7 @@ class PerformanceEval:
     measure_memory: bool = True
 
     # Evaluation name
-    name: Optional[str] = None
+    name: str | None = None
     # Evaluation UUID
     eval_id: str = field(default_factory=lambda: str(uuid4()))
     # Number of warm-up runs (not included in final stats)
@@ -168,14 +170,14 @@ class PerformanceEval:
     # Number of measured iterations
     num_iterations: int = 50
     # Result of the evaluation
-    result: Optional[PerformanceResult] = None
+    result: PerformanceResult | None = None
 
     # Print summary of results
     print_summary: bool = False
     # Print detailed results
     print_results: bool = False
     # If set, results will be saved in the given file path
-    file_path_to_save_results: Optional[str] = None
+    file_path_to_save_results: str | None = None
     # Enable debug logs
     debug_mode: bool = getenv("AGNO_DEBUG", "false").lower() == "true"
     # Log the results to the Agno platform. On by default.
@@ -205,7 +207,7 @@ class PerformanceEval:
         self.func()
 
         # Get peak memory usage
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         # Stop tracing memory
         tracemalloc.stop()
 

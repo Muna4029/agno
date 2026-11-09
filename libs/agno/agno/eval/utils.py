@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import asdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 from agno.api.evals import async_create_eval_run, create_eval_run
 from agno.api.schemas.evals import EvalRunCreate, EvalType
@@ -16,12 +18,12 @@ def log_eval_run(
     run_id: str,
     run_data: dict,
     eval_type: EvalType,
-    agent_id: Optional[str] = None,
-    model_id: Optional[str] = None,
-    model_provider: Optional[str] = None,
-    name: Optional[str] = None,
-    evaluated_entity_name: Optional[str] = None,
-    team_id: Optional[str] = None,
+    agent_id: str | None = None,
+    model_id: str | None = None,
+    model_provider: str | None = None,
+    name: str | None = None,
+    evaluated_entity_name: str | None = None,
+    team_id: str | None = None,
 ) -> None:
     """Call the API to create an evaluation run."""
 
@@ -47,12 +49,12 @@ async def async_log_eval_run(
     run_id: str,
     run_data: dict,
     eval_type: EvalType,
-    agent_id: Optional[str] = None,
-    model_id: Optional[str] = None,
-    model_provider: Optional[str] = None,
-    name: Optional[str] = None,
-    evaluated_entity_name: Optional[str] = None,
-    team_id: Optional[str] = None,
+    agent_id: str | None = None,
+    model_id: str | None = None,
+    model_provider: str | None = None,
+    name: str | None = None,
+    evaluated_entity_name: str | None = None,
+    team_id: str | None = None,
 ) -> None:
     """Asycn call to the API to create an evaluation run."""
 
@@ -76,9 +78,9 @@ async def async_log_eval_run(
 
 def store_result_in_file(
     file_path: str,
-    result: Union["AccuracyResult", "PerformanceResult", "ReliabilityResult"],
-    eval_id: Optional[str] = None,
-    name: Optional[str] = None,
+    result: AccuracyResult | PerformanceResult | ReliabilityResult,
+    eval_id: str | None = None,
+    name: str | None = None,
 ):
     """Store the given result in the given file path"""
     try:

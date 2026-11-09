@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from io import BytesIO
-from typing import Generator, List, Optional, cast
+from typing import Generator, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -18,11 +20,11 @@ from agno.utils.log import logger
 def agent_chat_response_streamer(
     agent: Agent,
     message: str,
-    session_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    images: Optional[List[Image]] = None,
-    audio: Optional[List[Audio]] = None,
-    videos: Optional[List[Video]] = None,
+    session_id: str | None = None,
+    user_id: str | None = None,
+    images: list[Image] | None = None,
+    audio: list[Audio] | None = None,
+    videos: list[Video] | None = None,
 ) -> Generator:
     try:
         run_response = agent.run(
@@ -50,12 +52,12 @@ def agent_chat_response_streamer(
 def team_chat_response_streamer(
     team: Team,
     message: str,
-    session_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    images: Optional[List[Image]] = None,
-    audio: Optional[List[Audio]] = None,
-    videos: Optional[List[Video]] = None,
-    files: Optional[List[FileMedia]] = None,
+    session_id: str | None = None,
+    user_id: str | None = None,
+    images: list[Image] | None = None,
+    audio: list[Audio] | None = None,
+    videos: list[Video] | None = None,
+    files: list[FileMedia] | None = None,
 ) -> Generator:
     try:
         run_response = team.run(
@@ -81,7 +83,7 @@ def team_chat_response_streamer(
         return
 
 
-def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) -> APIRouter:
+def get_sync_router(agent: Agent | None = None, team: Team | None = None) -> APIRouter:
     router = APIRouter()
 
     if agent is None and team is None:
@@ -92,12 +94,12 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
         return {"status": "available"}
 
     def agent_process_file(
-        files: List[UploadFile],
+        files: list[UploadFile],
         agent: Agent,
     ):
-        base64_images: List[Image] = []
-        base64_audios: List[Audio] = []
-        base64_videos: List[Video] = []
+        base64_images: list[Image] = []
+        base64_audios: list[Audio] = []
+        base64_videos: list[Video] = []
         for file in files:
             logger.info(f"Processing file: {file.content_type}")
             if file.content_type in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
@@ -190,12 +192,12 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
         return base64_images, base64_audios, base64_videos
 
     def team_process_file(
-        files: List[UploadFile],
+        files: list[UploadFile],
     ):
-        base64_images: List[Image] = []
-        base64_audios: List[Audio] = []
-        base64_videos: List[Video] = []
-        document_files: List[FileMedia] = []
+        base64_images: list[Image] = []
+        base64_audios: list[Audio] = []
+        base64_videos: list[Video] = []
+        document_files: list[FileMedia] = []
         for file in files:
             if file.content_type in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
                 try:
@@ -250,9 +252,9 @@ def get_sync_router(agent: Optional[Agent] = None, team: Optional[Team] = None) 
         message: str = Form(...),
         stream: bool = Form(True),
         monitor: bool = Form(False),
-        session_id: Optional[str] = Form(None),
-        user_id: Optional[str] = Form(None),
-        files: Optional[List[UploadFile]] = File(None),
+        session_id: str | None = Form(None),
+        user_id: str | None = Form(None),
+        files: list[UploadFile] | None = File(None),
     ):
         if session_id is not None and session_id != "":
             logger.debug(f"Continuing session: {session_id}")

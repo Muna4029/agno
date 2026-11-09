@@ -3,7 +3,7 @@ from agno.vectordb.clickhouse.index import HNSW
 from agno.vectordb.distance import Distance
 
 __all__ = [
-    "Clickhouse",
     "HNSW",
+    "Clickhouse",
     "Distance",
 ]

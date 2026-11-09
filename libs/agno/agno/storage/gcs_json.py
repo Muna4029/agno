@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 import time
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal
 
 from agno.storage.json import JsonStorage, Storage
 from agno.storage.session import Session
@@ -34,11 +36,11 @@ class GCSJsonStorage(JsonStorage):
     def __init__(
         self,
         bucket_name: str,
-        prefix: Optional[str] = "",
-        mode: Optional[Literal["agent", "team", "workflow"]] = "agent",
-        project: Optional[str] = None,
-        location: Optional[str] = None,
-        credentials: Optional[Any] = None,
+        prefix: str | None = "",
+        mode: Literal["agent", "team", "workflow"] | None = "agent",
+        project: str | None = None,
+        location: str | None = None,
+        credentials: Any | None = None,
     ):
         # Call Storage's __init__ directly to bypass the folder creation logic in JsonStorage.
         Storage.__init__(self, mode=mode)
@@ -79,7 +81,7 @@ class GCSJsonStorage(JsonStorage):
     def deserialize(self, data: str) -> dict:
         return json.loads(data)
 
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         """
         Reads a session JSON blob from the GCS bucket and returns a Session object.
         If the blob is not found, returns None.
@@ -106,7 +108,7 @@ class GCSJsonStorage(JsonStorage):
             return WorkflowSession.from_dict(data)
         return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: str | None = None, entity_id: str | None = None) -> list[str]:
         """
         Lists all session IDs stored in the bucket.
         """
@@ -116,11 +118,11 @@ class GCSJsonStorage(JsonStorage):
                 session_ids.append(blob.name.replace(".json", ""))
         return session_ids
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
         """
         Retrieves all sessions stored in the bucket.
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         for blob in self.client.list_blobs(self.bucket, prefix=self.prefix):
             if blob.name.endswith(".json"):
                 try:
@@ -129,7 +131,7 @@ class GCSJsonStorage(JsonStorage):
 
                     if user_id and data.get("user_id") != user_id:
                         continue
-                    session: Optional[Session] = None
+                    session: Session | None = None
                     if self.mode == "agent":
                         session = AgentSession.from_dict(data)
                     elif self.mode == "team":
@@ -145,10 +147,10 @@ class GCSJsonStorage(JsonStorage):
 
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -159,9 +161,9 @@ class GCSJsonStorage(JsonStorage):
         Returns:
             List[Session]: List of most recent sessions
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         # List of (created_at, data) tuples for sorting
-        session_data: List[tuple[int, dict]] = []
+        session_data: list[tuple[int, dict]] = []
 
         try:
             # Get all blobs with the specified prefix
@@ -192,7 +194,7 @@ class GCSJsonStorage(JsonStorage):
 
             # Convert filtered and sorted data to Session objects
             for _, data in session_data:
-                session: Optional[Session] = None
+                session: Session | None = None
                 if self.mode == "agent":
                     session = AgentSession.from_dict(data)
                 elif self.mode == "team":
@@ -208,7 +210,7 @@ class GCSJsonStorage(JsonStorage):
 
         return sessions
 
-    def upsert(self, session: Session) -> Optional[Session]:
+    def upsert(self, session: Session) -> Session | None:
         """
         Inserts or updates a session JSON blob in the GCS bucket.
         """
@@ -225,7 +227,7 @@ class GCSJsonStorage(JsonStorage):
             logger.error(f"Error upserting session {session.session_id}: {e}")
             return None
 
-    def delete_session(self, session_id: Optional[str] = None):
+    def delete_session(self, session_id: str | None = None):
         """
         Deletes a session JSON blob from the GCS bucket.
         """
@@ -252,4 +254,3 @@ class GCSJsonStorage(JsonStorage):
         """
         Schema upgrade is not implemented.
         """
-        pass

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_info
@@ -23,9 +24,9 @@ class BraveSearchTools(Toolkit):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        fixed_max_results: Optional[int] = None,
-        fixed_language: Optional[str] = None,
+        api_key: str | None = None,
+        fixed_max_results: int | None = None,
+        fixed_language: str | None = None,
         **kwargs,
     ):
         self.api_key = api_key or getenv("BRAVE_API_KEY")
@@ -49,9 +50,9 @@ class BraveSearchTools(Toolkit):
     def brave_search(
         self,
         query: str,
-        max_results: Optional[int] = None,
-        country: Optional[str] = None,
-        search_lang: Optional[str] = None,
+        max_results: int | None = None,
+        country: str | None = None,
+        search_lang: str | None = None,
     ) -> str:
         """
         Search Brave for the specified query and return the results.

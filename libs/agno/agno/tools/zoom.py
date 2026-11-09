@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 from base64 import b64encode
 from datetime import datetime, timedelta
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any
 
 import requests
 
@@ -13,9 +15,9 @@ from agno.utils.log import log_debug, log_info, logger
 class ZoomTools(Toolkit):
     def __init__(
         self,
-        account_id: Optional[str] = None,
-        client_id: Optional[str] = None,
-        client_secret: Optional[str] = None,
+        account_id: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
         **kwargs,
     ):
         """
@@ -39,7 +41,7 @@ class ZoomTools(Toolkit):
                 "ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, and ZOOM_CLIENT_SECRET must be set either through parameters or environment variables."
             )
 
-        tools: List[Any] = []
+        tools: list[Any] = []
 
         tools.append(self.schedule_meeting)
         tools.append(self.get_upcoming_meetings)
@@ -231,7 +233,7 @@ class ZoomTools(Toolkit):
             return json.dumps({"error": str(e)})
 
     def get_meeting_recordings(
-        self, meeting_id: str, include_download_token: bool = False, token_ttl: Optional[int] = None
+        self, meeting_id: str, include_download_token: bool = False, token_ttl: int | None = None
     ) -> str:
         """
         Get all recordings for a specific meeting.

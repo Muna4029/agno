@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from agno.models.message import Message
 
@@ -15,12 +16,12 @@ class RunMessages:
         extra_messages: Extra messages added after the system and user messages
     """
 
-    messages: List[Message] = field(default_factory=list)
-    system_message: Optional[Message] = None
-    user_message: Optional[Message] = None
-    extra_messages: Optional[List[Message]] = None
+    messages: list[Message] = field(default_factory=list)
+    system_message: Message | None = None
+    user_message: Message | None = None
+    extra_messages: list[Message] | None = None
 
-    def get_input_messages(self) -> List[Message]:
+    def get_input_messages(self) -> list[Message]:
         """Get the input messages for the model."""
         input_messages = []
         if self.system_message is not None:

@@ -1,12 +1,20 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
+    from firecrawl import FirecrawlApp
+
+    try:
+        from firecrawl import ScrapeOptions  # type: ignore[attr-defined]
+    except ImportError:
+        # For newer versions of firecrawl-py, ScrapeOptions has been renamed to V1ScrapeOptions
+        from firecrawl import V1ScrapeOptions as ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:
     raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
@@ -36,23 +44,23 @@ class FirecrawlTools(Toolkit):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        formats: Optional[List[str]] = None,
+        api_key: str | None = None,
+        formats: list[str] | None = None,
         limit: int = 10,
         poll_interval: int = 30,
         scrape: bool = True,
         crawl: bool = False,
         mapping: bool = False,
         search: bool = False,
-        search_params: Optional[Dict[str, Any]] = None,
-        api_url: Optional[str] = "https://api.firecrawl.dev",
+        search_params: dict[str, Any] | None = None,
+        api_url: str | None = "https://api.firecrawl.dev",
         **kwargs,
     ):
-        self.api_key: Optional[str] = api_key or getenv("FIRECRAWL_API_KEY")
+        self.api_key: str | None = api_key or getenv("FIRECRAWL_API_KEY")
         if not self.api_key:
             logger.error("FIRECRAWL_API_KEY not set. Please set the FIRECRAWL_API_KEY environment variable.")
 
-        self.formats: Optional[List[str]] = formats
+        self.formats: list[str] | None = formats
         self.limit: int = limit
         self.poll_interval: int = poll_interval
         self.app: FirecrawlApp = FirecrawlApp(api_key=self.api_key, api_url=api_url)
@@ -65,7 +73,7 @@ class FirecrawlTools(Toolkit):
         elif not scrape:
             crawl = True
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if scrape:
             tools.append(self.scrape_website)
         if crawl:
@@ -90,7 +98,7 @@ class FirecrawlTools(Toolkit):
         scrape_result = self.app.scrape_url(url, **params)
         return json.dumps(scrape_result.model_dump(), cls=CustomJSONEncoder)
 
-    def crawl_website(self, url: str, limit: Optional[int] = None) -> str:
+    def crawl_website(self, url: str, limit: int | None = None) -> str:
         """Use this function to Crawls a website using Firecrawl.
 
         Args:
@@ -100,7 +108,7 @@ class FirecrawlTools(Toolkit):
         Returns:
             The results of the crawling.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
@@ -121,14 +129,14 @@ class FirecrawlTools(Toolkit):
         map_result = self.app.map_url(url)
         return json.dumps(map_result.model_dump(), cls=CustomJSONEncoder)
 
-    def search(self, query: str, limit: Optional[int] = None):
+    def search(self, query: str, limit: int | None = None):
         """Use this function to search for the web using Firecrawl.
 
         Args:
             query (str): The query to search for.
             limit (int): The maximum number of results to return.
         """
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:

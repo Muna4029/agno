@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any, Iterator, Union
 
 from pydantic import BaseModel
 
@@ -49,21 +51,21 @@ class MistralChat(Model):
     supports_native_structured_outputs: bool = True
 
     # -*- Request parameters
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    top_p: Optional[float] = None
-    random_seed: Optional[int] = None
+    temperature: float | None = None
+    max_tokens: int | None = None
+    top_p: float | None = None
+    random_seed: int | None = None
     safe_mode: bool = False
     safe_prompt: bool = False
-    request_params: Optional[Dict[str, Any]] = None
+    request_params: dict[str, Any] | None = None
     # -*- Client parameters
-    api_key: Optional[str] = None
-    endpoint: Optional[str] = None
-    max_retries: Optional[int] = None
-    timeout: Optional[int] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    endpoint: str | None = None
+    max_retries: int | None = None
+    timeout: int | None = None
+    client_params: dict[str, Any] | None = None
     # -*- Provide the Mistral Client manually
-    mistral_client: Optional[MistralClient] = None
+    mistral_client: MistralClient | None = None
 
     def get_client(self) -> MistralClient:
         """
@@ -79,14 +81,14 @@ class MistralChat(Model):
         self.mistral_client = MistralClient(**_client_params)
         return self.mistral_client
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         """
         Get the client parameters for initializing Mistral clients.
 
         Returns:
             Dict[str, Any]: The client parameters.
         """
-        client_params: Dict[str, Any] = {}
+        client_params: dict[str, Any] = {}
 
         self.api_key = self.api_key or getenv("MISTRAL_API_KEY")
         if not self.api_key:
@@ -108,15 +110,15 @@ class MistralChat(Model):
         return {k: v for k, v in client_params.items() if v is not None}
 
     def get_request_kwargs(
-        self, tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Optional[Union[str, Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:
+        self, tools: list[dict[str, Any]] | None = None, tool_choice: str | dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Get the API kwargs for the Mistral model.
 
         Returns:
             Dict[str, Any]: The API kwargs.
         """
-        _request_params: Dict[str, Any] = {}
+        _request_params: dict[str, Any] = {}
         if self.temperature:
             _request_params["temperature"] = self.temperature
         if self.max_tokens:
@@ -139,7 +141,7 @@ class MistralChat(Model):
             _request_params.update(self.request_params)
         return _request_params
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the model to a dictionary.
 
@@ -161,17 +163,17 @@ class MistralChat(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Union[ChatCompletionResponse, ParsedChatCompletionResponse]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> ChatCompletionResponse | ParsedChatCompletionResponse:
         """
         Send a chat completion request to the Mistral model.
         """
         mistral_messages = format_messages(messages)
         try:
-            response: Union[ChatCompletionResponse, ParsedChatCompletionResponse]
+            response: ChatCompletionResponse | ParsedChatCompletionResponse
             if (
                 response_format is not None
                 and isinstance(response_format, type)
@@ -200,10 +202,10 @@ class MistralChat(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[Any]:
         """
         Stream the response from the Mistral model.
@@ -225,17 +227,17 @@ class MistralChat(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Union[ChatCompletionResponse, ParsedChatCompletionResponse]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> ChatCompletionResponse | ParsedChatCompletionResponse:
         """
         Send an asynchronous chat completion request to the Mistral API.
         """
         mistral_messages = format_messages(messages)
         try:
-            response: Union[ChatCompletionResponse, ParsedChatCompletionResponse]
+            response: ChatCompletionResponse | ParsedChatCompletionResponse
             if (
                 response_format is not None
                 and isinstance(response_format, type)
@@ -263,10 +265,10 @@ class MistralChat(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Stream an asynchronous response from the Mistral API.
@@ -323,7 +325,7 @@ class MistralChat(Model):
 
         return model_response
 
-    def parse_provider_response_delta(self, response_delta: CompletionEvent) -> Optional[ModelResponse]:
+    def parse_provider_response_delta(self, response_delta: CompletionEvent) -> ModelResponse | None:
         """
         Parse the response delta from the Mistral model.
         """

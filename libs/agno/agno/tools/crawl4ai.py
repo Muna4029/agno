@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 
@@ -12,18 +14,18 @@ except ImportError:
 class Crawl4aiTools(Toolkit):
     def __init__(
         self,
-        max_length: Optional[int] = 1000,
+        max_length: int | None = 1000,
         **kwargs,
     ):
         self.max_length = max_length
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.web_crawler)
 
         # Call superclass with tools list
         super().__init__(name="crawl4ai_tools", tools=tools, **kwargs)
 
-    def web_crawler(self, url: str, max_length: Optional[int] = None) -> str:
+    def web_crawler(self, url: str, max_length: int | None = None) -> str:
         """
         Crawls a website using crawl4ai's WebCrawler.
 
@@ -38,7 +40,7 @@ class Crawl4aiTools(Toolkit):
         # Run the async crawler function synchronously
         return asyncio.run(self._async_web_crawler(url, max_length))
 
-    async def _async_web_crawler(self, url: str, max_length: Optional[int] = None) -> str:
+    async def _async_web_crawler(self, url: str, max_length: int | None = None) -> str:
         """
         Asynchronous method to crawl a website using AsyncWebCrawler.
 

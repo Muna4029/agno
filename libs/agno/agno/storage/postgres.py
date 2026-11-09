@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import time
-from typing import List, Literal, Optional
+from typing import Literal
 
 from agno.storage.base import Storage
 from agno.storage.session import Session
@@ -24,12 +26,12 @@ class PostgresStorage(Storage):
     def __init__(
         self,
         table_name: str,
-        schema: Optional[str] = "ai",
-        db_url: Optional[str] = None,
-        db_engine: Optional[Engine] = None,
+        schema: str | None = "ai",
+        db_url: str | None = None,
+        db_engine: Engine | None = None,
         schema_version: int = 1,
         auto_upgrade_schema: bool = False,
-        mode: Optional[Literal["agent", "team", "workflow"]] = "agent",
+        mode: Literal["agent", "team", "workflow"] | None = "agent",
     ):
         """
         This class provides agent storage using a PostgreSQL table.
@@ -51,7 +53,7 @@ class PostgresStorage(Storage):
             ValueError: If neither db_url nor db_engine is provided.
         """
         super().__init__(mode)
-        _engine: Optional[Engine] = db_engine
+        _engine: Engine | None = db_engine
         if _engine is None and db_url is not None:
             _engine = create_engine(db_url)
 
@@ -60,8 +62,8 @@ class PostgresStorage(Storage):
 
         # Database attributes
         self.table_name: str = table_name
-        self.schema: Optional[str] = schema
-        self.db_url: Optional[str] = db_url
+        self.schema: str | None = schema
+        self.db_url: str | None = db_url
         self.db_engine: Engine = _engine
         self.metadata: MetaData = MetaData(schema=self.schema)
         self.inspector = inspect(self.db_engine)
@@ -84,7 +86,7 @@ class PostgresStorage(Storage):
         return super().mode
 
     @mode.setter
-    def mode(self, value: Optional[Literal["agent", "team", "workflow"]]) -> None:
+    def mode(self, value: Literal["agent", "team", "workflow"] | None) -> None:
         """Set the mode and refresh the table if mode changes."""
         super(PostgresStorage, type(self)).mode.fset(self, value)  # type: ignore
         if value is not None:
@@ -240,7 +242,7 @@ class PostgresStorage(Storage):
                 logger.error(f"Could not create table: '{self.table.fullname}': {e}")
                 raise
 
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         """
         Read an Session from the database.
 
@@ -272,7 +274,7 @@ class PostgresStorage(Storage):
                 log_debug(f"Exception reading from table: {e}")
         return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: str | None = None, entity_id: str | None = None) -> list[str]:
         """
         Get all session IDs, optionally filtered by user_id and/or entity_id.
 
@@ -309,7 +311,7 @@ class PostgresStorage(Storage):
             self.create()
         return []
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
         """
         Get all sessions, optionally filtered by user_id and/or entity_id.
 
@@ -355,10 +357,10 @@ class PostgresStorage(Storage):
 
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -393,9 +395,9 @@ class PostgresStorage(Storage):
                 # Execute query
                 rows = sess.execute(stmt).fetchall()
                 if rows is not None:
-                    sessions: List[Session] = []
+                    sessions: list[Session] = []
                     for row in rows:
-                        session: Optional[Session] = None
+                        session: Session | None = None
                         if self.mode == "agent":
                             session = AgentSession.from_dict(row._mapping)  # type: ignore
                         elif self.mode == "team":
@@ -455,7 +457,7 @@ class PostgresStorage(Storage):
             logger.error(f"Error during schema upgrade: {e}")
             raise
 
-    def upsert(self, session: Session, create_and_retry: bool = True) -> Optional[Session]:
+    def upsert(self, session: Session, create_and_retry: bool = True) -> Session | None:
         """
         Insert or update an Session in the database.
 
@@ -488,16 +490,16 @@ class PostgresStorage(Storage):
                     # See: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#postgresql-insert-on-conflict
                     stmt = stmt.on_conflict_do_update(
                         index_elements=["session_id"],
-                        set_=dict(
-                            agent_id=session.agent_id,  # type: ignore
-                            team_session_id=session.team_session_id,  # type: ignore
-                            user_id=session.user_id,
-                            memory=session.memory,
-                            agent_data=session.agent_data,  # type: ignore
-                            session_data=session.session_data,
-                            extra_data=session.extra_data,
-                            updated_at=int(time.time()),
-                        ),  # The updated value for each column
+                        set_={
+                            "agent_id": session.agent_id,  # type: ignore
+                            "team_session_id": session.team_session_id,  # type: ignore
+                            "user_id": session.user_id,
+                            "memory": session.memory,
+                            "agent_data": session.agent_data,  # type: ignore
+                            "session_data": session.session_data,
+                            "extra_data": session.extra_data,
+                            "updated_at": int(time.time()),
+                        },  # The updated value for each column
                     )
                 elif self.mode == "team":
                     stmt = postgresql.insert(self.table).values(
@@ -514,16 +516,16 @@ class PostgresStorage(Storage):
                     # See: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#postgresql-insert-on-conflict
                     stmt = stmt.on_conflict_do_update(
                         index_elements=["session_id"],
-                        set_=dict(
-                            team_id=session.team_id,  # type: ignore
-                            user_id=session.user_id,
-                            team_session_id=session.team_session_id,  # type: ignore
-                            memory=session.memory,
-                            team_data=session.team_data,  # type: ignore
-                            session_data=session.session_data,
-                            extra_data=session.extra_data,
-                            updated_at=int(time.time()),
-                        ),  # The updated value for each column
+                        set_={
+                            "team_id": session.team_id,  # type: ignore
+                            "user_id": session.user_id,
+                            "team_session_id": session.team_session_id,  # type: ignore
+                            "memory": session.memory,
+                            "team_data": session.team_data,  # type: ignore
+                            "session_data": session.session_data,
+                            "extra_data": session.extra_data,
+                            "updated_at": int(time.time()),
+                        },  # The updated value for each column
                     )
                 else:
                     stmt = postgresql.insert(self.table).values(
@@ -539,15 +541,15 @@ class PostgresStorage(Storage):
                     # See: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#postgresql-insert-on-conflict
                     stmt = stmt.on_conflict_do_update(
                         index_elements=["session_id"],
-                        set_=dict(
-                            workflow_id=session.workflow_id,  # type: ignore
-                            user_id=session.user_id,
-                            memory=session.memory,
-                            workflow_data=session.workflow_data,  # type: ignore
-                            session_data=session.session_data,
-                            extra_data=session.extra_data,
-                            updated_at=int(time.time()),
-                        ),  # The updated value for each column
+                        set_={
+                            "workflow_id": session.workflow_id,  # type: ignore
+                            "user_id": session.user_id,
+                            "memory": session.memory,
+                            "workflow_data": session.workflow_data,  # type: ignore
+                            "session_data": session.session_data,
+                            "extra_data": session.extra_data,
+                            "updated_at": int(time.time()),
+                        },  # The updated value for each column
                     )
 
                 sess.execute(stmt)
@@ -565,7 +567,7 @@ class PostgresStorage(Storage):
                 return None
         return self.read(session_id=session.session_id)
 
-    def delete_session(self, session_id: Optional[str] = None):
+    def delete_session(self, session_id: str | None = None):
         """
         Delete a session from the database.
 

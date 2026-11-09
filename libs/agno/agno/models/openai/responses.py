@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import time
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, AsyncIterator, Iterator
 
 import httpx
 from pydantic import BaseModel
@@ -35,36 +37,36 @@ class OpenAIResponses(Model):
     supports_native_structured_outputs: bool = True
 
     # Request parameters
-    include: Optional[List[str]] = None
-    max_output_tokens: Optional[int] = None
-    metadata: Optional[Dict[str, Any]] = None
-    parallel_tool_calls: Optional[bool] = None
-    reasoning: Optional[Dict[str, Any]] = None
-    store: Optional[bool] = None
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    truncation: Optional[str] = None
-    user: Optional[str] = None
+    include: list[str] | None = None
+    max_output_tokens: int | None = None
+    metadata: dict[str, Any] | None = None
+    parallel_tool_calls: bool | None = None
+    reasoning: dict[str, Any] | None = None
+    store: bool | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    truncation: str | None = None
+    user: str | None = None
 
-    request_params: Optional[Dict[str, Any]] = None
+    request_params: dict[str, Any] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
-    organization: Optional[str] = None
-    base_url: Optional[Union[str, httpx.URL]] = None
-    timeout: Optional[float] = None
-    max_retries: Optional[int] = None
-    default_headers: Optional[Dict[str, str]] = None
-    default_query: Optional[Dict[str, str]] = None
-    http_client: Optional[httpx.Client] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    organization: str | None = None
+    base_url: str | httpx.URL | None = None
+    timeout: float | None = None
+    max_retries: int | None = None
+    default_headers: dict[str, str] | None = None
+    default_query: dict[str, str] | None = None
+    http_client: httpx.Client | None = None
+    client_params: dict[str, Any] | None = None
 
     # Parameters affecting built-in tools
     vector_store_name: str = "knowledge_base"
 
     # OpenAI clients
-    client: Optional[OpenAI] = None
-    async_client: Optional[AsyncOpenAI] = None
+    client: OpenAI | None = None
+    async_client: AsyncOpenAI | None = None
 
     # The role to map the message role to.
     role_map = {
@@ -74,7 +76,7 @@ class OpenAIResponses(Model):
         "tool": "tool",
     }
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         """
         Get client parameters for API requests.
 
@@ -119,7 +121,7 @@ class OpenAIResponses(Model):
         if self.client and not self.client.is_closed():
             return self.client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client is not None:
             client_params["http_client"] = self.http_client
 
@@ -136,7 +138,7 @@ class OpenAIResponses(Model):
         if self.async_client:
             return self.async_client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client:
             client_params["http_client"] = self.http_client
         else:
@@ -150,11 +152,11 @@ class OpenAIResponses(Model):
 
     def get_request_params(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
@@ -162,7 +164,7 @@ class OpenAIResponses(Model):
             Dict[str, Any]: A dictionary of keyword arguments for API requests.
         """
         # Define base request parameters
-        base_params: Dict[str, Any] = {
+        base_params: dict[str, Any] = {
             "include": self.include,
             "max_output_tokens": self.max_output_tokens,
             "metadata": self.metadata,
@@ -192,7 +194,7 @@ class OpenAIResponses(Model):
                 base_params["text"] = {"format": {"type": "json_object"}}
 
         # Filter out None values
-        request_params: Dict[str, Any] = {k: v for k, v in base_params.items() if v is not None}
+        request_params: dict[str, Any] = {k: v for k, v in base_params.items() if v is not None}
         if tools:
             request_params["tools"] = self._format_tool_params(messages=messages, tools=tools)
 
@@ -224,7 +226,7 @@ class OpenAIResponses(Model):
             request_params.update(self.request_params)
         return request_params
 
-    def _upload_file(self, file: File) -> Optional[str]:
+    def _upload_file(self, file: File) -> str | None:
         """Upload a file to the OpenAI vector database."""
 
         if file.url is not None:
@@ -259,7 +261,7 @@ class OpenAIResponses(Model):
 
         return None
 
-    def _create_vector_store(self, file_ids: List[str]) -> str:
+    def _create_vector_store(self, file_ids: list[str]) -> str:
         """Create a vector store for the files."""
         vector_store = self.get_client().vector_stores.create(name=self.vector_store_name)
         for file_id in file_ids:
@@ -281,8 +283,8 @@ class OpenAIResponses(Model):
         return vector_store.id
 
     def _format_tool_params(
-        self, messages: List[Message], tools: Optional[List[Dict[str, Any]]] = None
-    ) -> List[Dict[str, Any]]:
+        self, messages: list[Message], tools: list[dict[str, Any]] | None = None
+    ) -> list[dict[str, Any]]:
         """Format the tool parameters for the OpenAI Responses API."""
         formatted_tools = []
         if tools:
@@ -317,7 +319,7 @@ class OpenAIResponses(Model):
 
         return formatted_tools
 
-    def _format_messages(self, messages: List[Message]) -> List[Dict[str, Any]]:
+    def _format_messages(self, messages: list[Message]) -> list[dict[str, Any]]:
         """
         Format a message into the format expected by OpenAI.
 
@@ -327,10 +329,10 @@ class OpenAIResponses(Model):
         Returns:
             Dict[str, Any]: The formatted message.
         """
-        formatted_messages: List[Dict[str, Any]] = []
+        formatted_messages: list[dict[str, Any]] = []
         for message in messages:
             if message.role in ["user", "system"]:
-                message_dict: Dict[str, Any] = {
+                message_dict: dict[str, Any] = {
                     "role": self.role_map[message.role],
                     "content": message.content,
                 }
@@ -355,11 +357,10 @@ class OpenAIResponses(Model):
                 formatted_messages.append(message_dict)
 
             if self.id.startswith(("o3", "o4-mini")):
-                if message.role == "tool":
-                    if message.tool_call_id and message.content is not None:
-                        formatted_messages.append(
-                            {"type": "function_call_output", "call_id": message.tool_call_id, "output": message.content}
-                        )
+                if message.role == "tool" and message.tool_call_id and message.content is not None:
+                    formatted_messages.append(
+                        {"type": "function_call_output", "call_id": message.tool_call_id, "output": message.content}
+                    )
 
             else:
                 # OpenAI expects the tool_calls to be None if empty, not an empty list
@@ -384,10 +385,10 @@ class OpenAIResponses(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Response:
         """
         Send a request to the OpenAI Responses API.
@@ -439,10 +440,10 @@ class OpenAIResponses(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Response:
         """
         Sends an asynchronous request to the OpenAI Responses API.
@@ -494,10 +495,10 @@ class OpenAIResponses(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ResponseStreamEvent]:
         """
         Send a streaming request to the OpenAI Responses API.
@@ -550,10 +551,10 @@ class OpenAIResponses(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[ResponseStreamEvent]:
         """
         Sends an asynchronous streaming request to the OpenAI Responses API.
@@ -606,7 +607,7 @@ class OpenAIResponses(Model):
             raise ModelProviderError(message=str(exc), model_name=self.name, model_id=self.id) from exc
 
     def format_function_call_results(
-        self, messages: List[Message], function_call_results: List[Message], tool_call_ids: List[str]
+        self, messages: list[Message], function_call_results: list[Message], tool_call_ids: list[str]
     ) -> None:
         """
         Handle the results of function calls.
@@ -696,8 +697,8 @@ class OpenAIResponses(Model):
         stream_event: ResponseStreamEvent,
         assistant_message: Message,
         stream_data: MessageData,
-        tool_use: Dict[str, Any],
-    ) -> Tuple[Optional[ModelResponse], Dict[str, Any]]:
+        tool_use: dict[str, Any],
+    ) -> tuple[ModelResponse | None, dict[str, Any]]:
         """
         Common handler for processing stream responses from Cohere.
 
@@ -798,15 +799,15 @@ class OpenAIResponses(Model):
 
     def process_response_stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         stream_data: MessageData,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ModelResponse]:
         """Process the synchronous response stream."""
-        tool_use: Dict[str, Any] = {}
+        tool_use: dict[str, Any] = {}
 
         for stream_event in self.invoke_stream(
             messages=messages, tools=tools, response_format=response_format, tool_choice=tool_choice
@@ -823,15 +824,15 @@ class OpenAIResponses(Model):
 
     async def aprocess_response_stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         stream_data: MessageData,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[ModelResponse]:
         """Process the asynchronous response stream."""
-        tool_use: Dict[str, Any] = {}
+        tool_use: dict[str, Any] = {}
 
         async for stream_event in self.ainvoke_stream(
             messages=messages, tools=tools, response_format=response_format, tool_choice=tool_choice

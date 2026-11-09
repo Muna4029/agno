@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from agno.api.schemas.user import TeamSchema, UserSchema
 from agno.api.schemas.workspace import WorkspaceSchema
@@ -16,31 +17,31 @@ class AgnoCliConfig:
 
     def __init__(
         self,
-        user: Optional[UserSchema] = None,
-        active_ws_dir: Optional[str] = None,
-        ws_config_map: Optional[Dict[str, WorkspaceConfig]] = None,
+        user: UserSchema | None = None,
+        active_ws_dir: str | None = None,
+        ws_config_map: dict[str, WorkspaceConfig] | None = None,
     ) -> None:
         # Current user, populated after authenticating with the api
         # To add a user, use the user setter
-        self._user: Optional[UserSchema] = user
+        self._user: UserSchema | None = user
 
         # Active ws dir - used as the default for `ag` commands
         # To add an active workspace, use the active_ws_dir setter
-        self._active_ws_dir: Optional[str] = active_ws_dir
+        self._active_ws_dir: str | None = active_ws_dir
 
         # Mapping from ws_root_path to ws_config
-        self.ws_config_map: Dict[str, WorkspaceConfig] = ws_config_map or OrderedDict()
+        self.ws_config_map: dict[str, WorkspaceConfig] = ws_config_map or OrderedDict()
 
     ######################################################
     ## User functions
     ######################################################
 
     @property
-    def user(self) -> Optional[UserSchema]:
+    def user(self) -> UserSchema | None:
         return self._user
 
     @user.setter
-    def user(self, user: Optional[UserSchema]) -> None:
+    def user(self, user: UserSchema | None) -> None:
         """Sets the user"""
         if user is not None:
             logger.debug(f"Setting user to: {user.email}")
@@ -67,26 +68,26 @@ class AgnoCliConfig:
     ######################################################
 
     @property
-    def active_ws_dir(self) -> Optional[str]:
+    def active_ws_dir(self) -> str | None:
         return self._active_ws_dir
 
-    def set_active_ws_dir(self, ws_root_path: Optional[Path]) -> None:
+    def set_active_ws_dir(self, ws_root_path: Path | None) -> None:
         if ws_root_path is not None:
-            logger.debug(f"Setting active workspace to: {str(ws_root_path)}")
+            logger.debug(f"Setting active workspace to: {ws_root_path!s}")
             self._active_ws_dir = str(ws_root_path)
             self.save_config()
 
     @property
-    def available_ws(self) -> List[WorkspaceConfig]:
+    def available_ws(self) -> list[WorkspaceConfig]:
         return list(self.ws_config_map.values())
 
     def _add_or_update_ws_config(
         self,
         ws_root_path: Path,
-        ws_schema: Optional[WorkspaceSchema] = None,
-        ws_team: Optional[TeamSchema] = None,
-        ws_api_key: Optional[str] = None,
-    ) -> Optional[WorkspaceConfig]:
+        ws_schema: WorkspaceSchema | None = None,
+        ws_team: TeamSchema | None = None,
+        ws_api_key: str | None = None,
+    ) -> WorkspaceConfig | None:
         """The main function to create, update or refresh a WorkspaceConfig.
 
         This function does not call self.save_config(). Remember to save_config() after calling this function.
@@ -119,7 +120,7 @@ class AgnoCliConfig:
         ######################################################
         logger.debug(f"Updating workspace at: {ws_root_str}")
         # By this point there should be a WorkspaceConfig object for this ws_name
-        existing_ws_config: Optional[WorkspaceConfig] = self.ws_config_map.get(ws_root_str, None)
+        existing_ws_config: WorkspaceConfig | None = self.ws_config_map.get(ws_root_str, None)
         if existing_ws_config is None:
             logger.error(f"Could not find workspace at: {ws_root_str}, please run `ag ws setup`")
             return None
@@ -142,9 +143,7 @@ class AgnoCliConfig:
         # Return the updated_ws_config
         return existing_ws_config
 
-    def add_new_ws_to_config(
-        self, ws_root_path: Path, ws_team: Optional[TeamSchema] = None
-    ) -> Optional[WorkspaceConfig]:
+    def add_new_ws_to_config(self, ws_root_path: Path, ws_team: TeamSchema | None = None) -> WorkspaceConfig | None:
         """Adds a newly created workspace to the AgnoCliConfig"""
 
         ws_config = self._add_or_update_ws_config(ws_root_path=ws_root_path, ws_team=ws_team)
@@ -154,10 +153,10 @@ class AgnoCliConfig:
     def create_or_update_ws_config(
         self,
         ws_root_path: Path,
-        ws_schema: Optional[WorkspaceSchema] = None,
-        ws_team: Optional[TeamSchema] = None,
+        ws_schema: WorkspaceSchema | None = None,
+        ws_team: TeamSchema | None = None,
         set_as_active: bool = True,
-    ) -> Optional[WorkspaceConfig]:
+    ) -> WorkspaceConfig | None:
         """Creates or updates a WorkspaceConfig and returns the WorkspaceConfig"""
 
         ws_config = self._add_or_update_ws_config(
@@ -176,7 +175,7 @@ class AgnoCliConfig:
         ws_root_str = str(ws_root_path)
         print_heading(f"Deleting record for workspace: {ws_root_str}")
 
-        ws_config: Optional[WorkspaceConfig] = self.ws_config_map.pop(ws_root_str, None)
+        ws_config: WorkspaceConfig | None = self.ws_config_map.pop(ws_root_str, None)
         if ws_config is None:
             logger.warning(f"No record of workspace at {ws_root_str}")
             return
@@ -189,8 +188,8 @@ class AgnoCliConfig:
         print_info("Workspace record deleted")
         print_info("Note: this does not delete any data locally or from agno.com, please delete them manually\n")
 
-    def get_ws_config_by_dir_name(self, ws_dir_name: str) -> Optional[WorkspaceConfig]:
-        ws_root_str: Optional[str] = None
+    def get_ws_config_by_dir_name(self, ws_dir_name: str) -> WorkspaceConfig | None:
+        ws_root_str: str | None = None
         for k, v in self.ws_config_map.items():
             if v.ws_root_path.stem == ws_dir_name:
                 ws_root_str = k
@@ -201,10 +200,10 @@ class AgnoCliConfig:
 
         return self.ws_config_map[ws_root_str]
 
-    def get_ws_config_by_path(self, ws_root_path: Path) -> Optional[WorkspaceConfig]:
-        return self.ws_config_map[str(ws_root_path)] if str(ws_root_path) in self.ws_config_map else None
+    def get_ws_config_by_path(self, ws_root_path: Path) -> WorkspaceConfig | None:
+        return self.ws_config_map.get(str(ws_root_path), None)
 
-    def get_active_ws_config(self) -> Optional[WorkspaceConfig]:
+    def get_active_ws_config(self) -> WorkspaceConfig | None:
         if self.active_ws_dir is not None and self.active_ws_dir in self.ws_config_map:
             return self.ws_config_map[self.active_ws_dir]
         return None
@@ -222,7 +221,7 @@ class AgnoCliConfig:
         write_json_file(file_path=agno_cli_settings.config_file_path, data=config_data)
 
     @classmethod
-    def from_saved_config(cls) -> Optional["AgnoCliConfig"]:
+    def from_saved_config(cls) -> AgnoCliConfig | None:
         try:
             config_data = read_json_file(file_path=agno_cli_settings.config_file_path)
             if config_data is None or not isinstance(config_data, dict):

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.embedder.base import Embedder
 from agno.exceptions import AgnoError, ModelProviderError
@@ -48,18 +50,18 @@ class AwsBedrockEmbedder(Embedder):
     id: str = "cohere.embed-multilingual-v3"
     dimensions: int = 1024  # Cohere models have 1024 dimensions by default
     input_type: str = "search_query"
-    truncate: Optional[str] = None  # 'NONE', 'START', or 'END'
+    truncate: str | None = None  # 'NONE', 'START', or 'END'
     # 'float', 'int8', 'uint8', etc.
-    embedding_types: Optional[List[str]] = None
+    embedding_types: list[str] | None = None
 
-    aws_region: Optional[str] = None
-    aws_access_key_id: Optional[str] = None
-    aws_secret_access_key: Optional[str] = None
-    session: Optional[Session] = None
+    aws_region: str | None = None
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
+    session: Session | None = None
 
-    request_params: Optional[Dict[str, Any]] = None
-    client_params: Optional[Dict[str, Any]] = None
-    client: Optional[AwsClient] = None
+    request_params: dict[str, Any] | None = None
+    client_params: dict[str, Any] | None = None
+    client: AwsClient | None = None
 
     def get_client(self) -> AwsClient:
         """
@@ -121,7 +123,7 @@ class AwsBedrockEmbedder(Embedder):
 
         return json.dumps(request_body)
 
-    def response(self, text: str) -> Dict[str, Any]:
+    def response(self, text: str) -> dict[str, Any]:
         """
         Get embeddings from AWS Bedrock for the given text.
 
@@ -142,13 +144,13 @@ class AwsBedrockEmbedder(Embedder):
             response_body = json.loads(response["body"].read().decode("utf-8"))
             return response_body
         except ClientError as e:
-            log_error(f"Unexpected error calling Bedrock API: {str(e)}")
+            log_error(f"Unexpected error calling Bedrock API: {e!s}")
             raise ModelProviderError(message=str(e.response), model_name="AwsBedrockEmbedder", model_id=self.id) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Bedrock API: {str(e)}")
+            log_error(f"Unexpected error calling Bedrock API: {e!s}")
             raise ModelProviderError(message=str(e), model_name="AwsBedrockEmbedder", model_id=self.id) from e
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """
         Get embeddings for the given text.
 
@@ -178,7 +180,7 @@ class AwsBedrockEmbedder(Embedder):
             logger.warning(f"Error extracting embeddings: {e}")
             return []
 
-    def get_embedding_and_usage(self, text: str) -> Tuple[List[float], Optional[Dict[str, Any]]]:
+    def get_embedding_and_usage(self, text: str) -> tuple[list[float], dict[str, Any] | None]:
         """
         Get embeddings and usage information for the given text.
 
@@ -190,7 +192,7 @@ class AwsBedrockEmbedder(Embedder):
         """
         response = self.response(text=text)
 
-        embedding: List[float] = []
+        embedding: list[float] = []
         # Extract embeddings
         if "embeddings" in response:
             if isinstance(response["embeddings"], list):

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Iterator
 
 from agno.document import Document
 from agno.document.reader.json_reader import JSONReader
@@ -8,12 +10,12 @@ from agno.utils.log import log_info, logger
 
 
 class JSONKnowledgeBase(AgentKnowledge):
-    path: Optional[Union[str, Path, List[Dict[str, Union[str, Dict[str, Any]]]]]] = None
+    path: str | Path | list[dict[str, str | dict[str, Any]]] | None = None
     reader: JSONReader = JSONReader()
-    formats: List[str] = [".json"]
+    formats: list[str] = [".json"]
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over JSON files and yield lists of documents."""
         if self.path is None:
             raise ValueError("Path is not set")
@@ -47,7 +49,7 @@ class JSONKnowledgeBase(AgentKnowledge):
         return path.exists() and path.is_file() and path.suffix in self.formats
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Iterate over JSON files and yield lists of documents asynchronously."""
         if self.path is None:
             raise ValueError("Path is not set")
@@ -78,8 +80,8 @@ class JSONKnowledgeBase(AgentKnowledge):
 
     def load_document(
         self,
-        path: Union[str, Path],
-        metadata: Optional[Dict[str, Any]] = None,
+        path: str | Path,
+        metadata: dict[str, Any] | None = None,
         recreate: bool = False,
         upsert: bool = False,
         skip_existing: bool = True,
@@ -108,8 +110,8 @@ class JSONKnowledgeBase(AgentKnowledge):
 
     async def aload_document(
         self,
-        path: Union[str, Path],
-        metadata: Optional[Dict[str, Any]] = None,
+        path: str | Path,
+        metadata: dict[str, Any] | None = None,
         recreate: bool = False,
         upsert: bool = False,
         skip_existing: bool = True,
