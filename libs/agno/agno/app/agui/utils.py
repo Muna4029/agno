@@ -145,8 +145,9 @@ def _create_events_from_chunk(
 
     # Handle starting a new tool call
     elif chunk.event == RunEvent.tool_call_started:
-        if chunk.tools is not None and len(chunk.tools) != 0:
-            tool_call = chunk.tools[0]
+        tools = getattr(chunk, "tools", None)
+        if tools is not None and len(tools) != 0:
+            tool_call = tools[0]
             start_event = ToolCallStartEvent(
                 type=EventType.TOOL_CALL_START,
                 tool_call_id=tool_call.tool_call_id,  # type: ignore
@@ -164,8 +165,9 @@ def _create_events_from_chunk(
 
     # Handle tool call completion
     elif chunk.event == RunEvent.tool_call_completed:
-        if chunk.tools is not None and len(chunk.tools) != 0:
-            tool_call = chunk.tools[0]
+        tools = getattr(chunk, "tools", None)
+        if tools is not None and len(tools) != 0:
+            tool_call = tools[0]
             if tool_call.tool_call_id not in event_buffer.ended_tool_call_ids:
                 end_event = ToolCallEndEvent(
                     type=EventType.TOOL_CALL_END,
