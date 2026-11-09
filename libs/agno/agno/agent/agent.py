@@ -6935,7 +6935,7 @@ class Agent:
                     response_panel = None
                     # Check if we have any response content to display
                     if response_content_stream and not self.markdown:
-                        response_content = response_content_stream
+                        response_content: Optional[Union[str, JSON, Markdown]] = response_content_stream
                     else:
                         response_content = response_content_batch
 
@@ -7384,7 +7384,7 @@ class Agent:
                     response_panel = None
                     # Check if we have any response content to display
                     if response_content_stream and not self.markdown:
-                        response_content = response_content_stream
+                        response_content: Optional[Union[str, JSON, Markdown]] = response_content_stream
                     else:
                         response_content = response_content_batch
 
