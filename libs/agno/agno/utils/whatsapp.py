@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Any, Optional, Union
 
 import httpx
 import requests
@@ -21,7 +21,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> dict:
+def get_media(media_id: str) -> Union[bytes, dict]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -51,7 +51,7 @@ def get_media(media_id: str) -> dict:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> dict:
+async def get_media_async(media_id: str) -> Union[bytes, dict]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -100,7 +100,7 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {"messaging_product": "whatsapp", "type": mime_type}
+    data: dict[str, Any] = {"messaging_product": "whatsapp", "type": mime_type}
     try:
         from io import BytesIO
 
@@ -182,7 +182,7 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    data: dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
@@ -201,7 +201,7 @@ async def send_image_message_async(
 
     except httpx.HTTPStatusError as e:
         log_error(f"Failed to send WhatsApp image message: {e}")
-        log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")
+        log_error(f"Error response: {e.response.text if e.response is not None else 'No response text'}")
         raise
     except Exception as e:
         log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")
@@ -232,13 +232,15 @@ def send_image_message(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    data: dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": {"id": media_id},
     }
+    if text is not None:
+        data["image"]["caption"] = text
 
     try:
         import json
@@ -249,7 +251,7 @@ def send_image_message(
         log_debug(f"Response: {response.text}")
     except requests.exceptions.RequestException as e:
         log_error(f"Failed to send WhatsApp image message: {e}")
-        log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")
+        log_error(f"Error response: {e.response.text if e.response is not None else 'No response text'}")
         raise
     except Exception as e:
         log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")
