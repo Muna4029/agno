@@ -5,7 +5,6 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 
@@ -17,7 +16,9 @@ TEST_API_URL = "https://api.firecrawl.dev"
 def mock_firecrawl():
     """Create a mock FirecrawlApp instance."""
     with patch("agno.tools.firecrawl.FirecrawlApp") as mock_firecrawl_cls:
-        mock_app = Mock(spec=FirecrawlApp)
+        # Avoid coupling tests to a specific firecrawl-py class surface.
+        # We only need the methods used by FirecrawlTools in these tests.
+        mock_app = Mock()
         mock_firecrawl_cls.return_value = mock_app
         return mock_app
 
