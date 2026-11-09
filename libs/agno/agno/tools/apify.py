@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 import os
 import string
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import requests
 
@@ -15,7 +17,7 @@ except ImportError:
 
 
 class ApifyTools(Toolkit):
-    def __init__(self, actors: Optional[Union[str, List[str]]] = None, apify_api_token: Optional[str] = None):
+    def __init__(self, actors: str | list[str] | None = None, apify_api_token: str | None = None):
         """Initialize ApifyTools with specific Actors.
 
         Args:
@@ -73,7 +75,7 @@ class ApifyTools(Toolkit):
 
         self.client = create_apify_client(self.apify_api_token)
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if actors:
             actor_list = [actors] if isinstance(actors, str) else actors
             for actor_id in actor_list:
@@ -137,7 +139,7 @@ class ApifyTools(Toolkit):
                     return json.dumps(results)
 
                 except Exception as e:
-                    error_msg = f"Error running Apify Actor {actor_id}: {str(e)}"
+                    error_msg = f"Error running Apify Actor {actor_id}: {e!s}"
                     logger.error(error_msg)
                     return json.dumps([{"error": error_msg}])
 
@@ -165,7 +167,7 @@ Returns:
             log_info(f"Registered Apify Actor '{actor_id}' as function '{tool_name}'")
 
         except Exception as e:
-            logger.error(f"Failed to register Apify Actor '{actor_id}': {str(e)}")
+            logger.error(f"Failed to register Apify Actor '{actor_id}': {e!s}")
 
 
 # Constants
@@ -176,7 +178,7 @@ APIFY_API_ENDPOINT_GET_DEFAULT_BUILD = "https://api.apify.com/v2/acts/{actor_id}
 
 # Utility functions
 def props_to_json_schema(input_dict, required_fields=None):
-    schema: Dict[str, Any] = {"type": "object", "properties": {}, "required": required_fields or []}
+    schema: dict[str, Any] = {"type": "object", "properties": {}, "required": required_fields or []}
 
     def infer_array_item_type(prop):
         type_map = {
@@ -197,7 +199,7 @@ def props_to_json_schema(input_dict, required_fields=None):
         return "string"  # Fallback for arrays like searchStringsArray
 
     for key, value in input_dict.items():
-        prop_schema: Dict[str, Any] = {}
+        prop_schema: dict[str, Any] = {}
         prop_type = value.get("type")
 
         if "enum" in value:
@@ -299,7 +301,7 @@ def actor_id_to_tool_name(actor_id: str) -> str:
     return "apify_actor_" + "".join(char if char in valid_chars else "_" for char in actor_id)
 
 
-def get_actor_latest_build(apify_client: ApifyClient, actor_id: str) -> Dict[str, Any]:
+def get_actor_latest_build(apify_client: ApifyClient, actor_id: str) -> dict[str, Any]:
     """Get the latest build of an Actor from the default build tag.
 
     Args:
@@ -332,7 +334,7 @@ def get_actor_latest_build(apify_client: ApifyClient, actor_id: str) -> Dict[str
     return data
 
 
-def prune_actor_input_schema(input_schema: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
+def prune_actor_input_schema(input_schema: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     """Get the input schema from the Actor build and trim descriptions.
 
     Args:
@@ -344,7 +346,7 @@ def prune_actor_input_schema(input_schema: Dict[str, Any]) -> Tuple[Dict[str, An
     properties = input_schema.get("properties", {})
     required = input_schema.get("required", [])
 
-    properties_out: Dict[str, Any] = {}
+    properties_out: dict[str, Any] = {}
     for item, meta in properties.items():
         properties_out[item] = {}
         if desc := meta.get("description"):

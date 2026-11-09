@@ -27,7 +27,7 @@ def mock_firestore_client():
 @pytest.fixture
 def memory_db(mock_firestore_client):
     """Create a FirestoreMemoryDb instance with mocked components."""
-    mock_client, mock_root_collection, mock_db = mock_firestore_client
+    _mock_client, mock_root_collection, mock_db = mock_firestore_client
 
     db = FirestoreMemoryDb(collection_name="test_memory", db_name="(default)", project_id="test-project")
 
@@ -67,7 +67,7 @@ def test_authentication_error():
 
 def test_get_user_collection(memory_db):
     """Test getting user-specific collection."""
-    db, mock_root_collection, mock_client = memory_db
+    db, _mock_root_collection, mock_client = memory_db
 
     # Mock the collection method
     mock_user_collection = MagicMock()
@@ -82,7 +82,7 @@ def test_get_user_collection(memory_db):
 
 def test_read_memories(memory_db):
     """Test reading memories."""
-    db, mock_root_collection, mock_client = memory_db
+    db, _mock_root_collection, mock_client = memory_db
 
     # Mock user collection
     mock_user_collection = MagicMock()
@@ -126,7 +126,7 @@ def test_read_memories(memory_db):
 
 def test_upsert_memory(memory_db):
     """Test upserting a memory."""
-    db, mock_root_collection, mock_client = memory_db
+    db, _mock_root_collection, mock_client = memory_db
 
     # Mock user collection and document reference
     mock_user_collection = MagicMock()
@@ -161,7 +161,7 @@ def test_upsert_memory(memory_db):
 
 def test_memory_exists(memory_db):
     """Test checking if memory exists."""
-    db, mock_root_collection, mock_client = memory_db
+    db, _mock_root_collection, mock_client = memory_db
 
     # Mock user collection and document
     mock_user_collection = MagicMock()
@@ -189,7 +189,7 @@ def test_memory_exists(memory_db):
 
 def test_delete_memory(memory_db):
     """Test deleting a memory."""
-    db, mock_root_collection, mock_client = memory_db
+    db, _mock_root_collection, mock_client = memory_db
 
     # Set user_id on the db instance
     db._user_id = "test-user"

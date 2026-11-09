@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from importlib import metadata
 from pathlib import Path
 
@@ -90,7 +91,7 @@ class AgnoCliSettings(BaseSettings):
     def gate_alpha_feature(self):
         if not self.alpha_features:
             logger.error("This is an Alpha feature not for general use.\nPlease message the Agno team for access.")
-            exit(1)
+            sys.exit(1)
 
 
 agno_cli_settings = AgnoCliSettings()

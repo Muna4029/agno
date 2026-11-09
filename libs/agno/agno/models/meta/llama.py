@@ -1,7 +1,9 @@
-from collections.abc import AsyncIterator
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -41,31 +43,31 @@ class Llama(Model):
     supports_json_schema_outputs: bool = True
 
     # Request parameters
-    max_completion_tokens: Optional[int] = None
-    repetition_penalty: Optional[float] = None
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    top_k: Optional[int] = None
-    extra_headers: Optional[Any] = None
-    extra_query: Optional[Any] = None
-    extra_body: Optional[Any] = None
-    request_params: Optional[Dict[str, Any]] = None
+    max_completion_tokens: int | None = None
+    repetition_penalty: float | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    top_k: int | None = None
+    extra_headers: Any | None = None
+    extra_query: Any | None = None
+    extra_body: Any | None = None
+    request_params: dict[str, Any] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
-    base_url: Optional[Union[str, httpx.URL]] = None
-    timeout: Optional[float] = None
-    max_retries: Optional[int] = None
-    default_headers: Optional[Any] = None
-    default_query: Optional[Any] = None
-    http_client: Optional[httpx.Client] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    base_url: str | httpx.URL | None = None
+    timeout: float | None = None
+    max_retries: int | None = None
+    default_headers: Any | None = None
+    default_query: Any | None = None
+    http_client: httpx.Client | None = None
+    client_params: dict[str, Any] | None = None
 
     # OpenAI clients
-    client: Optional[LlamaAPIClient] = None
-    async_client: Optional[AsyncLlamaAPIClient] = None
+    client: LlamaAPIClient | None = None
+    async_client: AsyncLlamaAPIClient | None = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Fetch API key from env if not already set
         if not self.api_key:
             self.api_key = getenv("LLAMA_API_KEY")
@@ -100,7 +102,7 @@ class Llama(Model):
         if self.client and not self.client.is_closed():
             return self.client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client is not None:
             client_params["http_client"] = self.http_client
         self.client = LlamaAPIClient(**client_params)
@@ -116,7 +118,7 @@ class Llama(Model):
         if self.async_client:
             return self.async_client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client:
             client_params["http_client"] = self.http_client
         else:
@@ -128,9 +130,9 @@ class Llama(Model):
 
     def get_request_params(
         self,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
         """
@@ -165,7 +167,7 @@ class Llama(Model):
             log_debug(f"Calling {self.provider} with request parameters: {request_params}", log_level=2)
         return request_params
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the model to a dictionary.
 
@@ -191,10 +193,10 @@ class Llama(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> CreateChatCompletionResponse:
         """
         Send a chat completion request to the Llama API.
@@ -207,10 +209,10 @@ class Llama(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> CreateChatCompletionResponse:
         """
         Sends an asynchronous chat completion request to the Llama API.
@@ -224,10 +226,10 @@ class Llama(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[CreateChatCompletionResponseStreamChunk]:
         """
         Send a streaming chat completion request to the Llama API.
@@ -246,10 +248,10 @@ class Llama(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[CreateChatCompletionResponseStreamChunk]:
         """
         Sends an asynchronous streaming chat completion request to the Llama API.
@@ -269,7 +271,7 @@ class Llama(Model):
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[EventDeltaToolCallDeltaFunction]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[EventDeltaToolCallDeltaFunction]) -> list[dict[str, Any]]:
         """
         Parse the tool calls from the Llama API.
 
@@ -279,11 +281,11 @@ class Llama(Model):
         Returns:
             List[Dict[str, Any]]: The parsed tool calls.
         """
-        tool_calls: List[Dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
 
-        _tool_call_id: Optional[str] = None
-        _function_name_parts: List[str] = []
-        _function_arguments_parts: List[str] = []
+        _tool_call_id: str | None = None
+        _function_name_parts: list[str] = []
+        _function_arguments_parts: list[str] = []
 
         def _create_tool_call():
             nonlocal _tool_call_id

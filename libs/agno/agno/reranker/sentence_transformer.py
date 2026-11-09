@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from agno.document import Document
 from agno.reranker.base import Reranker
@@ -12,10 +14,10 @@ except ImportError:
 
 class SentenceTransformerReranker(Reranker):
     model: str = "BAAI/bge-reranker-v2-m3"
-    model_kwargs: Optional[Dict[str, Any]] = None
-    top_n: Optional[int] = None
+    model_kwargs: dict[str, Any] | None = None
+    top_n: int | None = None
 
-    def _rerank(self, query: str, documents: List[Document]) -> List[Document]:
+    def _rerank(self, query: str, documents: list[Document]) -> list[Document]:
         if not documents:
             return []
 
@@ -46,7 +48,7 @@ class SentenceTransformerReranker(Reranker):
 
         return compressed_docs
 
-    def rerank(self, query: str, documents: List[Document]) -> List[Document]:
+    def rerank(self, query: str, documents: list[Document]) -> list[Document]:
         try:
             return self._rerank(query=query, documents=documents)
         except Exception as e:

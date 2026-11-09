@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import hashlib
 import json
 import re
-from typing import Optional, Type
 
 from pydantic import BaseModel, ValidationError
 
@@ -65,7 +66,7 @@ def hash_string_sha256(input_string):
 def _extract_json_objects(text: str) -> list[str]:
     objs: list[str] = []
     brace_depth = 0
-    start_idx: Optional[int] = None
+    start_idx: int | None = None
     for idx, ch in enumerate(text):
         if ch == "{" and brace_depth == 0:
             start_idx = idx
@@ -116,7 +117,7 @@ def _clean_json_content(content: str) -> str:
     return content
 
 
-def _parse_individual_json(content: str, response_model: Type[BaseModel]) -> Optional[BaseModel]:
+def _parse_individual_json(content: str, response_model: type[BaseModel]) -> BaseModel | None:
     """Parse individual JSON objects from content and merge them based on response model fields."""
     candidate_jsons = _extract_json_objects(content)
     merged_data: dict = {}
@@ -132,7 +133,7 @@ def _parse_individual_json(content: str, response_model: Type[BaseModel]) -> Opt
 
         if isinstance(candidate_obj, dict):
             # Merge data based on model fields
-            for field_name, field_info in model_fields.items():
+            for field_name in model_fields:
                 if field_name in candidate_obj:
                     field_value = candidate_obj[field_name]
                     # If field is a list, extend it; otherwise, use the latest value
@@ -153,7 +154,7 @@ def _parse_individual_json(content: str, response_model: Type[BaseModel]) -> Opt
         return None
 
 
-def parse_response_model_str(content: str, response_model: Type[BaseModel]) -> Optional[BaseModel]:
+def parse_response_model_str(content: str, response_model: type[BaseModel]) -> BaseModel | None:
     structured_output = None
 
     # Clean content first to simplify all parsing attempts

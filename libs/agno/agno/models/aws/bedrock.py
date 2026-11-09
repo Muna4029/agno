@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -45,20 +48,20 @@ class AwsBedrock(Model):
     name: str = "AwsBedrock"
     provider: str = "AwsBedrock"
 
-    aws_sso_auth: Optional[bool] = False
-    aws_region: Optional[str] = None
-    aws_access_key_id: Optional[str] = None
-    aws_secret_access_key: Optional[str] = None
-    session: Optional[Session] = None
+    aws_sso_auth: bool | None = False
+    aws_region: str | None = None
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
+    session: Session | None = None
 
     # Request parameters
-    max_tokens: Optional[int] = None
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    stop_sequences: Optional[List[str]] = None
-    request_params: Optional[Dict[str, Any]] = None
+    max_tokens: int | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    stop_sequences: list[str] | None = None
+    request_params: dict[str, Any] | None = None
 
-    client: Optional[AwsClient] = None
+    client: AwsClient | None = None
 
     def get_client(self) -> AwsClient:
         """
@@ -95,7 +98,7 @@ class AwsBedrock(Model):
             )
         return self.client
 
-    def _format_tools_for_request(self, tools: Optional[List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    def _format_tools_for_request(self, tools: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
         """
         Format the tools for the request.
 
@@ -112,7 +115,7 @@ class AwsBedrock(Model):
                 for param_name, param_info in func_def.get("parameters", {}).get("properties", {}).items():
                     param_type = param_info.get("type")
                     if isinstance(param_type, list):
-                        param_type = [t for t in param_type if t != "null"][0]
+                        param_type = next(t for t in param_type if t != "null")
 
                     properties[param_name] = {
                         "type": param_type or "string",
@@ -136,7 +139,7 @@ class AwsBedrock(Model):
 
         return parsed_tools
 
-    def _get_inference_config(self) -> Dict[str, Any]:
+    def _get_inference_config(self) -> dict[str, Any]:
         """
         Get the inference config.
 
@@ -152,20 +155,20 @@ class AwsBedrock(Model):
 
         return {k: v for k, v in request_kwargs.items() if v is not None}
 
-    def _format_messages(self, messages: List[Message]) -> Tuple[List[Dict[str, Any]], Optional[List[Dict[str, Any]]]]:
+    def _format_messages(self, messages: list[Message]) -> tuple[list[dict[str, Any]], list[dict[str, Any]] | None]:
         """
         Format the messages for the request.
 
         Returns:
             Tuple[List[Dict[str, Any]], Optional[List[Dict[str, Any]]]]: The formatted messages.
         """
-        formatted_messages: List[Dict[str, Any]] = []
+        formatted_messages: list[dict[str, Any]] = []
         system_message = None
         for message in messages:
             if message.role == "system":
                 system_message = [{"text": message.content}]
             else:
-                formatted_message: Dict[str, Any] = {"role": message.role, "content": []}
+                formatted_message: dict[str, Any] = {"role": message.role, "content": []}
                 # Handle tool results
                 if isinstance(message.content, list):
                     formatted_message["content"].extend(message.content)
@@ -243,11 +246,11 @@ class AwsBedrock(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Invoke the Bedrock API.
         """
@@ -271,19 +274,19 @@ class AwsBedrock(Model):
 
             return self.get_client().converse(modelId=self.id, messages=formatted_messages, **body)
         except ClientError as e:
-            log_error(f"Unexpected error calling Bedrock API: {str(e)}")
+            log_error(f"Unexpected error calling Bedrock API: {e!s}")
             raise ModelProviderError(message=str(e.response), model_name=self.name, model_id=self.id) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Bedrock API: {str(e)}")
+            log_error(f"Unexpected error calling Bedrock API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Iterator[Dict[str, Any]]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
         """
         Invoke the Bedrock API with streaming.
         """
@@ -306,15 +309,15 @@ class AwsBedrock(Model):
 
             return self.get_client().converse_stream(modelId=self.id, messages=formatted_messages, **body)["stream"]
         except ClientError as e:
-            log_error(f"Unexpected error calling Bedrock API: {str(e)}")
+            log_error(f"Unexpected error calling Bedrock API: {e!s}")
             raise ModelProviderError(message=str(e.response), model_name=self.name, model_id=self.id) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Bedrock API: {str(e)}")
+            log_error(f"Unexpected error calling Bedrock API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     # Overwrite the default from the base model
     def format_function_call_results(
-        self, messages: List[Message], function_call_results: List[Message], tool_ids: List[str]
+        self, messages: list[Message], function_call_results: list[Message], tool_ids: list[str]
     ) -> None:
         """
         Handle the results of function calls.
@@ -325,7 +328,7 @@ class AwsBedrock(Model):
             tool_ids (List[str]): The tool ids.
         """
         if function_call_results:
-            tool_result_content: List = []
+            tool_result_content: list = []
 
             for _fc_message_index, _fc_message in enumerate(function_call_results):
                 tool_result = {
@@ -336,7 +339,7 @@ class AwsBedrock(Model):
 
             messages.append(Message(role="user", content=tool_result_content))
 
-    def parse_provider_response(self, response: Dict[str, Any], **kwargs) -> ModelResponse:
+    def parse_provider_response(self, response: dict[str, Any], **kwargs) -> ModelResponse:
         """
         Parse the provider response.
 
@@ -393,12 +396,12 @@ class AwsBedrock(Model):
 
     def process_response_stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         stream_data: MessageData,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ModelResponse]:
         """
         Process the synchronous response stream.
@@ -408,7 +411,7 @@ class AwsBedrock(Model):
             assistant_message (Message): The assistant message.
             stream_data (MessageData): The stream data.
         """
-        tool_use: Dict[str, Any] = {}
+        tool_use: dict[str, Any] = {}
         content = []
         tool_ids = []
 
@@ -497,7 +500,7 @@ class AwsBedrock(Model):
                 stream_data.extra = {}
             stream_data.extra["tool_ids"] = tool_ids
 
-    def parse_provider_response_delta(self, response_delta: Dict[str, Any]) -> ModelResponse:  # type: ignore
+    def parse_provider_response_delta(self, response_delta: dict[str, Any]) -> ModelResponse:  # type: ignore
         pass
 
     async def ainvoke(self, *args, **kwargs) -> Any:

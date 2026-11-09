@@ -1,4 +1,6 @@
-from typing import Any, Callable, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any, Callable
 
 from agno.document import Document
 from agno.knowledge.agent import AgentKnowledge
@@ -15,11 +17,11 @@ except ImportError:
 
 class LlamaIndexKnowledgeBase(AgentKnowledge):
     retriever: BaseRetriever
-    loader: Optional[Callable] = None
+    loader: Callable | None = None
 
     def search(
-        self, query: str, num_documents: Optional[int] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, num_documents: int | None = None, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """
         Returns relevant documents matching the query.
 
@@ -36,7 +38,7 @@ class LlamaIndexKnowledgeBase(AgentKnowledge):
         if not isinstance(self.retriever, BaseRetriever):
             raise ValueError(f"Retriever is not of type BaseRetriever: {self.retriever}")
 
-        lc_documents: List[NodeWithScore] = self.retriever.retrieve(query)
+        lc_documents: list[NodeWithScore] = self.retriever.retrieve(query)
         if num_documents is not None:
             lc_documents = lc_documents[:num_documents]
         documents = []
@@ -54,7 +56,7 @@ class LlamaIndexKnowledgeBase(AgentKnowledge):
         recreate: bool = False,
         upsert: bool = True,
         skip_existing: bool = True,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
     ) -> None:
         if self.loader is None:
             logger.error("No loader provided for LlamaIndexKnowledgeBase")

@@ -1,5 +1,4 @@
 import enum
-from typing import Dict, List
 
 from pydantic import BaseModel, Field
 from rich.pretty import pprint  # noqa
@@ -19,9 +18,9 @@ class MovieScript(BaseModel):
         description="Genre of the movie. If not available, select action, thriller or romantic comedy.",
     )
     name: str = Field(..., description="Give a name to this movie")
-    characters: List[str] = Field(..., description="Name of characters for this movie.")
+    characters: list[str] = Field(..., description="Name of characters for this movie.")
     storyline: str = Field(..., description="3 sentence storyline for the movie. Make it exciting!")
-    rating: Dict[str, int] = Field(
+    rating: dict[str, int] = Field(
         ...,
         description="Your own rating of the movie. 1-10. Return a dictionary with the keys 'story' and 'acting'.",
     )
@@ -35,12 +34,12 @@ def test_structured_response_with_dict_fields():
     )
     response = structured_output_agent.run("New York")
     assert response.content is not None
-    assert isinstance(response.content.rating, Dict)
+    assert isinstance(response.content.rating, dict)
     assert isinstance(response.content.setting, str)
     assert isinstance(response.content.ending, str)
     assert isinstance(response.content.genre, str)
     assert isinstance(response.content.name, str)
-    assert isinstance(response.content.characters, List)
+    assert isinstance(response.content.characters, list)
     assert isinstance(response.content.storyline, str)
 
 

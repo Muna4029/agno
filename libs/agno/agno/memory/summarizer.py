@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import json
+import sys
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, cast
 
 from pydantic import BaseModel, ValidationError
 
@@ -11,7 +14,7 @@ from agno.utils.log import log_debug, log_info, logger
 
 
 class MemorySummarizer(BaseModel):
-    model: Optional[Model] = None
+    model: Model | None = None
     use_structured_outputs: bool = False
 
     def update_model(self) -> None:
@@ -23,10 +26,10 @@ class MemorySummarizer(BaseModel):
                 logger.error(
                     "Agno uses `openai` as the default model provider. Please provide a `model` or install `openai`."
                 )
-                exit(1)
+                sys.exit(1)
             self.model = OpenAIChat(id="gpt-4o")
 
-    def get_system_message(self, messages_for_summarization: List[Dict[str, str]]) -> Message:
+    def get_system_message(self, messages_for_summarization: list[dict[str, str]]) -> Message:
         # -*- Return a system message for summarization
         system_prompt = dedent("""\
         Analyze the following conversation between a user and an assistant, and extract the following details:
@@ -62,7 +65,7 @@ class MemorySummarizer(BaseModel):
 
             if len(response_model_properties) > 0:
                 system_prompt += "\n<json_fields>"
-                system_prompt += f"\n{json.dumps([key for key in response_model_properties.keys() if key != '$defs'])}"
+                system_prompt += f"\n{json.dumps([key for key in response_model_properties if key != '$defs'])}"
                 system_prompt += "\n</json_fields>"
                 system_prompt += "\nHere are the properties for each field:"
                 system_prompt += "\n<json_field_properties>"
@@ -76,9 +79,9 @@ class MemorySummarizer(BaseModel):
 
     def run(
         self,
-        message_pairs: List[Tuple[Message, Message]],
+        message_pairs: list[tuple[Message, Message]],
         **kwargs: Any,
-    ) -> Optional[SessionSummary]:
+    ) -> SessionSummary | None:
         log_debug("*********** MemorySummarizer Start ***********")
 
         if message_pairs is None or len(message_pairs) == 0:
@@ -95,7 +98,7 @@ class MemorySummarizer(BaseModel):
             response_format = {"type": "json_object"}
 
         # Convert the message pairs to a list of dictionaries
-        messages_for_summarization: List[Dict[str, str]] = []
+        messages_for_summarization: list[dict[str, str]] = []
         for message_pair in message_pairs:
             user_message, assistant_message = message_pair
             messages_for_summarization.append(
@@ -106,7 +109,7 @@ class MemorySummarizer(BaseModel):
             )
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [
+        messages_for_model: list[Message] = [
             self.get_system_message(messages_for_summarization),
             # For models that require a non-system message
             Message(role="user", content="Provide the summary of the conversation."),
@@ -142,9 +145,9 @@ class MemorySummarizer(BaseModel):
 
     async def arun(
         self,
-        message_pairs: List[Tuple[Message, Message]],
+        message_pairs: list[tuple[Message, Message]],
         **kwargs: Any,
-    ) -> Optional[SessionSummary]:
+    ) -> SessionSummary | None:
         log_debug("*********** Async MemorySummarizer Start ***********")
 
         if message_pairs is None or len(message_pairs) == 0:
@@ -155,7 +158,7 @@ class MemorySummarizer(BaseModel):
         self.update_model()
 
         # Convert the message pairs to a list of dictionaries
-        messages_for_summarization: List[Dict[str, str]] = []
+        messages_for_summarization: list[dict[str, str]] = []
         for message_pair in message_pairs:
             user_message, assistant_message = message_pair
             messages_for_summarization.append(
@@ -166,7 +169,7 @@ class MemorySummarizer(BaseModel):
             )
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [
+        messages_for_model: list[Message] = [
             self.get_system_message(messages_for_summarization),
             # For models that require a non-system message
             Message(role="user", content="Provide the summary of the conversation."),

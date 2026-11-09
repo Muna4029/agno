@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import json
+from collections.abc import AsyncGenerator
 from dataclasses import asdict
 from io import BytesIO
-from typing import AsyncGenerator, List, Optional, cast
+from typing import cast
 from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
@@ -22,11 +25,11 @@ from agno.workflow.workflow import Workflow
 async def agent_chat_response_streamer(
     agent: Agent,
     message: str,
-    session_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    images: Optional[List[Image]] = None,
-    audio: Optional[List[Audio]] = None,
-    videos: Optional[List[Video]] = None,
+    session_id: str | None = None,
+    user_id: str | None = None,
+    images: list[Image] | None = None,
+    audio: list[Audio] | None = None,
+    videos: list[Video] | None = None,
 ) -> AsyncGenerator:
     try:
         run_response = await agent.arun(
@@ -53,12 +56,12 @@ async def agent_chat_response_streamer(
 async def team_chat_response_streamer(
     team: Team,
     message: str,
-    session_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    images: Optional[List[Image]] = None,
-    audio: Optional[List[Audio]] = None,
-    videos: Optional[List[Video]] = None,
-    files: Optional[List[FileMedia]] = None,
+    session_id: str | None = None,
+    user_id: str | None = None,
+    images: list[Image] | None = None,
+    audio: list[Audio] | None = None,
+    videos: list[Video] | None = None,
+    files: list[FileMedia] | None = None,
 ) -> AsyncGenerator:
     try:
         run_response = await team.arun(
@@ -84,7 +87,7 @@ async def team_chat_response_streamer(
 
 
 def get_async_router(
-    agents: Optional[List[Agent]] = None, teams: Optional[List[Team]] = None, workflows: Optional[List[Workflow]] = None
+    agents: list[Agent] | None = None, teams: list[Team] | None = None, workflows: list[Workflow] | None = None
 ) -> APIRouter:
     router = APIRouter()
 
@@ -96,12 +99,12 @@ def get_async_router(
         return {"status": "available"}
 
     async def agent_process_file(
-        files: List[UploadFile],
+        files: list[UploadFile],
         agent: Agent,
     ):
-        base64_images: List[Image] = []
-        base64_audios: List[Audio] = []
-        base64_videos: List[Video] = []
+        base64_images: list[Image] = []
+        base64_audios: list[Audio] = []
+        base64_videos: list[Video] = []
         for file in files:
             logger.info(f"Processing file: {file.content_type}")
             if file.content_type in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
@@ -194,12 +197,12 @@ def get_async_router(
         return base64_images, base64_audios, base64_videos
 
     def team_process_file(
-        files: List[UploadFile],
+        files: list[UploadFile],
     ):
-        base64_images: List[Image] = []
-        base64_audios: List[Audio] = []
-        base64_videos: List[Video] = []
-        document_files: List[FileMedia] = []
+        base64_images: list[Image] = []
+        base64_audios: list[Audio] = []
+        base64_videos: list[Video] = []
+        document_files: list[FileMedia] = []
         for file in files:
             if file.content_type in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
                 try:
@@ -254,13 +257,13 @@ def get_async_router(
         message: str = Form(None),
         stream: bool = Form(False),
         monitor: bool = Form(False),
-        session_id: Optional[str] = Form(None),
-        user_id: Optional[str] = Form(None),
-        files: Optional[List[UploadFile]] = File(None),
-        agent_id: Optional[str] = Query(None),
-        team_id: Optional[str] = Query(None),
-        workflow_id: Optional[str] = Query(None),
-        workflow_input: Optional[str] = Form(None),
+        session_id: str | None = Form(None),
+        user_id: str | None = Form(None),
+        files: list[UploadFile] | None = File(None),
+        agent_id: str | None = Query(None),
+        team_id: str | None = Query(None),
+        workflow_id: str | None = Query(None),
+        workflow_input: str | None = Form(None),
     ):
         if session_id is not None and session_id != "":
             logger.debug(f"Continuing session: {session_id}")
@@ -312,10 +315,10 @@ def get_async_router(
         elif workflow:
             workflow.monitoring = bool(monitor)
 
-        base64_images: List[Image] = []
-        base64_audios: List[Audio] = []
-        base64_videos: List[Video] = []
-        document_files: List[FileMedia] = []
+        base64_images: list[Image] = []
+        base64_audios: list[Audio] = []
+        base64_videos: list[Video] = []
+        document_files: list[FileMedia] = []
         if files:
             if agent:
                 base64_images, base64_audios, base64_videos = await agent_process_file(files, agent)

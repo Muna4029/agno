@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -27,32 +29,32 @@ from agno.workflow.workflow import Workflow
 class Playground:
     def __init__(
         self,
-        agents: Optional[List[Agent]] = None,
-        teams: Optional[List[Team]] = None,
-        workflows: Optional[List[Workflow]] = None,
-        settings: Optional[PlaygroundSettings] = None,
-        api_app: Optional[FastAPI] = None,
-        router: Optional[APIRouter] = None,
-        app_id: Optional[str] = None,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        agents: list[Agent] | None = None,
+        teams: list[Team] | None = None,
+        workflows: list[Workflow] | None = None,
+        settings: PlaygroundSettings | None = None,
+        api_app: FastAPI | None = None,
+        router: APIRouter | None = None,
+        app_id: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
         monitoring: bool = True,
     ):
         if not agents and not workflows and not teams:
             raise ValueError("Either agents, teams or workflows must be provided.")
 
-        self.agents: Optional[List[Agent]] = agents
-        self.workflows: Optional[List[Workflow]] = workflows
-        self.teams: Optional[List[Team]] = teams
+        self.agents: list[Agent] | None = agents
+        self.workflows: list[Workflow] | None = workflows
+        self.teams: list[Team] | None = teams
 
         self.settings: PlaygroundSettings = settings or PlaygroundSettings()
-        self.api_app: Optional[FastAPI] = api_app
-        self.router: Optional[APIRouter] = router
+        self.api_app: FastAPI | None = api_app
+        self.router: APIRouter | None = router
 
-        self.endpoints_created: Optional[PlaygroundEndpointCreate] = None
+        self.endpoints_created: PlaygroundEndpointCreate | None = None
 
-        self.app_id: Optional[str] = app_id
-        self.name: Optional[str] = name
+        self.app_id: str | None = app_id
+        self.name: str | None = name
         self.monitoring = monitoring
         self.description = description
         self.set_app_id()
@@ -165,7 +167,7 @@ class Playground:
 
     def serve(
         self,
-        app: Union[str, FastAPI],
+        app: str | FastAPI,
         *,
         scheme: str = "http",
         host: str = "localhost",
@@ -223,7 +225,7 @@ class Playground:
             log_debug(f"Could not create Agent app: {e}")
         log_debug(f"Agent app created: {self.name}, {self.app_id}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         payload = {
             "agents": [
                 {**agent.get_agent_config_dict(), "agent_id": agent.agent_id, "team_id": agent.team_id}

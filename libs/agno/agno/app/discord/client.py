@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Optional
 
 import requests
 
@@ -15,7 +16,7 @@ except (ImportError, ModuleNotFoundError):
 
 
 class DiscordClient:
-    def __init__(self, agent: Optional[Agent] = None, team: Optional[Team] = None):
+    def __init__(self, agent: Agent | None = None, team: Team | None = None):
         self.agent = agent
         self.team = team
         self.intents = discord.Intents.all()
@@ -117,4 +118,4 @@ class DiscordClient:
                 raise ValueError("DISCORD_BOT_TOKEN NOT SET")
             return self.client.run(token)
         except Exception as e:
-            raise ValueError(f"Failed to run Discord client: {str(e)}")
+            raise ValueError(f"Failed to run Discord client: {e!s}")

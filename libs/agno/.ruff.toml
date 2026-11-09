@@ -1,0 +1,49 @@
+# Ruff configuration for agno
+# This file takes precedence over pyproject.toml settings
+
+line-length = 120
+target-version = "py39"
+
+[lint]
+# Ignore common warnings that are intentional in this codebase
+ignore = [
+    "BLE001",   # Do not catch blind exception: `Exception` - intentional for broad error handling
+    "TRY002",   # Create your own exception - using built-in exceptions is fine
+    "TRY004",   # Type check without TypeError - intentional
+    "TRY203",   # Useless try-except - sometimes needed for clarity
+    "SIM102",   # Collapsible if - sometimes clearer as separate statements
+    "SIM103",   # Needless bool - sometimes clearer
+    "SIM113",   # Enumerate for loop - sometimes index is more natural
+    "SIM115",   # Open file with context handler - sometimes not applicable
+    "SIM117",   # Multiple with statements - sometimes clearer separate
+    "DTZ001",   # Call datetime without tzinfo - not always needed
+    "DTZ005",   # Call datetime.now without tzinfo - not always needed
+    "DTZ006",   # Call datetime.fromtimestamp - not always needed
+    "DTZ011",   # Call date.today - not always needed
+    "DTZ901",   # Datetime min/max - intentional
+    "PLW0602",  # Global variable not assigned - intentional
+    "PLW0127",  # Self-assigning variable - intentional
+    "PLW1510",  # Subprocess run without check - intentional
+    "PLC0206",  # Dict index missing items - intentional
+    "PLE0704",  # Misplaced bare raise - intentional
+    "B008",     # Function call in default argument - sometimes intentional
+    "B017",     # Assert raises exception - testing pattern
+    "B018",     # Useless expression - sometimes for side effects
+    "B020",     # Loop variable overrides iterator - intentional
+    "B023",     # Function uses loop variable - intentional
+    "RUF012",   # Mutable class default - intentional with Pydantic
+    "RUF059",   # Unused unpacked variable - intentional
+    "S102",     # Exec builtin - intentional
+    "S110",     # Try-except-pass - intentional
+    "S112",     # Try-except-continue - intentional
+    "G201",     # Logging exc info - intentional
+    "PERF402",  # Manual list copy - intentional
+    "ASYNC210", # Blocking HTTP call in async function - sometimes needed
+    "ASYNC230", # Blocking open call in async function - sometimes needed
+    "ASYNC251", # Blocking sleep in async function - sometimes needed
+    "N999",     # Invalid module name - intentional
+    "YTT204",   # sys.version_info minor cmp int - intentional
+]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]

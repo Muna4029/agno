@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import base64
 from os import getenv
-from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from fastapi.responses import PlainTextResponse
@@ -15,7 +16,7 @@ from agno.utils.whatsapp import get_media_async, send_image_message_async, typin
 from .security import validate_webhook_signature
 
 
-def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None) -> APIRouter:
+def get_async_router(agent: Agent | None = None, team: Team | None = None) -> APIRouter:
     router = APIRouter()
 
     if agent is None and team is None:
@@ -77,10 +78,10 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
             return {"status": "processing"}
 
         except Exception as e:
-            log_error(f"Error processing webhook: {str(e)}")
+            log_error(f"Error processing webhook: {e!s}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def process_message(message: dict, agent: Optional[Agent], team: Optional[Team]):
+    async def process_message(message: dict, agent: Agent | None, team: Team | None):
         """Process a single WhatsApp message in the background"""
         try:
             message_image = None
@@ -172,14 +173,14 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
                 await _send_whatsapp_message(phone_number, response.content)
 
         except Exception as e:
-            log_error(f"Error processing message: {str(e)}")
+            log_error(f"Error processing message: {e!s}")
 
             try:
                 await _send_whatsapp_message(
                     phone_number, "Sorry, there was an error processing your message. Please try again later."
                 )
             except Exception as send_error:
-                log_error(f"Error sending error message: {str(send_error)}")
+                log_error(f"Error sending error message: {send_error!s}")
 
     async def _send_whatsapp_message(recipient: str, message: str, italics: bool = False):
         if len(message) <= 4096:

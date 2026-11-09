@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from functools import update_wrapper, wraps
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, overload
+from typing import Any, Callable, TypeVar, overload
 
 from agno.tools.function import Function, get_entrypoint_docstring
 from agno.utils.log import logger
 
 # Type variable for better type hints
 F = TypeVar("F", bound=Callable[..., Any])
-ToolConfig = TypeVar("ToolConfig", bound=Dict[str, Any])
+ToolConfig = TypeVar("ToolConfig", bound=dict[str, Any])
 
 
 @overload
@@ -16,23 +18,23 @@ def tool() -> Callable[[F], Function]: ...
 @overload
 def tool(
     *,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    strict: Optional[bool] = None,
-    instructions: Optional[str] = None,
+    name: str | None = None,
+    description: str | None = None,
+    strict: bool | None = None,
+    instructions: str | None = None,
     add_instructions: bool = True,
-    sanitize_arguments: Optional[bool] = None,
-    show_result: Optional[bool] = None,
-    stop_after_tool_call: Optional[bool] = None,
-    requires_confirmation: Optional[bool] = None,
-    requires_user_input: Optional[bool] = None,
-    user_input_fields: Optional[List[str]] = None,
-    external_execution: Optional[bool] = None,
-    pre_hook: Optional[Callable] = None,
-    post_hook: Optional[Callable] = None,
-    tool_hooks: Optional[List[Callable]] = None,
+    sanitize_arguments: bool | None = None,
+    show_result: bool | None = None,
+    stop_after_tool_call: bool | None = None,
+    requires_confirmation: bool | None = None,
+    requires_user_input: bool | None = None,
+    user_input_fields: list[str] | None = None,
+    external_execution: bool | None = None,
+    pre_hook: Callable | None = None,
+    post_hook: Callable | None = None,
+    tool_hooks: list[Callable] | None = None,
     cache_results: bool = False,
-    cache_dir: Optional[str] = None,
+    cache_dir: str | None = None,
     cache_ttl: int = 3600,
 ) -> Callable[[F], Function]: ...
 
@@ -41,7 +43,7 @@ def tool(
 def tool(func: F) -> Function: ...
 
 
-def tool(*args, **kwargs) -> Union[Function, Callable[[F], Function]]:
+def tool(*args, **kwargs) -> Function | Callable[[F], Function]:
     """Decorator to convert a function into a Function that can be used by an agent.
 
     Args:

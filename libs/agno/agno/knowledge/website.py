@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional
+from collections.abc import AsyncIterator, Iterator
+from typing import Any
 
 from pydantic import model_validator
 
@@ -10,15 +13,15 @@ from agno.utils.log import log_debug, log_info, logger
 
 
 class WebsiteKnowledgeBase(AgentKnowledge):
-    urls: List[str] = []
-    reader: Optional[WebsiteReader] = None
+    urls: list[str] = []
+    reader: WebsiteReader | None = None
 
     # WebsiteReader parameters
     max_depth: int = 3
     max_links: int = 10
 
     @model_validator(mode="after")
-    def set_reader(self) -> "WebsiteKnowledgeBase":
+    def set_reader(self) -> WebsiteKnowledgeBase:
         if self.reader is None:
             self.reader = WebsiteReader(
                 max_depth=self.max_depth, max_links=self.max_links, chunking_strategy=self.chunking_strategy
@@ -26,7 +29,7 @@ class WebsiteKnowledgeBase(AgentKnowledge):
         return self
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over urls and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -38,7 +41,7 @@ class WebsiteKnowledgeBase(AgentKnowledge):
                 yield self.reader.read(url=_url)
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Asynchronously iterate over urls and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -54,7 +57,7 @@ class WebsiteKnowledgeBase(AgentKnowledge):
         recreate: bool = False,
         upsert: bool = True,
         skip_existing: bool = True,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
     ) -> None:
         """Load the website contents to the vector db"""
 
@@ -109,7 +112,7 @@ class WebsiteKnowledgeBase(AgentKnowledge):
         recreate: bool = False,
         upsert: bool = True,
         skip_existing: bool = True,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
     ) -> None:
         """Asynchronously load the website contents to the vector db"""
 
@@ -143,7 +146,7 @@ class WebsiteKnowledgeBase(AgentKnowledge):
                     log_debug(f"Skipping {url} as it exists in the vector db")
                     urls_to_read.remove(url)
 
-        async def process_url(url: str) -> List[Document]:
+        async def process_url(url: str) -> list[Document]:
             try:
                 document_list = await reader.async_read(url=url)
 

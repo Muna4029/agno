@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Mapping, Optional
+from typing import Any
 
 from agno.utils.log import logger
 
@@ -13,29 +14,29 @@ class AgentSession:
     # Session UUID
     session_id: str
     # ID of the user interacting with this agent
-    user_id: Optional[str] = None
+    user_id: str | None = None
     # ID of the team session this agent session is associated with
-    team_session_id: Optional[str] = None
+    team_session_id: str | None = None
     # Agent Memory
-    memory: Optional[Dict[str, Any]] = None
+    memory: dict[str, Any] | None = None
     # Session Data: session_name, session_state, images, videos, audio
-    session_data: Optional[Dict[str, Any]] = None
+    session_data: dict[str, Any] | None = None
     # Extra Data stored with this agent
-    extra_data: Optional[Dict[str, Any]] = None
+    extra_data: dict[str, Any] | None = None
     # The unix timestamp when this session was created
-    created_at: Optional[int] = None
+    created_at: int | None = None
     # The unix timestamp when this session was last updated
-    updated_at: Optional[int] = None
+    updated_at: int | None = None
 
     # ID of the agent that this session is associated with
-    agent_id: Optional[str] = None
+    agent_id: str | None = None
     # Agent Data: agent_id, name and model
-    agent_data: Optional[Dict[str, Any]] = None
+    agent_data: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
-    def telemetry_data(self) -> Dict[str, Any]:
+    def telemetry_data(self) -> dict[str, Any]:
         return {
             "model": self.agent_data.get("model") if self.agent_data else None,
             "created_at": self.created_at,
@@ -43,7 +44,7 @@ class AgentSession:
         }
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> Optional[AgentSession]:
+    def from_dict(cls, data: Mapping[str, Any]) -> AgentSession | None:
         if data is None or data.get("session_id") is None:
             logger.warning("AgentSession is missing session_id")
             return None

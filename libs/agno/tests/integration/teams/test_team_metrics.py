@@ -1,5 +1,5 @@
+from collections.abc import Iterator
 from dataclasses import replace
-from typing import Iterator
 
 from agno.agent import Agent
 from agno.agent.metrics import SessionMetrics

@@ -1,5 +1,4 @@
 import json
-from typing import List
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -54,7 +53,7 @@ def singlestore_db(mock_engine, mock_session, mock_embedder):
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Fixture to create sample documents"""
     return [
         Document(

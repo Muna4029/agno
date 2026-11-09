@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import io
-from typing import IO, AsyncIterator, Iterator, List, Union
+from collections.abc import AsyncIterator, Iterator
+from typing import IO
 
 from pydantic import Field
 
@@ -9,14 +12,14 @@ from agno.knowledge.agent import AgentKnowledge
 
 
 class PDFBytesKnowledgeBase(AgentKnowledge):
-    pdfs: Union[List[bytes], List[IO]]
+    pdfs: list[bytes] | list[IO]
 
-    exclude_files: List[str] = Field(default_factory=list)
+    exclude_files: list[str] = Field(default_factory=list)
 
-    reader: Union[PDFReader, PDFImageReader] = PDFReader()
+    reader: PDFReader | PDFImageReader = PDFReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over PDFs bytes and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -29,7 +32,7 @@ class PDFBytesKnowledgeBase(AgentKnowledge):
             yield self.reader.read(pdf=_pdf)
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Iterate over PDFs bytes and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 

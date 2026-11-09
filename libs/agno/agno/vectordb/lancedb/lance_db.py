@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     import lancedb
@@ -42,20 +44,20 @@ class LanceDb(VectorDb):
     def __init__(
         self,
         uri: lancedb.URI = "/tmp/lancedb",
-        connection: Optional[lancedb.LanceDBConnection] = None,
-        table: Optional[lancedb.db.LanceTable] = None,
-        async_connection: Optional[lancedb.AsyncConnection] = None,
-        async_table: Optional[lancedb.db.AsyncTable] = None,
-        table_name: Optional[str] = None,
-        api_key: Optional[str] = None,
-        embedder: Optional[Embedder] = None,
+        connection: lancedb.LanceDBConnection | None = None,
+        table: lancedb.db.LanceTable | None = None,
+        async_connection: lancedb.AsyncConnection | None = None,
+        async_table: lancedb.db.AsyncTable | None = None,
+        table_name: str | None = None,
+        api_key: str | None = None,
+        embedder: Embedder | None = None,
         search_type: SearchType = SearchType.vector,
         distance: Distance = Distance.cosine,
-        nprobes: Optional[int] = None,
-        reranker: Optional[Reranker] = None,
+        nprobes: int | None = None,
+        reranker: Reranker | None = None,
         use_tantivy: bool = True,
-        on_bad_vectors: Optional[str] = None,  # One of "error", "drop", "fill", "null".
-        fill_value: Optional[float] = None,  # Only used if on_bad_vectors is "fill"
+        on_bad_vectors: str | None = None,  # One of "error", "drop", "fill", "null".
+        fill_value: float | None = None,  # Only used if on_bad_vectors is "fill"
     ):
         # Embedder for embedding the document contents
         if embedder is None:
@@ -64,7 +66,7 @@ class LanceDb(VectorDb):
             embedder = OpenAIEmbedder()
             log_info("Embedder not provided, using OpenAIEmbedder as default.")
         self.embedder: Embedder = embedder
-        self.dimensions: Optional[int] = self.embedder.dimensions
+        self.dimensions: int | None = self.embedder.dimensions
 
         if self.dimensions is None:
             raise ValueError("Embedder.dimensions must be set.")
@@ -77,10 +79,10 @@ class LanceDb(VectorDb):
         # LanceDB connection details
         self.uri: lancedb.URI = uri
         self.connection: lancedb.LanceDBConnection = connection or lancedb.connect(uri=self.uri, api_key=api_key)
-        self.table: Optional[lancedb.db.LanceTable] = table
+        self.table: lancedb.db.LanceTable | None = table
 
-        self.async_connection: Optional[lancedb.AsyncConnection] = async_connection
-        self.async_table: Optional[lancedb.db.AsyncTable] = async_table
+        self.async_connection: lancedb.AsyncConnection | None = async_connection
+        self.async_table: lancedb.db.AsyncTable | None = async_table
 
         if table_name and table_name in self.connection.table_names():
             # Open the table if it exists
@@ -110,10 +112,10 @@ class LanceDb(VectorDb):
                 self._vector_col = "vector"
                 self.table = self._init_table()
 
-        self.reranker: Optional[Reranker] = reranker
-        self.nprobes: Optional[int] = nprobes
-        self.on_bad_vectors: Optional[str] = on_bad_vectors
-        self.fill_value: Optional[float] = fill_value
+        self.reranker: Reranker | None = reranker
+        self.nprobes: int | None = nprobes
+        self.on_bad_vectors: str | None = on_bad_vectors
+        self.fill_value: float | None = fill_value
         self.fts_index_exists = False
         self.use_tantivy = use_tantivy
 
@@ -122,7 +124,7 @@ class LanceDb(VectorDb):
                 import tantivy  # noqa: F401
             except ImportError:
                 raise ImportError(
-                    "Please install tantivy-py `pip install tantivy` to use the full text search feature."  # noqa: E501
+                    "Please install tantivy-py `pip install tantivy` to use the full text search feature."
                 )
 
         log_debug(f"Initialized LanceDb with table: '{self.table_name}'")
@@ -204,7 +206,7 @@ class LanceDb(VectorDb):
             self.table = self.connection.open_table(name=self.table_name)
         return self.doc_exists(document)
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Insert documents into the database.
 
@@ -262,7 +264,7 @@ class LanceDb(VectorDb):
 
         log_debug(f"Inserted {len(data)} documents")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Asynchronously insert documents into the database.
 
@@ -323,7 +325,7 @@ class LanceDb(VectorDb):
             logger.error(f"Error during async document insertion: {e}")
             raise
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Upsert documents into the database.
 
@@ -333,10 +335,10 @@ class LanceDb(VectorDb):
         """
         self.insert(documents, filters=filters)
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         await self.async_insert(documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents matching the query.
 
@@ -393,9 +395,7 @@ class LanceDb(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+    async def async_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Asynchronously search for documents matching the query.
 
@@ -453,7 +453,7 @@ class LanceDb(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def vector_search(self, query: str, limit: int = 5) -> List[Document]:
+    def vector_search(self, query: str, limit: int = 5) -> list[Document]:
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
             logger.error(f"Error getting embedding for Query: {query}")
@@ -473,7 +473,7 @@ class LanceDb(VectorDb):
 
         return results.to_pandas()
 
-    def hybrid_search(self, query: str, limit: int = 5) -> List[Document]:
+    def hybrid_search(self, query: str, limit: int = 5) -> list[Document]:
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
             logger.error(f"Error getting embedding for Query: {query}")
@@ -502,7 +502,7 @@ class LanceDb(VectorDb):
 
         return results.to_pandas()
 
-    def keyword_search(self, query: str, limit: int = 5) -> List[Document]:
+    def keyword_search(self, query: str, limit: int = 5) -> list[Document]:
         if self.table is None:
             logger.error("Table not initialized. Please create the table first")
             return []
@@ -518,8 +518,8 @@ class LanceDb(VectorDb):
 
         return results.to_pandas()
 
-    def _build_search_results(self, results) -> List[Document]:  # TODO: typehint pandas?
-        search_results: List[Document] = []
+    def _build_search_results(self, results) -> list[Document]:  # TODO: typehint pandas?
+        search_results: list[Document] = []
         try:
             for _, item in results.iterrows():
                 payload = json.loads(item["payload"])

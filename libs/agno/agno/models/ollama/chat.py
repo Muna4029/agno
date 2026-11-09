@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import json
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator, List, Mapping, Optional, Type, Union
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -33,21 +36,21 @@ class Ollama(Model):
     supports_native_structured_outputs: bool = True
 
     # Request parameters
-    format: Optional[Any] = None
-    options: Optional[Any] = None
-    keep_alive: Optional[Union[float, str]] = None
-    request_params: Optional[Dict[str, Any]] = None
+    format: Any | None = None
+    options: Any | None = None
+    keep_alive: float | str | None = None
+    request_params: dict[str, Any] | None = None
 
     # Client parameters
-    host: Optional[str] = None
-    timeout: Optional[Any] = None
-    client_params: Optional[Dict[str, Any]] = None
+    host: str | None = None
+    timeout: Any | None = None
+    client_params: dict[str, Any] | None = None
 
     # Ollama clients
-    client: Optional[OllamaClient] = None
-    async_client: Optional[AsyncOllamaClient] = None
+    client: OllamaClient | None = None
+    async_client: AsyncOllamaClient | None = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         base_params = {
             "host": self.host,
             "timeout": self.timeout,
@@ -86,8 +89,8 @@ class Ollama(Model):
 
     def get_request_params(
         self,
-        tools: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        tools: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
@@ -109,7 +112,7 @@ class Ollama(Model):
             log_debug(f"Calling {self.provider} with request parameters: {request_params}", log_level=2)
         return request_params
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the model to a dictionary.
 
@@ -128,7 +131,7 @@ class Ollama(Model):
         cleaned_dict = {k: v for k, v in model_dict.items() if v is not None}
         return cleaned_dict
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Format a message into the format expected by Ollama.
 
@@ -138,7 +141,7 @@ class Ollama(Model):
         Returns:
             Dict[str, Any]: The formatted message.
         """
-        _message: Dict[str, Any] = {
+        _message: dict[str, Any] = {
             "role": message.role,
             "content": message.content,
         }
@@ -168,9 +171,9 @@ class Ollama(Model):
 
     def _prepare_request_kwargs_for_invoke(
         self,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         request_kwargs = self.get_request_params(tools=tools)
         if response_format is not None and isinstance(response_format, type) and issubclass(response_format, BaseModel):
             log_debug("Using structured outputs")
@@ -181,10 +184,10 @@ class Ollama(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Mapping[str, Any]:
         """
         Send a chat request to the Ollama API.
@@ -199,10 +202,10 @@ class Ollama(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Mapping[str, Any]:
         """
         Sends an asynchronous chat request to the Ollama API.
@@ -217,10 +220,10 @@ class Ollama(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[Mapping[str, Any]]:
         """
         Sends a streaming chat request to the Ollama API.
@@ -234,10 +237,10 @@ class Ollama(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Sends an asynchronous streaming chat completion request to the Ollama API.
@@ -254,7 +257,7 @@ class Ollama(Model):
     def parse_provider_response(
         self,
         response: ChatResponse,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
     ) -> ModelResponse:
         """
         Parse the provider response.

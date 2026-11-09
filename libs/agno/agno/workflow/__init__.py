@@ -10,8 +10,8 @@ __all__ = [
     "RunEvent",
     "RunResponse",
     "Workflow",
-    "WorkflowSession",
+    "WorkflowCompletedEvent",
     "WorkflowRunResponseEvent",
     "WorkflowRunResponseStartedEvent",
-    "WorkflowCompletedEvent",
+    "WorkflowSession",
 ]

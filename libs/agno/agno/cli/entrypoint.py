@@ -3,7 +3,7 @@
 This is the entrypoint for the `agno` cli application.
 """
 
-from typing import Optional
+from __future__ import annotations
 
 import typer
 
@@ -138,7 +138,7 @@ def config(
     from agno.cli.console import log_config_not_available_msg
     from agno.cli.operator import initialize_agno
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
@@ -183,13 +183,13 @@ def start(
         help="Path to workspace file.",
         show_default=False,
     ),
-    env_filter: Optional[str] = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy"),
-    infra_filter: Optional[str] = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
-    group_filter: Optional[str] = typer.Option(
+    env_filter: str | None = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy"),
+    infra_filter: str | None = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
+    group_filter: str | None = typer.Option(
         None, "-g", "--group", metavar="", help="Filter resources using group name."
     ),
-    name_filter: Optional[str] = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
-    type_filter: Optional[str] = typer.Option(
+    name_filter: str | None = typer.Option(None, "-n", "--name", metavar="", help="Filter resource using name."),
+    type_filter: str | None = typer.Option(
         None,
         "-t",
         "--type",
@@ -220,7 +220,7 @@ def start(
         "--force",
         help="Force",
     ),
-    pull: Optional[bool] = typer.Option(
+    pull: bool | None = typer.Option(
         None,
         "-p",
         "--pull",
@@ -243,18 +243,18 @@ def start(
     from agno.cli.console import log_config_not_available_msg
     from agno.cli.operator import initialize_agno, start_resources
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
             log_config_not_available_msg()
             return
 
-    target_env: Optional[str] = None
-    target_infra: Optional[str] = None
-    target_group: Optional[str] = None
-    target_name: Optional[str] = None
-    target_type: Optional[str] = None
+    target_env: str | None = None
+    target_infra: str | None = None
+    target_group: str | None = None
+    target_name: str | None = None
+    target_type: str | None = None
 
     if env_filter is not None and isinstance(env_filter, str):
         target_env = env_filter
@@ -267,7 +267,7 @@ def start(
     if type_filter is not None and isinstance(type_filter, str):
         target_type = type_filter
 
-    resources_file_path: Path = Path(".").resolve().joinpath(resources_file)
+    resources_file_path: Path = Path.cwd().joinpath(resources_file)
     start_resources(
         agno_config=agno_config,
         resources_file_path=resources_file_path,
@@ -290,13 +290,13 @@ def stop(
         help="Path to workspace file.",
         show_default=False,
     ),
-    env_filter: Optional[str] = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy"),
-    infra_filter: Optional[str] = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
-    group_filter: Optional[str] = typer.Option(
+    env_filter: str | None = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy"),
+    infra_filter: str | None = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
+    group_filter: str | None = typer.Option(
         None, "-g", "--group", metavar="", help="Filter resources using group name."
     ),
-    name_filter: Optional[str] = typer.Option(None, "-n", "--name", metavar="", help="Filter using resource name"),
-    type_filter: Optional[str] = typer.Option(
+    name_filter: str | None = typer.Option(None, "-n", "--name", metavar="", help="Filter using resource name"),
+    type_filter: str | None = typer.Option(
         None,
         "-t",
         "--type",
@@ -344,18 +344,18 @@ def stop(
     from agno.cli.console import log_config_not_available_msg
     from agno.cli.operator import initialize_agno, stop_resources
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
             log_config_not_available_msg()
             return
 
-    target_env: Optional[str] = None
-    target_infra: Optional[str] = None
-    target_group: Optional[str] = None
-    target_name: Optional[str] = None
-    target_type: Optional[str] = None
+    target_env: str | None = None
+    target_infra: str | None = None
+    target_group: str | None = None
+    target_name: str | None = None
+    target_type: str | None = None
 
     if env_filter is not None and isinstance(env_filter, str):
         target_env = env_filter
@@ -368,7 +368,7 @@ def stop(
     if type_filter is not None and isinstance(type_filter, str):
         target_type = type_filter
 
-    resources_file_path: Path = Path(".").resolve().joinpath(resources_file)
+    resources_file_path: Path = Path.cwd().joinpath(resources_file)
     stop_resources(
         agno_config=agno_config,
         resources_file_path=resources_file_path,
@@ -390,14 +390,14 @@ def patch(
         help="Path to workspace file.",
         show_default=False,
     ),
-    env_filter: Optional[str] = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy"),
-    infra_filter: Optional[str] = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
-    config_filter: Optional[str] = typer.Option(None, "-c", "--config", metavar="", help="Filter the config to deploy"),
-    group_filter: Optional[str] = typer.Option(
+    env_filter: str | None = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy"),
+    infra_filter: str | None = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
+    config_filter: str | None = typer.Option(None, "-c", "--config", metavar="", help="Filter the config to deploy"),
+    group_filter: str | None = typer.Option(
         None, "-g", "--group", metavar="", help="Filter resources using group name."
     ),
-    name_filter: Optional[str] = typer.Option(None, "-n", "--name", metavar="", help="Filter using resource name"),
-    type_filter: Optional[str] = typer.Option(
+    name_filter: str | None = typer.Option(None, "-n", "--name", metavar="", help="Filter using resource name"),
+    type_filter: str | None = typer.Option(
         None,
         "-t",
         "--type",
@@ -445,18 +445,18 @@ def patch(
     from agno.cli.console import log_config_not_available_msg
     from agno.cli.operator import initialize_agno, patch_resources
 
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
             log_config_not_available_msg()
             return
 
-    target_env: Optional[str] = None
-    target_infra: Optional[str] = None
-    target_group: Optional[str] = None
-    target_name: Optional[str] = None
-    target_type: Optional[str] = None
+    target_env: str | None = None
+    target_infra: str | None = None
+    target_group: str | None = None
+    target_name: str | None = None
+    target_type: str | None = None
 
     if env_filter is not None and isinstance(env_filter, str):
         target_env = env_filter
@@ -469,7 +469,7 @@ def patch(
     if type_filter is not None and isinstance(type_filter, str):
         target_type = type_filter
 
-    resources_file_path: Path = Path(".").resolve().joinpath(resources_file)
+    resources_file_path: Path = Path.cwd().joinpath(resources_file)
     patch_resources(
         agno_config=agno_config,
         resources_file_path=resources_file_path,
@@ -491,13 +491,13 @@ def restart(
         help="Path to workspace file.",
         show_default=False,
     ),
-    env_filter: Optional[str] = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy"),
-    infra_filter: Optional[str] = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
-    group_filter: Optional[str] = typer.Option(
+    env_filter: str | None = typer.Option(None, "-e", "--env", metavar="", help="Filter the environment to deploy"),
+    infra_filter: str | None = typer.Option(None, "-i", "--infra", metavar="", help="Filter the infra to deploy."),
+    group_filter: str | None = typer.Option(
         None, "-g", "--group", metavar="", help="Filter resources using group name."
     ),
-    name_filter: Optional[str] = typer.Option(None, "-n", "--name", metavar="", help="Filter using resource name"),
-    type_filter: Optional[str] = typer.Option(
+    name_filter: str | None = typer.Option(None, "-n", "--name", metavar="", help="Filter using resource name"),
+    type_filter: str | None = typer.Option(
         None,
         "-t",
         "--type",

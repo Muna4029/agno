@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+from collections.abc import Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -35,36 +38,36 @@ class Groq(Model):
     provider: str = "Groq"
 
     # Request parameters
-    frequency_penalty: Optional[float] = None
-    logit_bias: Optional[Any] = None
-    logprobs: Optional[bool] = None
-    max_tokens: Optional[int] = None
-    presence_penalty: Optional[float] = None
-    seed: Optional[int] = None
-    stop: Optional[Union[str, List[str]]] = None
-    temperature: Optional[float] = None
-    top_logprobs: Optional[int] = None
-    top_p: Optional[float] = None
-    user: Optional[str] = None
-    extra_headers: Optional[Any] = None
-    extra_query: Optional[Any] = None
-    request_params: Optional[Dict[str, Any]] = None
+    frequency_penalty: float | None = None
+    logit_bias: Any | None = None
+    logprobs: bool | None = None
+    max_tokens: int | None = None
+    presence_penalty: float | None = None
+    seed: int | None = None
+    stop: str | list[str] | None = None
+    temperature: float | None = None
+    top_logprobs: int | None = None
+    top_p: float | None = None
+    user: str | None = None
+    extra_headers: Any | None = None
+    extra_query: Any | None = None
+    request_params: dict[str, Any] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
-    base_url: Optional[Union[str, httpx.URL]] = None
-    timeout: Optional[int] = None
-    max_retries: Optional[int] = None
-    default_headers: Optional[Any] = None
-    default_query: Optional[Any] = None
-    http_client: Optional[httpx.Client] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    base_url: str | httpx.URL | None = None
+    timeout: int | None = None
+    max_retries: int | None = None
+    default_headers: Any | None = None
+    default_query: Any | None = None
+    http_client: httpx.Client | None = None
+    client_params: dict[str, Any] | None = None
 
     # Groq clients
-    client: Optional[GroqClient] = None
-    async_client: Optional[AsyncGroqClient] = None
+    client: GroqClient | None = None
+    async_client: AsyncGroqClient | None = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Fetch API key from env if not already set
         if not self.api_key:
             self.api_key = getenv("GROQ_API_KEY")
@@ -97,7 +100,7 @@ class Groq(Model):
         if self.client and not self.client.is_closed():
             return self.client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client is not None:
             client_params["http_client"] = self.http_client
 
@@ -114,7 +117,7 @@ class Groq(Model):
         if self.async_client:
             return self.async_client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client:
             client_params["http_client"] = self.http_client
         else:
@@ -126,10 +129,10 @@ class Groq(Model):
 
     def get_request_params(
         self,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
@@ -168,7 +171,7 @@ class Groq(Model):
             log_debug(f"Calling {self.provider} with request parameters: {request_params}", log_level=2)
         return request_params
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the model to a dictionary.
 
@@ -199,8 +202,8 @@ class Groq(Model):
     def format_message(
         self,
         message: Message,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-    ) -> Dict[str, Any]:
+        response_format: dict | type[BaseModel] | None = None,
+    ) -> dict[str, Any]:
         """
         Format a message into the format expected by Groq.
 
@@ -210,7 +213,7 @@ class Groq(Model):
         Returns:
             Dict[str, Any]: The formatted message.
         """
-        message_dict: Dict[str, Any] = {
+        message_dict: dict[str, Any] = {
             "role": message.role,
             "content": message.content,
             "name": message.name,
@@ -249,10 +252,10 @@ class Groq(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> ChatCompletion:
         """
         Send a chat completion request to the Groq API.
@@ -264,23 +267,23 @@ class Groq(Model):
                 **self.get_request_params(response_format=response_format, tools=tools, tool_choice=tool_choice),
             )
         except (APIResponseValidationError, APIStatusError) as e:
-            log_error(f"Error calling Groq API: {str(e)}")
+            log_error(f"Error calling Groq API: {e!s}")
             raise ModelProviderError(
                 message=e.response.text, status_code=e.response.status_code, model_name=self.name, model_id=self.id
             ) from e
         except APIError as e:
-            log_error(f"Error calling Groq API: {str(e)}")
+            log_error(f"Error calling Groq API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Groq API: {str(e)}")
+            log_error(f"Unexpected error calling Groq API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> ChatCompletion:
         """
         Sends an asynchronous chat completion request to the Groq API.
@@ -292,23 +295,23 @@ class Groq(Model):
                 **self.get_request_params(response_format=response_format, tools=tools, tool_choice=tool_choice),
             )
         except (APIResponseValidationError, APIStatusError) as e:
-            log_error(f"Error calling Groq API: {str(e)}")
+            log_error(f"Error calling Groq API: {e!s}")
             raise ModelProviderError(
                 message=e.response.text, status_code=e.response.status_code, model_name=self.name, model_id=self.id
             ) from e
         except APIError as e:
-            log_error(f"Error calling Groq API: {str(e)}")
+            log_error(f"Error calling Groq API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Groq API: {str(e)}")
+            log_error(f"Unexpected error calling Groq API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ChatCompletionChunk]:
         """
         Send a streaming chat completion request to the Groq API.
@@ -321,23 +324,23 @@ class Groq(Model):
                 **self.get_request_params(response_format=response_format, tools=tools, tool_choice=tool_choice),
             )
         except (APIResponseValidationError, APIStatusError) as e:
-            log_error(f"Error calling Groq API: {str(e)}")
+            log_error(f"Error calling Groq API: {e!s}")
             raise ModelProviderError(
                 message=e.response.text, status_code=e.response.status_code, model_name=self.name, model_id=self.id
             ) from e
         except APIError as e:
-            log_error(f"Error calling Groq API: {str(e)}")
+            log_error(f"Error calling Groq API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Groq API: {str(e)}")
+            log_error(f"Unexpected error calling Groq API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Sends an asynchronous streaming chat completion request to the Groq API.
@@ -353,20 +356,20 @@ class Groq(Model):
             async for chunk in stream:  # type: ignore
                 yield chunk
         except (APIResponseValidationError, APIStatusError) as e:
-            log_error(f"Error calling Groq API: {str(e)}")
+            log_error(f"Error calling Groq API: {e!s}")
             raise ModelProviderError(
                 message=e.response.text, status_code=e.response.status_code, model_name=self.name, model_id=self.id
             ) from e
         except APIError as e:
-            log_error(f"Error calling Groq API: {str(e)}")
+            log_error(f"Error calling Groq API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Groq API: {str(e)}")
+            log_error(f"Unexpected error calling Groq API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     # Override base method
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[ChoiceDeltaToolCall]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[ChoiceDeltaToolCall]) -> list[dict[str, Any]]:
         """
         Build tool calls from streamed tool call data.
 
@@ -376,7 +379,7 @@ class Groq(Model):
         Returns:
             List[Dict[str, Any]]: The built tool calls.
         """
-        tool_calls: List[Dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
         for _tool_call in tool_calls_data:
             _index = _tool_call.index
             _tool_call_id = _tool_call.id

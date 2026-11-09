@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 from uuid import UUID
 
 from agno.storage.base import Storage
@@ -26,10 +28,10 @@ class FirestoreStorage(Storage):
     def __init__(
         self,
         collection_name: str,
-        db_name: Optional[str] = "(default)",
-        project_id: Optional[str] = None,
-        client: Optional[Client] = None,
-        mode: Optional[Literal["agent", "team", "workflow"]] = "agent",
+        db_name: str | None = "(default)",
+        project_id: str | None = None,
+        client: Client | None = None,
+        mode: Literal["agent", "team", "workflow"] | None = "agent",
     ):
         super().__init__(mode)
         self.collection_name = collection_name
@@ -79,10 +81,10 @@ class FirestoreStorage(Storage):
             self._delete_document(document)
 
     def _build_query(
-        self, base_query: CollectionReference, user_id: Optional[str] = None, entity_id: Optional[str] = None
-    ) -> Union[Query, CollectionReference]:
+        self, base_query: CollectionReference, user_id: str | None = None, entity_id: str | None = None
+    ) -> Query | CollectionReference:
         """Build a Firestore query with optional filters."""
-        query: Union[Query, CollectionReference] = base_query
+        query: Query | CollectionReference = base_query
 
         if user_id:
             query = query.where(filter=FieldFilter("user_id", "==", user_id))
@@ -97,7 +99,7 @@ class FirestoreStorage(Storage):
 
         return query
 
-    def _parse_session(self, doc_data: Optional[Dict[str, Any]]) -> Optional[Session]:
+    def _parse_session(self, doc_data: dict[str, Any] | None) -> Session | None:
         """Parse document data into appropriate Session type."""
         if not doc_data:
             return None
@@ -126,7 +128,7 @@ class FirestoreStorage(Storage):
             logger.error(f"Could not connect to Firestore: {e}")
             raise
 
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         """Read a session from Firestore."""
         try:
             query = self.collection.where(filter=FieldFilter("session_id", "==", session_id))
@@ -145,14 +147,14 @@ class FirestoreStorage(Storage):
             logger.error(f"Error reading session: {e}")
             return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: str | None = None, entity_id: str | None = None) -> list[str]:
         """Get all session IDs, optionally filtered by user_id and/or entity_id."""
         try:
             query = self._build_query(self.collection, user_id, entity_id)
             docs = query.get()
 
             # Sort by created_at descending and extract session IDs
-            session_ids: List[str] = []
+            session_ids: list[str] = []
             doc_list = []
             for doc in docs:
                 doc_data = doc.to_dict()
@@ -171,9 +173,9 @@ class FirestoreStorage(Storage):
             logger.error(f"Error getting session IDs: {e}")
             return []
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
         """Get all sessions, optionally filtered by user_id and/or entity_id."""
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         try:
             query = self._build_query(self.collection, user_id, entity_id)
             docs = query.get()
@@ -199,12 +201,12 @@ class FirestoreStorage(Storage):
 
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending."""
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         try:
             query = self._build_query(self.collection, user_id, entity_id)
             docs = query.get()
@@ -232,7 +234,7 @@ class FirestoreStorage(Storage):
             logger.error(f"Error getting recent sessions: {e}")
             return []
 
-    def upsert(self, session: Session, create_and_retry: bool = True) -> Optional[Session]:
+    def upsert(self, session: Session, create_and_retry: bool = True) -> Session | None:
         """Insert or update a session in Firestore."""
         try:
             # Prepare session data
@@ -264,7 +266,7 @@ class FirestoreStorage(Storage):
             logger.error(f"Error upserting session: {e}")
             return None
 
-    def delete_session(self, session_id: Optional[str] = None) -> None:
+    def delete_session(self, session_id: str | None = None) -> None:
         """Delete a session from Firestore."""
         if session_id is None:
             logger.warning("No session_id provided for deletion")
@@ -289,4 +291,3 @@ class FirestoreStorage(Storage):
         Upgrade the schema of the storage.
         For Firestore, this is a no-op as it's schema-less.
         """
-        pass

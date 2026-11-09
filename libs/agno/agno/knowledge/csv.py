@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+from typing import Any
 
 from pydantic import Field
 
@@ -10,13 +13,13 @@ from agno.utils.log import log_info, logger
 
 
 class CSVKnowledgeBase(AgentKnowledge):
-    path: Optional[Union[str, Path, List[Dict[str, Union[str, Dict[str, Any]]]]]] = None
-    formats: List[str] = [".csv"]
-    exclude_files: List[str] = Field(default_factory=list)
+    path: str | Path | list[dict[str, str | dict[str, Any]]] | None = None
+    formats: list[str] = [".csv"]
+    exclude_files: list[str] = Field(default_factory=list)
     reader: CSVReader = CSVReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over CSV files and yield lists of documents."""
         if self.path is None:
             raise ValueError("Path is not set")
@@ -50,7 +53,7 @@ class CSVKnowledgeBase(AgentKnowledge):
         return path.exists() and path.is_file() and path.suffix == ".csv" and path.name not in self.exclude_files
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Iterate over CSV files and yield lists of documents asynchronously."""
         if self.path is None:
             raise ValueError("Path is not set")
@@ -81,8 +84,8 @@ class CSVKnowledgeBase(AgentKnowledge):
 
     def load_document(
         self,
-        path: Union[str, Path],
-        metadata: Optional[Dict[str, Any]] = None,
+        path: str | Path,
+        metadata: dict[str, Any] | None = None,
         recreate: bool = False,
         upsert: bool = False,
         skip_existing: bool = True,
@@ -113,8 +116,8 @@ class CSVKnowledgeBase(AgentKnowledge):
 
     async def aload_document(
         self,
-        path: Union[str, Path],
-        metadata: Optional[Dict[str, Any]] = None,
+        path: str | Path,
+        metadata: dict[str, Any] | None = None,
         recreate: bool = False,
         upsert: bool = False,
         skip_existing: bool = True,

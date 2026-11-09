@@ -1,6 +1,6 @@
 """Tests for schema_utils module"""
 
-from typing import Dict, List, Optional
+from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
@@ -20,16 +20,16 @@ class SimpleModel(BaseModel):
 
 class DictModel(BaseModel):
     name: str = Field(..., description="Name field")
-    rating: Dict[str, int] = Field(..., description="Rating dictionary")
-    scores: Dict[str, float] = Field(..., description="Score dictionary")
-    metadata: Dict[str, str] = Field(..., description="Metadata dictionary")
+    rating: dict[str, int] = Field(..., description="Rating dictionary")
+    scores: dict[str, float] = Field(..., description="Score dictionary")
+    metadata: dict[str, str] = Field(..., description="Metadata dictionary")
 
 
 class ComplexModel(BaseModel):
     name: str = Field(..., description="Name field")
-    rating: Dict[str, int] = Field(..., description="Rating dictionary")
-    tags: List[str] = Field(..., description="List of tags")
-    optional_field: Optional[str] = Field(None, description="Optional field")
+    rating: dict[str, int] = Field(..., description="Rating dictionary")
+    tags: list[str] = Field(..., description="List of tags")
+    optional_field: str | None = Field(None, description="Optional field")
 
 
 def test_is_dict_field_positive():

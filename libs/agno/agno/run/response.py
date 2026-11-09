@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from time import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 from pydantic import BaseModel
 
@@ -44,12 +46,12 @@ class BaseAgentRunResponseEvent(BaseRunResponseEvent):
     event: str = ""
     agent_id: str = ""
     agent_name: str = ""
-    run_id: Optional[str] = None
-    session_id: Optional[str] = None
-    team_session_id: Optional[str] = None
+    run_id: str | None = None
+    session_id: str | None = None
+    team_session_id: str | None = None
 
     # For backwards compatibility
-    content: Optional[Any] = None
+    content: Any | None = None
 
 
 @dataclass
@@ -66,34 +68,34 @@ class RunResponseContentEvent(BaseAgentRunResponseEvent):
     """Main event for each delta of the RunResponse"""
 
     event: str = RunEvent.run_response_content.value
-    content: Optional[Any] = None
+    content: Any | None = None
     content_type: str = "str"
-    thinking: Optional[str] = None
-    citations: Optional[Citations] = None
-    response_audio: Optional[AudioResponse] = None  # Model audio response
-    image: Optional[ImageArtifact] = None  # Image attached to the response
-    extra_data: Optional[RunResponseExtraData] = None
+    thinking: str | None = None
+    citations: Citations | None = None
+    response_audio: AudioResponse | None = None  # Model audio response
+    image: ImageArtifact | None = None  # Image attached to the response
+    extra_data: RunResponseExtraData | None = None
 
 
 @dataclass
 class RunResponseCompletedEvent(BaseAgentRunResponseEvent):
     event: str = RunEvent.run_completed.value
-    content: Optional[Any] = None
+    content: Any | None = None
     content_type: str = "str"
-    reasoning_content: Optional[str] = None
-    thinking: Optional[str] = None
-    citations: Optional[Citations] = None
-    images: Optional[List[ImageArtifact]] = None  # Images attached to the response
-    videos: Optional[List[VideoArtifact]] = None  # Videos attached to the response
-    audio: Optional[List[AudioArtifact]] = None  # Audio attached to the response
-    response_audio: Optional[AudioResponse] = None  # Model audio response
-    extra_data: Optional[RunResponseExtraData] = None
+    reasoning_content: str | None = None
+    thinking: str | None = None
+    citations: Citations | None = None
+    images: list[ImageArtifact] | None = None  # Images attached to the response
+    videos: list[VideoArtifact] | None = None  # Videos attached to the response
+    audio: list[AudioArtifact] | None = None  # Audio attached to the response
+    response_audio: AudioResponse | None = None  # Model audio response
+    extra_data: RunResponseExtraData | None = None
 
 
 @dataclass
 class RunResponsePausedEvent(BaseAgentRunResponseEvent):
     event: str = RunEvent.run_paused.value
-    tools: Optional[List[ToolExecution]] = None
+    tools: list[ToolExecution] | None = None
 
     @property
     def is_paused(self):
@@ -108,13 +110,13 @@ class RunResponseContinuedEvent(BaseAgentRunResponseEvent):
 @dataclass
 class RunResponseErrorEvent(BaseAgentRunResponseEvent):
     event: str = RunEvent.run_error.value
-    content: Optional[str] = None
+    content: str | None = None
 
 
 @dataclass
 class RunResponseCancelledEvent(BaseAgentRunResponseEvent):
     event: str = RunEvent.run_cancelled.value
-    reason: Optional[str] = None
+    reason: str | None = None
 
     @property
     def is_cancelled(self):
@@ -139,7 +141,7 @@ class ReasoningStartedEvent(BaseAgentRunResponseEvent):
 @dataclass
 class ReasoningStepEvent(BaseAgentRunResponseEvent):
     event: str = RunEvent.reasoning_step.value
-    content: Optional[Any] = None
+    content: Any | None = None
     content_type: str = "str"
     reasoning_content: str = ""
 
@@ -147,24 +149,24 @@ class ReasoningStepEvent(BaseAgentRunResponseEvent):
 @dataclass
 class ReasoningCompletedEvent(BaseAgentRunResponseEvent):
     event: str = RunEvent.reasoning_completed.value
-    content: Optional[Any] = None
+    content: Any | None = None
     content_type: str = "str"
 
 
 @dataclass
 class ToolCallStartedEvent(BaseAgentRunResponseEvent):
     event: str = RunEvent.tool_call_started.value
-    tool: Optional[ToolExecution] = None
+    tool: ToolExecution | None = None
 
 
 @dataclass
 class ToolCallCompletedEvent(BaseAgentRunResponseEvent):
     event: str = RunEvent.tool_call_completed.value
-    tool: Optional[ToolExecution] = None
-    content: Optional[Any] = None
-    images: Optional[List[ImageArtifact]] = None  # Images produced by the tool call
-    videos: Optional[List[VideoArtifact]] = None  # Videos produced by the tool call
-    audio: Optional[List[AudioArtifact]] = None  # Audio produced by the tool call
+    tool: ToolExecution | None = None
+    content: Any | None = None
+    images: list[ImageArtifact] | None = None  # Images produced by the tool call
+    videos: list[VideoArtifact] | None = None  # Videos produced by the tool call
+    audio: list[AudioArtifact] | None = None  # Audio produced by the tool call
 
 
 @dataclass
@@ -230,31 +232,31 @@ def run_response_event_from_dict(data: dict) -> BaseRunResponseEvent:
 class RunResponse:
     """Response returned by Agent.run() or Workflow.run() functions"""
 
-    content: Optional[Any] = None
+    content: Any | None = None
     content_type: str = "str"
-    thinking: Optional[str] = None
-    reasoning_content: Optional[str] = None
-    messages: Optional[List[Message]] = None
-    metrics: Optional[Dict[str, Any]] = None
-    model: Optional[str] = None
-    model_provider: Optional[str] = None
-    run_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    agent_name: Optional[str] = None
-    session_id: Optional[str] = None
-    team_session_id: Optional[str] = None
-    workflow_id: Optional[str] = None
-    tools: Optional[List[ToolExecution]] = None
-    formatted_tool_calls: Optional[List[str]] = None
-    images: Optional[List[ImageArtifact]] = None  # Images attached to the response
-    videos: Optional[List[VideoArtifact]] = None  # Videos attached to the response
-    audio: Optional[List[AudioArtifact]] = None  # Audio attached to the response
-    response_audio: Optional[AudioResponse] = None  # Model audio response
-    citations: Optional[Citations] = None
-    extra_data: Optional[RunResponseExtraData] = None
+    thinking: str | None = None
+    reasoning_content: str | None = None
+    messages: list[Message] | None = None
+    metrics: dict[str, Any] | None = None
+    model: str | None = None
+    model_provider: str | None = None
+    run_id: str | None = None
+    agent_id: str | None = None
+    agent_name: str | None = None
+    session_id: str | None = None
+    team_session_id: str | None = None
+    workflow_id: str | None = None
+    tools: list[ToolExecution] | None = None
+    formatted_tool_calls: list[str] | None = None
+    images: list[ImageArtifact] | None = None  # Images attached to the response
+    videos: list[VideoArtifact] | None = None  # Videos attached to the response
+    audio: list[AudioArtifact] | None = None  # Audio attached to the response
+    response_audio: AudioResponse | None = None  # Model audio response
+    citations: Citations | None = None
+    extra_data: RunResponseExtraData | None = None
     created_at: int = field(default_factory=lambda: int(time()))
 
-    events: Optional[List[RunResponseEvent]] = None
+    events: list[RunResponseEvent] | None = None
 
     status: RunStatus = RunStatus.running
 
@@ -278,7 +280,7 @@ class RunResponse:
     def tools_awaiting_external_execution(self):
         return [t for t in self.tools if t.external_execution_required] if self.tools else []
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = {
             k: v
             for k, v in asdict(self).items()
@@ -372,7 +374,7 @@ class RunResponse:
         return json.dumps(_dict, indent=2)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "RunResponse":
+    def from_dict(cls, data: dict[str, Any]) -> RunResponse:
         events = data.pop("events", None)
         events = [run_response_event_from_dict(event) for event in events] if events else None
 

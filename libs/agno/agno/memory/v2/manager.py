@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from copy import deepcopy
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 from agno.memory.v2.db.base import MemoryDb
 from agno.memory.v2.db.schema import MemoryRow
@@ -17,26 +19,26 @@ class MemoryManager:
     """Model for Memory Manager"""
 
     # Model used for memory management
-    model: Optional[Model] = None
+    model: Model | None = None
 
     # Provide the system message for the manager as a string. If not provided, a default prompt will be used.
-    system_message: Optional[str] = None
+    system_message: str | None = None
 
     # Provide the memory capture instructions for the manager as a string. If not provided, a default prompt will be used.
-    memory_capture_instructions: Optional[str] = None
+    memory_capture_instructions: str | None = None
 
     # Additional instructions for the manager
-    additional_instructions: Optional[str] = None
+    additional_instructions: str | None = None
 
     # Whether memories were created in the last run
     memories_updated: bool = False
 
     def __init__(
         self,
-        model: Optional[Model] = None,
-        system_message: Optional[str] = None,
-        memory_capture_instructions: Optional[str] = None,
-        additional_instructions: Optional[str] = None,
+        model: Model | None = None,
+        system_message: str | None = None,
+        memory_capture_instructions: str | None = None,
+        additional_instructions: str | None = None,
     ):
         self.model = model
         if self.model is not None and isinstance(self.model, str):
@@ -44,10 +46,10 @@ class MemoryManager:
         self.system_message = system_message
         self.memory_capture_instructions = memory_capture_instructions
         self.additional_instructions = additional_instructions
-        self._tools_for_model: Optional[List[Dict[str, Any]]] = None
-        self._functions_for_model: Optional[Dict[str, Function]] = None
+        self._tools_for_model: list[dict[str, Any]] | None = None
+        self._functions_for_model: dict[str, Function] | None = None
 
-    def determine_tools_for_model(self, tools: List[Callable]) -> None:
+    def determine_tools_for_model(self, tools: list[Callable]) -> None:
         # Have to reset each time, because of different user IDs
         self._tools_for_model = []
         self._functions_for_model = {}
@@ -66,7 +68,7 @@ class MemoryManager:
 
     def get_system_message(
         self,
-        existing_memories: Optional[List[Dict[str, Any]]] = None,
+        existing_memories: list[dict[str, Any]] | None = None,
         enable_delete_memory: bool = True,
         enable_clear_memory: bool = True,
     ) -> Message:
@@ -84,8 +86,10 @@ class MemoryManager:
 
         # -*- Return a system message for the memory manager
         system_prompt_lines = [
-            "You are a MemoryManager that is responsible for manging key information about the user. "
-            "You will be provided with a criteria for memories to capture in the <memories_to_capture> section and a list of existing memories in the <existing_memories> section.",
+            (
+                "You are a MemoryManager that is responsible for manging key information about the user. "
+                "You will be provided with a criteria for memories to capture in the <memories_to_capture> section and a list of existing memories in the <existing_memories> section."
+            ),
             "",
             "## When to add or update memories",
             "- Your first task is to decide if a memory needs to be added, updated, or deleted based on the user's message OR if no changes are needed.",
@@ -141,8 +145,8 @@ class MemoryManager:
 
     def create_or_update_memories(
         self,
-        messages: List[Message],
-        existing_memories: List[Dict[str, Any]],
+        messages: list[Message],
+        existing_memories: list[dict[str, Any]],
         user_id: str,
         db: MemoryDb,
         delete_memories: bool = True,
@@ -168,7 +172,7 @@ class MemoryManager:
         )
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [
+        messages_for_model: list[Message] = [
             self.get_system_message(
                 existing_memories=existing_memories,
                 enable_delete_memory=delete_memories,
@@ -190,8 +194,8 @@ class MemoryManager:
 
     async def acreate_or_update_memories(
         self,
-        messages: List[Message],
-        existing_memories: List[Dict[str, Any]],
+        messages: list[Message],
+        existing_memories: list[dict[str, Any]],
         user_id: str,
         db: MemoryDb,
         delete_memories: bool = True,
@@ -217,7 +221,7 @@ class MemoryManager:
         )
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [
+        messages_for_model: list[Message] = [
             self.get_system_message(
                 existing_memories=existing_memories,
                 enable_delete_memory=delete_memories,
@@ -240,7 +244,7 @@ class MemoryManager:
     def run_memory_task(
         self,
         task: str,
-        existing_memories: List[Dict[str, Any]],
+        existing_memories: list[dict[str, Any]],
         user_id: str,
         db: MemoryDb,
         delete_memories: bool = True,
@@ -261,7 +265,7 @@ class MemoryManager:
         )
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [
+        messages_for_model: list[Message] = [
             self.get_system_message(
                 existing_memories, enable_delete_memory=delete_memories, enable_clear_memory=clear_memories
             ),
@@ -283,7 +287,7 @@ class MemoryManager:
     async def arun_memory_task(
         self,
         task: str,
-        existing_memories: List[Dict[str, Any]],
+        existing_memories: list[dict[str, Any]],
         user_id: str,
         db: MemoryDb,
         delete_memories: bool = True,
@@ -304,7 +308,7 @@ class MemoryManager:
         )
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [
+        messages_for_model: list[Message] = [
             self.get_system_message(
                 existing_memories, enable_delete_memory=delete_memories, enable_clear_memory=clear_memories
             ),
@@ -333,10 +337,10 @@ class MemoryManager:
         enable_update_memory: bool = True,
         enable_delete_memory: bool = True,
         enable_clear_memory: bool = True,
-    ) -> List[Callable]:
+    ) -> list[Callable]:
         from datetime import datetime
 
-        def add_memory(memory: str, topics: Optional[List[str]] = None) -> str:
+        def add_memory(memory: str, topics: list[str] | None = None) -> str:
             """Use this function to add a memory to the database.
             Args:
                 memory (str): The memory to be added.
@@ -369,7 +373,7 @@ class MemoryManager:
                 log_warning(f"Error storing memory in db: {e}")
                 return f"Error adding memory: {e}"
 
-        def update_memory(memory_id: str, memory: str, topics: Optional[List[str]] = None) -> str:
+        def update_memory(memory_id: str, memory: str, topics: list[str] | None = None) -> str:
             """Use this function to update an existing memory in the database.
             Args:
                 memory_id (str): The id of the memory to be updated.
@@ -425,7 +429,7 @@ class MemoryManager:
             log_debug("Memory cleared")
             return "Memory cleared successfully"
 
-        functions: List[Callable] = []
+        functions: list[Callable] = []
         if enable_add_memory:
             functions.append(add_memory)
         if enable_update_memory:

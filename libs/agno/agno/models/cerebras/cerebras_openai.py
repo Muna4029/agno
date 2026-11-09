@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -18,14 +20,14 @@ class CerebrasOpenAI(OpenAILike):
 
     parallel_tool_calls: bool = False
     base_url: str = "https://api.cerebras.ai/v1"
-    api_key: Optional[str] = getenv("CEREBRAS_API_KEY", None)
+    api_key: str | None = getenv("CEREBRAS_API_KEY", None)
 
     def get_request_params(
         self,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
@@ -58,7 +60,7 @@ class CerebrasOpenAI(OpenAILike):
             log_debug(f"Calling {self.provider} with request parameters: {request_params}", log_level=2)
         return request_params
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Format a message into the format expected by the Cerebras API.
 
@@ -69,7 +71,7 @@ class CerebrasOpenAI(OpenAILike):
             Dict[str, Any]: The formatted message.
         """
         # Basic message content
-        message_dict: Dict[str, Any] = {
+        message_dict: dict[str, Any] = {
             "role": message.role,
             "content": message.content if message.content is not None else "",
         }

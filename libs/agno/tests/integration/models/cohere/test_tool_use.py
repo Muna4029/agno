@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 import pytest
 
@@ -41,9 +41,8 @@ def test_tool_use_stream():
 
     for chunk in response_stream:
         responses.append(chunk)
-        if chunk.tools:
-            if any(tc.tool_name for tc in chunk.tools):
-                tool_call_seen = True
+        if chunk.tools and any(tc.tool_name for tc in chunk.tools):
+            tool_call_seen = True
 
     assert len(responses) > 0
     assert tool_call_seen, "No tool calls observed in stream"
@@ -88,9 +87,8 @@ async def test_async_tool_use_stream():
 
     async for chunk in response_stream:
         responses.append(chunk)
-        if chunk.tools:
-            if any(tc.tool_name for tc in chunk.tools):
-                tool_call_seen = True
+        if chunk.tools and any(tc.tool_name for tc in chunk.tools):
+            tool_call_seen = True
 
     assert len(responses) > 0
     assert tool_call_seen, "No tool calls observed in stream"
@@ -164,7 +162,7 @@ def test_tool_call_custom_tool_no_parameters():
 
 
 def test_tool_call_custom_tool_optional_parameters():
-    def get_the_weather(city: Optional[str] = None):
+    def get_the_weather(city: str | None = None):
         """
         Get the weather in a city
 

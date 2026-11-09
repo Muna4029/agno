@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 import pytest
 from pydantic import BaseModel, Field
@@ -194,7 +194,7 @@ def test_tool_call_custom_tool_no_parameters():
 
 @pytest.mark.skip("Mistral struggles with custom tool calls")
 def test_tool_call_custom_tool_optional_parameters():
-    def get_the_weather(city: Optional[str] = None):
+    def get_the_weather(city: str | None = None):
         """
         Get the weather in a city
 

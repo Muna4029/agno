@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Iterator, List
+from collections.abc import AsyncIterator, Iterator
 
 from agno.document import Document
 from agno.document.reader.s3.pdf_reader import S3PDFReader
@@ -9,7 +9,7 @@ class S3PDFKnowledgeBase(S3KnowledgeBase):
     reader: S3PDFReader = S3PDFReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over PDFs in a s3 bucket and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -21,7 +21,7 @@ class S3PDFKnowledgeBase(S3KnowledgeBase):
                 yield self.reader.read(s3_object=s3_object)
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Iterate over PDFs in a s3 bucket and yield lists of documents asynchronously.
         Each object yielded by the iterator is a list of documents.
 

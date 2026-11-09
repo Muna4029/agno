@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Optional
+from typing import Any
 
 from agno.models.openai.like import OpenAILike
 from agno.utils.log import logger
@@ -23,18 +25,18 @@ class LangDB(OpenAILike):
     name: str = "LangDB"
     provider: str = "LangDB"
 
-    api_key: Optional[str] = getenv("LANGDB_API_KEY")
-    project_id: Optional[str] = getenv("LANGDB_PROJECT_ID")
+    api_key: str | None = getenv("LANGDB_API_KEY")
+    project_id: str | None = getenv("LANGDB_PROJECT_ID")
     if not project_id:
         logger.warning("LANGDB_PROJECT_ID not set in the environment")
 
     base_host_url: str = getenv("LANGDB_API_BASE_URL", "https://api.us-east-1.langdb.ai")
 
     base_url: str = f"{base_host_url}/{project_id}/v1"
-    label: Optional[str] = None
-    default_headers: Optional[dict] = None
+    label: str | None = None
+    default_headers: dict | None = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Initialize headers with label if present
         if self.label and not self.default_headers:
             self.default_headers = {

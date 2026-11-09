@@ -1,7 +1,9 @@
-from collections.abc import AsyncIterator
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -43,40 +45,40 @@ class OpenAIChat(Model):
     supports_native_structured_outputs: bool = True
 
     # Request parameters
-    store: Optional[bool] = None
-    reasoning_effort: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    frequency_penalty: Optional[float] = None
-    logit_bias: Optional[Any] = None
-    logprobs: Optional[bool] = None
-    top_logprobs: Optional[int] = None
-    max_tokens: Optional[int] = None
-    max_completion_tokens: Optional[int] = None
-    modalities: Optional[List[str]] = None  # "text" and/or "audio"
-    audio: Optional[Dict[str, Any]] = (
+    store: bool | None = None
+    reasoning_effort: str | None = None
+    metadata: dict[str, Any] | None = None
+    frequency_penalty: float | None = None
+    logit_bias: Any | None = None
+    logprobs: bool | None = None
+    top_logprobs: int | None = None
+    max_tokens: int | None = None
+    max_completion_tokens: int | None = None
+    modalities: list[str] | None = None  # "text" and/or "audio"
+    audio: dict[str, Any] | None = (
         None  # E.g. {"voice": "alloy", "format": "wav"}. `format` must be one of `wav`, `mp3`, `flac`, `opus`, or `pcm16`. `voice` must be one of `ash`, `ballad`, `coral`, `sage`, `verse`, `alloy`, `echo`, and `shimmer`.
     )
-    presence_penalty: Optional[float] = None
-    seed: Optional[int] = None
-    stop: Optional[Union[str, List[str]]] = None
-    temperature: Optional[float] = None
-    user: Optional[str] = None
-    top_p: Optional[float] = None
-    extra_headers: Optional[Any] = None
-    extra_query: Optional[Any] = None
-    request_params: Optional[Dict[str, Any]] = None
-    role_map: Optional[Dict[str, str]] = None
+    presence_penalty: float | None = None
+    seed: int | None = None
+    stop: str | list[str] | None = None
+    temperature: float | None = None
+    user: str | None = None
+    top_p: float | None = None
+    extra_headers: Any | None = None
+    extra_query: Any | None = None
+    request_params: dict[str, Any] | None = None
+    role_map: dict[str, str] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
-    organization: Optional[str] = None
-    base_url: Optional[Union[str, httpx.URL]] = None
-    timeout: Optional[float] = None
-    max_retries: Optional[int] = None
-    default_headers: Optional[Any] = None
-    default_query: Optional[Any] = None
-    http_client: Optional[httpx.Client] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    organization: str | None = None
+    base_url: str | httpx.URL | None = None
+    timeout: float | None = None
+    max_retries: int | None = None
+    default_headers: Any | None = None
+    default_query: Any | None = None
+    http_client: httpx.Client | None = None
+    client_params: dict[str, Any] | None = None
 
     # The role to map the message role to.
     default_role_map = {
@@ -87,7 +89,7 @@ class OpenAIChat(Model):
         "model": "assistant",
     }
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Fetch API key from env if not already set
         if not self.api_key:
             self.api_key = getenv("OPENAI_API_KEY")
@@ -120,7 +122,7 @@ class OpenAIChat(Model):
         Returns:
             OpenAIClient: An instance of the OpenAI client.
         """
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client is not None:
             client_params["http_client"] = self.http_client
         return OpenAIClient(**client_params)
@@ -132,7 +134,7 @@ class OpenAIChat(Model):
         Returns:
             AsyncOpenAIClient: An instance of the asynchronous OpenAI client.
         """
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client:
             client_params["http_client"] = self.http_client
         else:
@@ -144,10 +146,10 @@ class OpenAIChat(Model):
 
     def get_request_params(
         self,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
@@ -214,7 +216,7 @@ class OpenAIChat(Model):
             log_debug(f"Calling {self.provider} with request parameters: {request_params}", log_level=2)
         return request_params
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the model to a dictionary.
 
@@ -246,7 +248,7 @@ class OpenAIChat(Model):
         cleaned_dict = {k: v for k, v in model_dict.items() if v is not None}
         return cleaned_dict
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Format a message into the format expected by OpenAI.
 
@@ -256,7 +258,7 @@ class OpenAIChat(Model):
         Returns:
             Dict[str, Any]: The formatted message.
         """
-        message_dict: Dict[str, Any] = {
+        message_dict: dict[str, Any] = {
             "role": self.role_map[message.role] if self.role_map else self.default_role_map[message.role],
             "content": message.content,
             "name": message.name,
@@ -312,10 +314,10 @@ class OpenAIChat(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> ChatCompletion:
         """
         Send a chat completion request to the OpenAI API.
@@ -372,10 +374,10 @@ class OpenAIChat(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> ChatCompletion:
         """
         Sends an asynchronous chat completion request to the OpenAI API.
@@ -432,10 +434,10 @@ class OpenAIChat(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ChatCompletionChunk]:
         """
         Send a streaming chat completion request to the OpenAI API.
@@ -495,10 +497,10 @@ class OpenAIChat(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[ChatCompletionChunk]:
         """
         Sends an asynchronous streaming chat completion request to the OpenAI API.
@@ -560,7 +562,7 @@ class OpenAIChat(Model):
 
     # Override base method
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[ChoiceDeltaToolCall]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[ChoiceDeltaToolCall]) -> list[dict[str, Any]]:
         """
         Build tool calls from streamed tool call data.
 
@@ -570,7 +572,7 @@ class OpenAIChat(Model):
         Returns:
             List[Dict[str, Any]]: The built tool calls.
         """
-        tool_calls: List[Dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
         for _tool_call in tool_calls_data:
             _index = _tool_call.index or 0
             _tool_call_id = _tool_call.id
@@ -602,7 +604,7 @@ class OpenAIChat(Model):
     def parse_provider_response(
         self,
         response: ChatCompletion,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
     ) -> ModelResponse:
         """
         Parse the OpenAI response into a ModelResponse.
@@ -635,7 +637,7 @@ class OpenAIChat(Model):
                 log_warning(f"Error processing tool calls: {e}")
 
         # Add audio transcript to content if available
-        response_audio: Optional[ChatCompletionAudio] = response_message.audio
+        response_audio: ChatCompletionAudio | None = response_message.audio
         if response_audio and response_audio.transcript and not model_response.content:
             model_response.content = response_audio.transcript
 

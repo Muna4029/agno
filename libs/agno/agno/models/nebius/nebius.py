@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Optional
+from typing import Any
 
 from agno.exceptions import ModelProviderError
 from agno.models.openai.like import OpenAILike
@@ -23,10 +25,10 @@ class Nebius(OpenAILike):
     name: str = "Nebius"
     provider: str = "Nebius"
 
-    api_key: Optional[str] = getenv("NEBIUS_API_KEY")
+    api_key: str | None = getenv("NEBIUS_API_KEY")
     base_url: str = "https://api.studio.nebius.com/v1/"
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         if not self.api_key:
             raise ModelProviderError(
                 message="NEBIUS_API_KEY not set. Please set the NEBIUS_API_KEY environment variable.",

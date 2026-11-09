@@ -1,4 +1,6 @@
-from typing import Any, List, Optional, Union, cast
+from __future__ import annotations
+
+from typing import Any, cast
 
 from agno.agent.agent import Agent, AgentRun, Function, Toolkit
 from agno.run.response import RunResponse
@@ -18,7 +20,7 @@ def format_tools(agent_tools):
             if isinstance(tool, dict):
                 formatted_tools.append(tool)
             elif isinstance(tool, Toolkit):
-                for _, f in tool.functions.items():
+                for f in tool.functions.values():
                     formatted_tools.append(f.to_dict())
             elif isinstance(tool, Function):
                 formatted_tools.append(tool.to_dict())
@@ -30,7 +32,7 @@ def format_tools(agent_tools):
     return formatted_tools
 
 
-def get_agent_by_id(agent_id: str, agents: Optional[List[Agent]] = None) -> Optional[Agent]:
+def get_agent_by_id(agent_id: str, agents: list[Agent] | None = None) -> Agent | None:
     if agent_id is None or agents is None:
         return None
 
@@ -40,7 +42,7 @@ def get_agent_by_id(agent_id: str, agents: Optional[List[Agent]] = None) -> Opti
     return None
 
 
-def get_session_title(session: Union[AgentSession, TeamSession]) -> str:
+def get_session_title(session: AgentSession | TeamSession) -> str:
     if session is None:
         return "Unnamed session"
     session_name = session.session_data.get("session_name") if session.session_data is not None else None
@@ -50,7 +52,7 @@ def get_session_title(session: Union[AgentSession, TeamSession]) -> str:
     if memory is not None:
         # Proxy for knowing it is legacy memory implementation
         runs = memory.get("runs")
-        runs = cast(List[Any], runs)
+        runs = cast(list[Any], runs)
 
         for _run in runs:
             try:
@@ -95,7 +97,7 @@ def get_session_title_from_workflow_session(workflow_session: WorkflowSession) -
     memory = workflow_session.memory
     if memory is not None:
         runs = memory.get("runs")
-        runs = cast(List[Any], runs)
+        runs = cast(list[Any], runs)
         for _run in runs:
             try:
                 # Try to get content directly from the run first (workflow structure)
@@ -119,7 +121,7 @@ def get_session_title_from_workflow_session(workflow_session: WorkflowSession) -
     return "Unnamed session"
 
 
-def get_workflow_by_id(workflow_id: str, workflows: Optional[List[Workflow]] = None) -> Optional[Workflow]:
+def get_workflow_by_id(workflow_id: str, workflows: list[Workflow] | None = None) -> Workflow | None:
     if workflows is None or workflow_id is None:
         return None
 
@@ -129,7 +131,7 @@ def get_workflow_by_id(workflow_id: str, workflows: Optional[List[Workflow]] = N
     return None
 
 
-def get_team_by_id(team_id: str, teams: Optional[List[Team]] = None) -> Optional[Team]:
+def get_team_by_id(team_id: str, teams: list[Team] | None = None) -> Team | None:
     if teams is None or team_id is None:
         return None
 
@@ -148,7 +150,7 @@ def get_session_title_from_team_session(team_session: TeamSession) -> str:
     memory = team_session.memory
     if memory is not None:
         runs = memory.get("runs")
-        runs = cast(List[Any], runs)
+        runs = cast(list[Any], runs)
 
         for _run in runs:
             try:

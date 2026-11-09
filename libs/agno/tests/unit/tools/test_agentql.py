@@ -42,9 +42,8 @@ def test_init_with_api_key():
 
 def test_init_without_api_key():
     """Test initialization without API key."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
-            AgentQLTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
+        AgentQLTools()
 
 
 def test_scrape_website_no_url(agentql_tools):
@@ -55,10 +54,9 @@ def test_scrape_website_no_url(agentql_tools):
 
 def test_scrape_website_no_api_key():
     """Test scraping without API key."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
-            tools = AgentQLTools()
-            tools.scrape_website("https://example.com")
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
+        tools = AgentQLTools()
+        tools.scrape_website("https://example.com")
 
 
 def test_custom_scrape_no_query(agentql_tools):
@@ -71,7 +69,7 @@ def test_custom_scrape_no_query(agentql_tools):
 def test_scrape_website_success(mock_playwright, mock_agentql, agentql_tools):
     """Test successful website scraping."""
     # Unpack the mock_agentql fixture
-    mock_agentql_module, wrapped_page = mock_agentql
+    _mock_agentql_module, wrapped_page = mock_agentql
 
     # Set up the mock response for query_data
     wrapped_page.query_data.return_value = {

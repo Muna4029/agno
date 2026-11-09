@@ -1,5 +1,3 @@
-from typing import List
-
 from agno.document.base import Document
 from agno.document.chunking.strategy import ChunkingStrategy
 
@@ -11,14 +9,14 @@ class DocumentChunking(ChunkingStrategy):
         self.chunk_size = chunk_size
         self.overlap = overlap
 
-    def chunk(self, document: Document) -> List[Document]:
+    def chunk(self, document: Document) -> list[Document]:
         """Split document into chunks based on document structure"""
         if len(document.content) <= self.chunk_size:
             return [document]
 
         # Split on double newlines first (paragraphs)
         paragraphs = self.clean_text(document.content).split("\n\n")
-        chunks: List[Document] = []
+        chunks: list[Document] = []
         current_chunk = []
         current_size = 0
         chunk_meta_data = document.meta_data

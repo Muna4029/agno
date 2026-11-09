@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+from collections.abc import AsyncGenerator, Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, AsyncGenerator, Dict, Iterator, List, Optional, Type, Union
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -33,27 +36,27 @@ class WatsonX(Model):
     provider: str = "IBM"
 
     # Request parameters
-    frequency_penalty: Optional[float] = None
-    presence_penalty: Optional[float] = None
-    max_tokens: Optional[int] = None
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    logprobs: Optional[int] = None
-    top_logprobs: Optional[int] = None
+    frequency_penalty: float | None = None
+    presence_penalty: float | None = None
+    max_tokens: int | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    logprobs: int | None = None
+    top_logprobs: int | None = None
 
-    request_params: Optional[Dict[str, Any]] = None
+    request_params: dict[str, Any] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
-    project_id: Optional[str] = None
-    url: Optional[str] = "https://eu-de.ml.cloud.ibm.com"
+    api_key: str | None = None
+    project_id: str | None = None
+    url: str | None = "https://eu-de.ml.cloud.ibm.com"
     verify: bool = True
-    client_params: Optional[Dict[str, Any]] = None
+    client_params: dict[str, Any] | None = None
 
     # WatsonX client
-    model_client: Optional[ModelInference] = None
+    model_client: ModelInference | None = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Fetch API key and project ID from env if not already set
         self.api_key = self.api_key or getenv("IBM_WATSONX_API_KEY")
         if not self.api_key:
@@ -93,10 +96,10 @@ class WatsonX(Model):
 
     def get_request_params(
         self,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         params = {
             "frequency_penalty": self.frequency_penalty,
             "presence_penalty": self.presence_penalty,
@@ -127,7 +130,7 @@ class WatsonX(Model):
             log_debug(f"Calling {self.provider} with request parameters: {request_params}", log_level=2)
         return request_params
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Format a message into the format expected by WatsonX.
 
@@ -153,10 +156,10 @@ class WatsonX(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Send a chat completion request to the WatsonX API.
@@ -174,15 +177,15 @@ class WatsonX(Model):
             return response
 
         except Exception as e:
-            log_error(f"Error calling WatsonX API: {str(e)}")
+            log_error(f"Error calling WatsonX API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Sends an asynchronous chat completion request to the WatsonX API.
@@ -198,15 +201,15 @@ class WatsonX(Model):
             return await client.achat(messages=formatted_messages, **request_params)
 
         except Exception as e:
-            log_error(f"Error calling WatsonX API: {str(e)}")
+            log_error(f"Error calling WatsonX API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[Any]:
         """
         Send a streaming chat completion request to the WatsonX API.
@@ -222,15 +225,15 @@ class WatsonX(Model):
             yield from client.chat_stream(messages=formatted_messages, **request_params)
 
         except Exception as e:
-            log_error(f"Error calling WatsonX API: {str(e)}")
+            log_error(f"Error calling WatsonX API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncGenerator[Any, None]:
         """
         Sends an asynchronous streaming chat completion request to the WatsonX API.
@@ -249,12 +252,12 @@ class WatsonX(Model):
                 yield chunk
 
         except Exception as e:
-            log_error(f"Error in async streaming from WatsonX API: {str(e)}")
+            log_error(f"Error in async streaming from WatsonX API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     # Override base method
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Build tool calls from streamed tool call data.
 
@@ -264,7 +267,7 @@ class WatsonX(Model):
         Returns:
             List[Dict[str, Any]]: The built tool calls.
         """
-        tool_calls: List[Dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
         for _tool_call in tool_calls_data:
             _index = _tool_call.get("index", 0)
             _tool_call_id = _tool_call.get("id")
@@ -295,8 +298,8 @@ class WatsonX(Model):
 
     def parse_provider_response(
         self,
-        response: Dict[str, Any],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response: dict[str, Any],
+        response_format: dict | type[BaseModel] | None = None,
     ) -> ModelResponse:
         """
         Parse the WatsonX response into a ModelResponse.
@@ -338,14 +341,14 @@ class WatsonX(Model):
 
         return model_response
 
-    def parse_provider_response_delta(self, response_delta: Dict[str, Any]) -> ModelResponse:
+    def parse_provider_response_delta(self, response_delta: dict[str, Any]) -> ModelResponse:
         """
         Parse the OpenAI streaming response into a ModelResponse.
         """
         model_response = ModelResponse()
 
         if response_delta.get("choices") and len(response_delta["choices"]) > 0:
-            choice_delta: Dict[str, Any] = response_delta["choices"][0].get("delta")
+            choice_delta: dict[str, Any] = response_delta["choices"][0].get("delta")
 
             if choice_delta:
                 # Add content

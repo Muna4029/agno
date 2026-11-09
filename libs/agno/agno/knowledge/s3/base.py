@@ -1,4 +1,6 @@
-from typing import AsyncIterator, Iterator, List, Optional
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
 
 from agno.aws.resource.s3.bucket import S3Bucket  # type: ignore
 from agno.aws.resource.s3.object import S3Object  # type: ignore
@@ -8,27 +10,27 @@ from agno.knowledge.agent import AgentKnowledge
 
 class S3KnowledgeBase(AgentKnowledge):
     # Provide either bucket or bucket_name
-    bucket: Optional[S3Bucket] = None
-    bucket_name: Optional[str] = None
+    bucket: S3Bucket | None = None
+    bucket_name: str | None = None
 
     # Provide either object or key
-    key: Optional[str] = None
-    object: Optional[S3Object] = None
+    key: str | None = None
+    object: S3Object | None = None
 
     # Filter objects by prefix
     # Ignored if object or key is provided
-    prefix: Optional[str] = None
+    prefix: str | None = None
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         raise NotImplementedError
 
     @property
-    def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    def async_document_lists(self) -> AsyncIterator[list[Document]]:
         raise NotImplementedError
 
     @property
-    def s3_objects(self) -> List[S3Object]:
+    def s3_objects(self) -> list[S3Object]:
         """Iterate over PDFs in a s3 bucket and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -36,7 +38,7 @@ class S3KnowledgeBase(AgentKnowledge):
             Iterator[List[Document]]: Iterator yielding list of documents
         """
 
-        s3_objects_to_read: List[S3Object] = []
+        s3_objects_to_read: list[S3Object] = []
 
         if self.bucket is None and self.bucket_name is None:
             raise ValueError("No bucket or bucket_name provided")

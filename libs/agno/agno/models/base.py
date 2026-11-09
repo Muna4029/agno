@@ -1,20 +1,14 @@
+from __future__ import annotations
+
 import asyncio
 import collections.abc
 from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator, AsyncIterator, Iterator
 from dataclasses import dataclass, field
 from types import AsyncGeneratorType, GeneratorType
 from typing import (
     Any,
-    AsyncGenerator,
-    AsyncIterator,
-    Dict,
-    Iterator,
-    List,
     Literal,
-    Optional,
-    Tuple,
-    Type,
-    Union,
     get_args,
 )
 from uuid import uuid4
@@ -36,23 +30,23 @@ from agno.utils.tools import get_function_call_for_tool_call, get_function_call_
 
 @dataclass
 class MessageData:
-    response_role: Optional[Literal["system", "user", "assistant", "tool"]] = None
+    response_role: Literal["system", "user", "assistant", "tool"] | None = None
     response_content: Any = ""
     response_thinking: Any = ""
     response_redacted_thinking: Any = ""
-    response_citations: Optional[Citations] = None
-    response_tool_calls: List[Dict[str, Any]] = field(default_factory=list)
+    response_citations: Citations | None = None
+    response_tool_calls: list[dict[str, Any]] = field(default_factory=list)
 
-    response_audio: Optional[AudioResponse] = None
-    response_image: Optional[ImageArtifact] = None
+    response_audio: AudioResponse | None = None
+    response_image: ImageArtifact | None = None
 
     # Data from the provider that we might need on subsequent messages
-    response_provider_data: Optional[Dict[str, Any]] = None
+    response_provider_data: dict[str, Any] | None = None
 
-    extra: Optional[Dict[str, Any]] = None
+    extra: dict[str, Any] | None = None
 
 
-def _log_messages(messages: List[Message]) -> None:
+def _log_messages(messages: list[Message]) -> None:
     """
     Log messages for debugging.
     """
@@ -187,7 +181,7 @@ def _add_usage_metrics_to_assistant_message(assistant_message: Message, response
     )
 
 
-def _handle_agent_exception(a_exc: AgentRunException, additional_messages: Optional[List[Message]] = None) -> None:
+def _handle_agent_exception(a_exc: AgentRunException, additional_messages: list[Message] | None = None) -> None:
     """Handle AgentRunException and collect additional messages."""
     if additional_messages is None:
         additional_messages = []
@@ -227,9 +221,9 @@ class Model(ABC):
     # ID of the model to use.
     id: str
     # Name for this Model. This is not sent to the Model API.
-    name: Optional[str] = None
+    name: str | None = None
     # Provider for this Model. This is not sent to the Model API.
-    provider: Optional[str] = None
+    provider: str | None = None
 
     # -*- Do not set the following attributes directly -*-
     # -*- Set them on the Agent instead -*-
@@ -245,12 +239,12 @@ class Model(ABC):
     # Specifying a particular function via {"type: "function", "function": {"name": "my_function"}}
     #   forces the model to call that function.
     # "none" is the default when no functions are present. "auto" is the default if functions are present.
-    _tool_choice: Optional[Union[str, Dict[str, Any]]] = None
+    _tool_choice: str | dict[str, Any] | None = None
 
     # System prompt from the model added to the Agent.
-    system_prompt: Optional[str] = None
+    system_prompt: str | None = None
     # Instructions from the model added to the Agent.
-    instructions: Optional[List[str]] = None
+    instructions: list[str] | None = None
 
     # The role of the tool message.
     tool_message_role: str = "tool"
@@ -261,7 +255,7 @@ class Model(ABC):
         if self.provider is None and self.name is not None:
             self.provider = f"{self.name} ({self.id})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         fields = {"name", "id", "provider"}
         _dict = {field: getattr(self, field) for field in fields if getattr(self, field) is not None}
         return _dict
@@ -296,7 +290,6 @@ class Model(ABC):
         Returns:
             ModelResponse: Parsed response data
         """
-        pass
 
     @abstractmethod
     def parse_provider_response_delta(self, response: Any) -> ModelResponse:
@@ -309,16 +302,15 @@ class Model(ABC):
         Returns:
             ModelResponse: Parsed response delta
         """
-        pass
 
     def response(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        functions: Optional[Dict[str, Function]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-        tool_call_limit: Optional[int] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        functions: dict[str, Function] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+        tool_call_limit: int | None = None,
     ) -> ModelResponse:
         """
         Generate a response from the model.
@@ -359,7 +351,7 @@ class Model(ABC):
                     model_response=model_response,
                     functions=functions,
                 )
-                function_call_results: List[Message] = []
+                function_call_results: list[Message] = []
 
                 # Execute function calls
                 for function_call_response in self.run_function_calls(
@@ -425,12 +417,12 @@ class Model(ABC):
 
     async def aresponse(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        functions: Optional[Dict[str, Function]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-        tool_call_limit: Optional[int] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        functions: dict[str, Function] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+        tool_call_limit: int | None = None,
     ) -> ModelResponse:
         """
         Generate an asynchronous response from the model.
@@ -470,7 +462,7 @@ class Model(ABC):
                     model_response=model_response,
                     functions=functions,
                 )
-                function_call_results: List[Message] = []
+                function_call_results: list[Message] = []
 
                 # Execute function calls
                 async for function_call_response in self.arun_function_calls(
@@ -535,12 +527,12 @@ class Model(ABC):
 
     def _process_model_response(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         model_response: ModelResponse,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> None:
         """
         Process a single model response and return the assistant message and whether to continue.
@@ -591,12 +583,12 @@ class Model(ABC):
 
     async def _aprocess_model_response(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         model_response: ModelResponse,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> None:
         """
         Process a single async model response and return the assistant message and whether to continue.
@@ -710,12 +702,12 @@ class Model(ABC):
 
     def process_response_stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         stream_data: MessageData,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ModelResponse]:
         """
         Process a streaming response from the model.
@@ -735,14 +727,14 @@ class Model(ABC):
 
     def response_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        functions: Optional[Dict[str, Function]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-        tool_call_limit: Optional[int] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        functions: dict[str, Function] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+        tool_call_limit: int | None = None,
         stream_model_response: bool = True,
-    ) -> Iterator[Union[ModelResponse, RunResponseEvent, TeamRunResponseEvent]]:
+    ) -> Iterator[ModelResponse | RunResponseEvent | TeamRunResponseEvent]:
         """
         Generate a streaming response from the model.
         """
@@ -803,19 +795,18 @@ class Model(ABC):
             # Handle tool calls if present
             if assistant_message.tool_calls is not None:
                 # Prepare function calls
-                function_calls_to_run: List[FunctionCall] = self.get_function_calls_to_run(
+                function_calls_to_run: list[FunctionCall] = self.get_function_calls_to_run(
                     assistant_message, messages, functions
                 )
-                function_call_results: List[Message] = []
+                function_call_results: list[Message] = []
 
                 # Execute function calls
-                for function_call_response in self.run_function_calls(
+                yield from self.run_function_calls(
                     function_calls=function_calls_to_run,
                     function_call_results=function_call_results,
                     current_function_call_count=function_call_count,
                     function_call_limit=tool_call_limit,
-                ):
-                    yield function_call_response
+                )
 
                 # Add a function call for each successful execution
                 function_call_count += len(function_call_results)
@@ -857,12 +848,12 @@ class Model(ABC):
 
     async def aprocess_response_stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         stream_data: MessageData,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[ModelResponse]:
         """
         Process a streaming response from the model.
@@ -883,14 +874,14 @@ class Model(ABC):
 
     async def aresponse_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        functions: Optional[Dict[str, Function]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-        tool_call_limit: Optional[int] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        functions: dict[str, Function] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+        tool_call_limit: int | None = None,
         stream_model_response: bool = True,
-    ) -> AsyncIterator[Union[ModelResponse, RunResponseEvent, TeamRunResponseEvent]]:
+    ) -> AsyncIterator[ModelResponse | RunResponseEvent | TeamRunResponseEvent]:
         """
         Generate an asynchronous streaming response from the model.
         """
@@ -950,10 +941,10 @@ class Model(ABC):
             # Handle tool calls if present
             if assistant_message.tool_calls is not None:
                 # Prepare function calls
-                function_calls_to_run: List[FunctionCall] = self.get_function_calls_to_run(
+                function_calls_to_run: list[FunctionCall] = self.get_function_calls_to_run(
                     assistant_message, messages, functions
                 )
-                function_call_results: List[Message] = []
+                function_call_results: list[Message] = []
 
                 # Execute function calls
                 async for function_call_response in self.arun_function_calls(
@@ -1065,9 +1056,8 @@ class Model(ABC):
 
             should_yield = True
 
-        if model_response_delta.image:
-            if stream_data.response_image is None:
-                stream_data.response_image = model_response_delta.image
+        if model_response_delta.image and stream_data.response_image is None:
+            stream_data.response_image = model_response_delta.image
 
         if model_response_delta.extra is not None:
             if stream_data.extra is None:
@@ -1082,7 +1072,7 @@ class Model(ABC):
         if should_yield:
             yield model_response_delta
 
-    def parse_tool_calls(self, tool_calls_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(self, tool_calls_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Parse the tool calls from the model provider into a list of tool calls.
         """
@@ -1091,7 +1081,7 @@ class Model(ABC):
     def get_function_call_to_run_from_tool_execution(
         self,
         tool_execution: ToolExecution,
-        functions: Optional[Dict[str, Function]] = None,
+        functions: dict[str, Function] | None = None,
     ) -> FunctionCall:
         function_call = get_function_call_for_tool_execution(
             tool_execution=tool_execution,
@@ -1104,13 +1094,13 @@ class Model(ABC):
     def get_function_calls_to_run(
         self,
         assistant_message: Message,
-        messages: List[Message],
-        functions: Optional[Dict[str, Function]] = None,
-    ) -> List[FunctionCall]:
+        messages: list[Message],
+        functions: dict[str, Function] | None = None,
+    ) -> list[FunctionCall]:
         """
         Prepare function calls for the assistant message.
         """
-        function_calls_to_run: List[FunctionCall] = []
+        function_calls_to_run: list[FunctionCall] = []
         if assistant_message.tool_calls is not None:
             for tool_call in assistant_message.tool_calls:
                 _tool_call_id = tool_call.get("id")
@@ -1136,8 +1126,8 @@ class Model(ABC):
         self,
         function_call: FunctionCall,
         success: bool,
-        output: Optional[Union[List[Any], str]] = None,
-        timer: Optional[Timer] = None,
+        output: list[Any] | str | None = None,
+        timer: Timer | None = None,
     ) -> Message:
         """Create a function call result message."""
         kwargs = {}
@@ -1167,9 +1157,9 @@ class Model(ABC):
     def run_function_call(
         self,
         function_call: FunctionCall,
-        function_call_results: List[Message],
-        additional_messages: Optional[List[Message]] = None,
-    ) -> Iterator[Union[ModelResponse, RunResponseEvent, TeamRunResponseEvent]]:
+        function_call_results: list[Message],
+        additional_messages: list[Message] | None = None,
+    ) -> Iterator[ModelResponse | RunResponseEvent | TeamRunResponseEvent]:
         # Start function call
         function_call_timer = Timer()
         function_call_timer.start()
@@ -1196,7 +1186,7 @@ class Model(ABC):
             # Set function call success to False if an exception occurred
         except Exception as e:
             log_error(f"Error executing function {function_call.function.name}: {e}")
-            raise e
+            raise
 
         function_call_success = function_execution_result.status == "success"
 
@@ -1209,11 +1199,9 @@ class Model(ABC):
         if isinstance(function_call.result, (GeneratorType, collections.abc.Iterator)):
             for item in function_call.result:
                 # This function yields agent/team run events
-                if isinstance(item, tuple(get_args(RunResponseEvent))) or isinstance(
-                    item, tuple(get_args(TeamRunResponseEvent))
-                ):
+                if isinstance(item, (tuple(get_args(RunResponseEvent)), tuple(get_args(TeamRunResponseEvent)))):
                     # We only capture content events
-                    if isinstance(item, RunResponseContentEvent) or isinstance(item, TeamRunResponseContentEvent):
+                    if isinstance(item, (RunResponseContentEvent, TeamRunResponseContentEvent)):
                         if item.content is not None and isinstance(item.content, BaseModel):
                             function_call_output += item.content.model_dump_json()
                         else:
@@ -1260,12 +1248,12 @@ class Model(ABC):
 
     def run_function_calls(
         self,
-        function_calls: List[FunctionCall],
-        function_call_results: List[Message],
-        additional_messages: Optional[List[Message]] = None,
+        function_calls: list[FunctionCall],
+        function_call_results: list[Message],
+        additional_messages: list[Message] | None = None,
         current_function_call_count: int = 0,
-        function_call_limit: Optional[int] = None,
-    ) -> Iterator[Union[ModelResponse, RunResponseEvent, TeamRunResponseEvent]]:
+        function_call_limit: int | None = None,
+    ) -> Iterator[ModelResponse | RunResponseEvent | TeamRunResponseEvent]:
         # Additional messages from function calls that will be added to the function call results
         if additional_messages is None:
             additional_messages = []
@@ -1364,26 +1352,23 @@ class Model(ABC):
     async def arun_function_call(
         self,
         function_call: FunctionCall,
-    ) -> Tuple[Union[bool, AgentRunException], Timer, FunctionCall]:
+    ) -> tuple[bool | AgentRunException, Timer, FunctionCall]:
         """Run a single function call and return its success status, timer, and the FunctionCall object."""
         from inspect import isasyncgenfunction, iscoroutine, iscoroutinefunction
 
         function_call_timer = Timer()
         function_call_timer.start()
-        success: Union[bool, AgentRunException] = False
+        success: bool | AgentRunException = False
 
         try:
             if (
-                iscoroutinefunction(function_call.function.entrypoint)
-                or isasyncgenfunction(function_call.function.entrypoint)
-                or iscoroutine(function_call.function.entrypoint)
-            ):
-                result = await function_call.aexecute()
-                success = result.status == "success"
-
-            # If any of the hooks are async, we need to run the function call asynchronously
-            elif function_call.function.tool_hooks is not None and any(
-                iscoroutinefunction(f) for f in function_call.function.tool_hooks
+                (
+                    iscoroutinefunction(function_call.function.entrypoint)
+                    or isasyncgenfunction(function_call.function.entrypoint)
+                    or iscoroutine(function_call.function.entrypoint)
+                )
+                or function_call.function.tool_hooks is not None
+                and any(iscoroutinefunction(f) for f in function_call.function.tool_hooks)
             ):
                 result = await function_call.aexecute()
                 success = result.status == "success"
@@ -1395,20 +1380,20 @@ class Model(ABC):
         except Exception as e:
             log_error(f"Error executing function {function_call.function.name}: {e}")
             success = False
-            raise e
+            raise
 
         function_call_timer.stop()
         return success, function_call_timer, function_call
 
     async def arun_function_calls(
         self,
-        function_calls: List[FunctionCall],
-        function_call_results: List[Message],
-        additional_messages: Optional[List[Message]] = None,
+        function_calls: list[FunctionCall],
+        function_call_results: list[Message],
+        additional_messages: list[Message] | None = None,
         current_function_call_count: int = 0,
-        function_call_limit: Optional[int] = None,
+        function_call_limit: int | None = None,
         skip_pause_check: bool = False,
-    ) -> AsyncIterator[Union[ModelResponse, RunResponseEvent, TeamRunResponseEvent]]:
+    ) -> AsyncIterator[ModelResponse | RunResponseEvent | TeamRunResponseEvent]:
         # Additional messages from function calls that will be added to the function call results
         if additional_messages is None:
             additional_messages = []
@@ -1559,11 +1544,9 @@ class Model(ABC):
             if isinstance(fc.result, (GeneratorType, collections.abc.Iterator)):
                 for item in fc.result:
                     # This function yields agent/team run events
-                    if isinstance(item, tuple(get_args(RunResponseEvent))) or isinstance(
-                        item, tuple(get_args(TeamRunResponseEvent))
-                    ):
+                    if isinstance(item, (tuple(get_args(RunResponseEvent)), tuple(get_args(TeamRunResponseEvent)))):
                         # We only capture content events
-                        if isinstance(item, RunResponseContentEvent) or isinstance(item, TeamRunResponseContentEvent):
+                        if isinstance(item, (RunResponseContentEvent, TeamRunResponseContentEvent)):
                             if item.content is not None and isinstance(item.content, BaseModel):
                                 function_call_output += item.content.model_dump_json()
                             else:
@@ -1583,11 +1566,9 @@ class Model(ABC):
             elif isinstance(fc.result, (AsyncGeneratorType, collections.abc.AsyncIterator)):
                 async for item in fc.result:
                     # This function yields agent/team run events
-                    if isinstance(item, tuple(get_args(RunResponseEvent))) or isinstance(
-                        item, tuple(get_args(TeamRunResponseEvent))
-                    ):
+                    if isinstance(item, (tuple(get_args(RunResponseEvent)), tuple(get_args(TeamRunResponseEvent)))):
                         # We only capture content events
-                        if isinstance(item, RunResponseContentEvent) or isinstance(item, TeamRunResponseContentEvent):
+                        if isinstance(item, (RunResponseContentEvent, TeamRunResponseContentEvent)):
                             if item.content is not None and isinstance(item.content, BaseModel):
                                 function_call_output += item.content.model_dump_json()
                             else:
@@ -1639,10 +1620,10 @@ class Model(ABC):
     def _prepare_function_calls(
         self,
         assistant_message: Message,
-        messages: List[Message],
+        messages: list[Message],
         model_response: ModelResponse,
-        functions: Optional[Dict[str, Function]] = None,
-    ) -> List[FunctionCall]:
+        functions: dict[str, Function] | None = None,
+    ) -> list[FunctionCall]:
         """
         Prepare function calls from tool calls in the assistant message.
         """
@@ -1651,13 +1632,13 @@ class Model(ABC):
         if model_response.tool_calls is None:
             model_response.tool_calls = []
 
-        function_calls_to_run: List[FunctionCall] = self.get_function_calls_to_run(
+        function_calls_to_run: list[FunctionCall] = self.get_function_calls_to_run(
             assistant_message, messages, functions
         )
         return function_calls_to_run
 
     def format_function_call_results(
-        self, messages: List[Message], function_call_results: List[Message], **kwargs
+        self, messages: list[Message], function_call_results: list[Message], **kwargs
     ) -> None:
         """
         Format function call results.
@@ -1665,10 +1646,10 @@ class Model(ABC):
         if len(function_call_results) > 0:
             messages.extend(function_call_results)
 
-    def get_system_message_for_model(self, tools: Optional[List[Any]] = None) -> Optional[str]:
+    def get_system_message_for_model(self, tools: list[Any] | None = None) -> str | None:
         return self.system_prompt
 
-    def get_instructions_for_model(self, tools: Optional[List[Any]] = None) -> Optional[List[str]]:
+    def get_instructions_for_model(self, tools: list[Any] | None = None) -> list[str] | None:
         return self.instructions
 
     def __deepcopy__(self, memo):

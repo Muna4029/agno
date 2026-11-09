@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from agno.agent import Message
 from agno.utils.log import log_warning
@@ -19,7 +19,7 @@ TOOL_CALL_ROLE_MAP = {
 }
 
 
-def format_message(message: Message, openai_like: bool = False, tool_calls: bool = False) -> Dict[str, Any]:
+def format_message(message: Message, openai_like: bool = False, tool_calls: bool = False) -> dict[str, Any]:
     """
     Format a message into the format expected by Llama API.
 
@@ -30,7 +30,7 @@ def format_message(message: Message, openai_like: bool = False, tool_calls: bool
     Returns:
         Dict[str, Any]: The formatted message.
     """
-    message_dict: Dict[str, Any] = {
+    message_dict: dict[str, Any] = {
         "role": ROLE_MAP[message.role] if not tool_calls else TOOL_CALL_ROLE_MAP[message.role],
         "content": [{"type": "text", "text": message.content or " "}],
         "name": message.name,

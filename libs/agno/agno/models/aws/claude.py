@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, AsyncIterator, Dict, List, Optional, Type, Union
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -34,24 +37,24 @@ class Claude(AnthropicClaude):
     name: str = "AwsBedrockAnthropicClaude"
     provider: str = "AwsBedrock"
 
-    aws_access_key: Optional[str] = None
-    aws_secret_key: Optional[str] = None
-    aws_region: Optional[str] = None
-    session: Optional[Session] = None
+    aws_access_key: str | None = None
+    aws_secret_key: str | None = None
+    aws_region: str | None = None
+    session: Session | None = None
 
     # -*- Request parameters
     max_tokens: int = 4096
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    top_k: Optional[int] = None
-    stop_sequences: Optional[List[str]] = None
+    temperature: float | None = None
+    top_p: float | None = None
+    top_k: int | None = None
+    stop_sequences: list[str] | None = None
 
     # -*- Request parameters
-    request_params: Optional[Dict[str, Any]] = None
+    request_params: dict[str, Any] | None = None
     # -*- Client parameters
-    client_params: Optional[Dict[str, Any]] = None
+    client_params: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the model to a dictionary.
 
@@ -66,8 +69,8 @@ class Claude(AnthropicClaude):
         _dict["stop_sequences"] = self.stop_sequences
         return _dict
 
-    client: Optional[AnthropicBedrock] = None  # type: ignore
-    async_client: Optional[AsyncAnthropicBedrock] = None  # type: ignore
+    client: AnthropicBedrock | None = None  # type: ignore
+    async_client: AsyncAnthropicBedrock | None = None  # type: ignore
 
     def get_client(self):
         """
@@ -139,14 +142,14 @@ class Claude(AnthropicClaude):
         )
         return self.async_client
 
-    def get_request_params(self) -> Dict[str, Any]:
+    def get_request_params(self) -> dict[str, Any]:
         """
         Generate keyword arguments for API requests.
 
         Returns:
             Dict[str, Any]: The keyword arguments for API requests.
         """
-        _request_params: Dict[str, Any] = {}
+        _request_params: dict[str, Any] = {}
         if self.max_tokens:
             _request_params["max_tokens"] = self.max_tokens
         if self.temperature:
@@ -166,10 +169,10 @@ class Claude(AnthropicClaude):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AnthropicMessage:
         """
         Send a request to the Anthropic API to generate a response.
@@ -185,26 +188,26 @@ class Claude(AnthropicClaude):
                 **request_kwargs,
             )
         except APIConnectionError as e:
-            log_error(f"Connection error while calling Claude API: {str(e)}")
+            log_error(f"Connection error while calling Claude API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except RateLimitError as e:
-            log_warning(f"Rate limit exceeded: {str(e)}")
+            log_warning(f"Rate limit exceeded: {e!s}")
             raise ModelRateLimitError(message=e.message, model_name=self.name, model_id=self.id) from e
         except APIStatusError as e:
-            log_error(f"Claude API error (status {e.status_code}): {str(e)}")
+            log_error(f"Claude API error (status {e.status_code}): {e!s}")
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
+            log_error(f"Unexpected error calling Claude API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Stream a response from the Anthropic API.
@@ -235,26 +238,26 @@ class Claude(AnthropicClaude):
                 .__enter__()
             )
         except APIConnectionError as e:
-            log_error(f"Connection error while calling Claude API: {str(e)}")
+            log_error(f"Connection error while calling Claude API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except RateLimitError as e:
-            log_warning(f"Rate limit exceeded: {str(e)}")
+            log_warning(f"Rate limit exceeded: {e!s}")
             raise ModelRateLimitError(message=e.message, model_name=self.name, model_id=self.id) from e
         except APIStatusError as e:
-            log_error(f"Claude API error (status {e.status_code}): {str(e)}")
+            log_error(f"Claude API error (status {e.status_code}): {e!s}")
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
+            log_error(f"Unexpected error calling Claude API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AnthropicMessage:
         """
         Send an asynchronous request to the Anthropic API to generate a response.
@@ -270,26 +273,26 @@ class Claude(AnthropicClaude):
                 **request_kwargs,
             )
         except APIConnectionError as e:
-            log_error(f"Connection error while calling Claude API: {str(e)}")
+            log_error(f"Connection error while calling Claude API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except RateLimitError as e:
-            log_warning(f"Rate limit exceeded: {str(e)}")
+            log_warning(f"Rate limit exceeded: {e!s}")
             raise ModelRateLimitError(message=e.message, model_name=self.name, model_id=self.id) from e
         except APIStatusError as e:
-            log_error(f"Claude API error (status {e.status_code}): {str(e)}")
+            log_error(f"Claude API error (status {e.status_code}): {e!s}")
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
+            log_error(f"Unexpected error calling Claude API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[Any]:
         """
         Stream an asynchronous response from the Anthropic API.
@@ -317,16 +320,16 @@ class Claude(AnthropicClaude):
                 async for chunk in stream:
                     yield chunk
         except APIConnectionError as e:
-            log_error(f"Connection error while calling Claude API: {str(e)}")
+            log_error(f"Connection error while calling Claude API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except RateLimitError as e:
-            log_warning(f"Rate limit exceeded: {str(e)}")
+            log_warning(f"Rate limit exceeded: {e!s}")
             raise ModelRateLimitError(message=e.message, model_name=self.name, model_id=self.id) from e
         except APIStatusError as e:
-            log_error(f"Claude API error (status {e.status_code}): {str(e)}")
+            log_error(f"Claude API error (status {e.status_code}): {e!s}")
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
+            log_error(f"Unexpected error calling Claude API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e

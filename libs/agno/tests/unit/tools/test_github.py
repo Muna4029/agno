@@ -64,7 +64,7 @@ def mock_paginated_list(mock_search_repos):
 
 def test_list_pull_requests(mock_github):
     """Test listing pull requests."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -125,7 +125,7 @@ def test_list_pull_requests(mock_github):
 
 def test_get_pull_request_with_details(mock_github):
     """Test getting a pull request with detailed information."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -187,7 +187,7 @@ def test_get_pull_request_with_details(mock_github):
 
 def test_create_issue(mock_github):
     """Test creating an issue."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     mock_issue = MagicMock(spec=Issue)
@@ -214,7 +214,7 @@ def test_create_issue(mock_github):
 
 def test_get_repository(mock_github):
     """Test getting repository information."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock repository data
@@ -427,7 +427,7 @@ def test_search_repositories_pagination(mock_github):
 
 def test_get_pull_request_count(mock_github):
     """Test getting pull request count."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -530,7 +530,7 @@ def test_get_repository_stars(mock_github):
 
 def test_get_pull_request_comments(mock_github):
     """Test getting comments on a pull request."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -585,7 +585,7 @@ def test_get_pull_request_comments(mock_github):
 
 def test_create_pull_request_comment(mock_github):
     """Test creating a comment on a pull request."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -636,7 +636,7 @@ def test_create_pull_request_comment(mock_github):
 
 def test_edit_pull_request_comment(mock_github):
     """Test editing a pull request comment."""
-    mock_client, mock_repo = mock_github
+    _mock_client, _mock_repo = mock_github
     github_tools = GithubTools()
 
     # Create mock comment with string properties instead of MagicMock properties
@@ -768,7 +768,7 @@ def test_create_repository(mock_github):
 
 def test_get_pull_request_with_comprehensive_details(mock_github):
     """Test getting comprehensive details of a pull request."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -888,7 +888,7 @@ def test_get_pull_request_with_comprehensive_details(mock_github):
 
 def test_get_repository_with_stats(mock_github):
     """Test getting comprehensive repository information including statistics."""
-    mock_client, mock_repo = mock_github
+    mock_client, _mock_repo = mock_github
     github_tools = GithubTools()
 
     # Instead of mocking all the complex repository properties,
@@ -998,7 +998,7 @@ def test_get_repository_with_stats(mock_github):
 
 def test_create_pull_request(mock_github):
     """Test creating a pull request."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock pull request
@@ -1063,7 +1063,7 @@ def test_create_pull_request(mock_github):
 
 def test_create_review_request(mock_github):
     """Test creating a review request for a pull request."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -1098,7 +1098,7 @@ def test_create_review_request(mock_github):
 
 def test_create_file(mock_github):
     """Test creating a file in a repository."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file creation result
@@ -1152,7 +1152,7 @@ def test_create_file(mock_github):
 
 def test_get_file_content(mock_github):
     """Test getting file content from a repository."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file content
@@ -1249,7 +1249,7 @@ def test_get_file_content(mock_github):
 
 def test_update_file(mock_github):
     """Test updating a file in a repository."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file update result
@@ -1309,7 +1309,7 @@ def test_update_file(mock_github):
 
 def test_delete_file(mock_github):
     """Test deleting a file from a repository."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file deletion result
@@ -1349,7 +1349,7 @@ def test_delete_file(mock_github):
 
 def test_get_directory_content(mock_github):
     """Test getting directory contents from a repository."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock directory contents
@@ -1408,7 +1408,7 @@ def test_get_directory_content(mock_github):
 
 def test_create_branch(mock_github):
     """Test creating a branch in a repository."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock repository default branch
@@ -1459,7 +1459,7 @@ def test_create_branch(mock_github):
 
 def test_set_default_branch(mock_github):
     """Test setting the default branch for a repository."""
-    mock_client, mock_repo = mock_github
+    _mock_client, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock behavior to check if branch exists
@@ -1497,7 +1497,7 @@ def test_set_default_branch(mock_github):
 
 def test_search_code(mock_github):
     """Test searching code in GitHub repositories."""
-    mock_client, mock_repo = mock_github
+    mock_client, _mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock code search results

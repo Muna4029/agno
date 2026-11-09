@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from time import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.media import AudioResponse, ImageArtifact
 from agno.models.message import Citations, MessageMetrics
@@ -21,33 +23,33 @@ class ModelResponseEvent(str, Enum):
 class ToolExecution:
     """Execution of a tool"""
 
-    tool_call_id: Optional[str] = None
-    tool_name: Optional[str] = None
-    tool_args: Optional[Dict[str, Any]] = None
-    tool_call_error: Optional[bool] = None
-    result: Optional[str] = None
-    metrics: Optional[MessageMetrics] = None
+    tool_call_id: str | None = None
+    tool_name: str | None = None
+    tool_args: dict[str, Any] | None = None
+    tool_call_error: bool | None = None
+    result: str | None = None
+    metrics: MessageMetrics | None = None
 
     # If True, the agent will stop executing after this tool call.
     stop_after_tool_call: bool = False
 
     created_at: int = int(time())
 
-    requires_confirmation: Optional[bool] = None
-    confirmed: Optional[bool] = None
-    confirmation_note: Optional[str] = None
+    requires_confirmation: bool | None = None
+    confirmed: bool | None = None
+    confirmation_note: str | None = None
 
-    requires_user_input: Optional[bool] = None
-    user_input_schema: Optional[List[UserInputField]] = None
-    answered: Optional[bool] = None
+    requires_user_input: bool | None = None
+    user_input_schema: list[UserInputField] | None = None
+    answered: bool | None = None
 
-    external_execution_required: Optional[bool] = None
+    external_execution_required: bool | None = None
 
     @property
     def is_paused(self) -> bool:
         return bool(self.requires_confirmation or self.requires_user_input or self.external_execution_required)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = asdict(self)
         if self.metrics is not None:
             _dict["metrics"] = self.metrics.to_dict()
@@ -58,7 +60,7 @@ class ToolExecution:
         return _dict
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ToolExecution":
+    def from_dict(cls, data: dict[str, Any]) -> ToolExecution:
         return cls(
             tool_call_id=data.get("tool_call_id"),
             tool_name=data.get("tool_name"),
@@ -82,34 +84,34 @@ class ToolExecution:
 class ModelResponse:
     """Response from the model provider"""
 
-    role: Optional[str] = None
+    role: str | None = None
 
-    content: Optional[Any] = None
-    parsed: Optional[Any] = None
-    audio: Optional[AudioResponse] = None
-    image: Optional[ImageArtifact] = None
+    content: Any | None = None
+    parsed: Any | None = None
+    audio: AudioResponse | None = None
+    image: ImageArtifact | None = None
 
     # Model tool calls
-    tool_calls: List[Dict[str, Any]] = field(default_factory=list)
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
 
     # Actual tool executions
-    tool_executions: Optional[List[ToolExecution]] = field(default_factory=list)
+    tool_executions: list[ToolExecution] | None = field(default_factory=list)
 
     event: str = ModelResponseEvent.assistant_response.value
 
-    provider_data: Optional[Dict[str, Any]] = None
+    provider_data: dict[str, Any] | None = None
 
-    thinking: Optional[str] = None
-    redacted_thinking: Optional[str] = None
-    reasoning_content: Optional[str] = None
+    thinking: str | None = None
+    redacted_thinking: str | None = None
+    reasoning_content: str | None = None
 
-    citations: Optional[Citations] = None
+    citations: Citations | None = None
 
-    response_usage: Optional[Any] = None
+    response_usage: Any | None = None
 
     created_at: int = int(time())
 
-    extra: Optional[Dict[str, Any]] = None
+    extra: dict[str, Any] | None = None
 
 
 class FileType(str, Enum):

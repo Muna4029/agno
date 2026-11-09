@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.memory.v2.db.base import MemoryDb
 from agno.memory.v2.db.schema import MemoryRow
@@ -26,9 +28,9 @@ class FirestoreMemoryDb(MemoryDb):
     def __init__(
         self,
         collection_name: str = "memory",
-        db_name: Optional[str] = "(default)",
-        client: Optional[Client] = None,
-        project_id: Optional[str] = None,
+        db_name: str | None = "(default)",
+        client: Client | None = None,
+        project_id: str | None = None,
     ):
         """
         This class provides a memory store backed by a Firestore collection.
@@ -52,7 +54,7 @@ class FirestoreMemoryDb(MemoryDb):
         self.collection: CollectionReference = self._client.collection(self.collection_name)
 
         # Store user_id for delete operations due to the data structure
-        self._user_id: Optional[str] = None
+        self._user_id: str | None = None
 
         log_debug(f"Created FirestoreMemoryDb with collection: '{self.collection_name}'")
 
@@ -148,8 +150,8 @@ class FirestoreMemoryDb(MemoryDb):
             return False
 
     def read_memories(
-        self, user_id: Optional[str] = None, limit: Optional[int] = None, sort: Optional[str] = None
-    ) -> List[MemoryRow]:
+        self, user_id: str | None = None, limit: int | None = None, sort: str | None = None
+    ) -> list[MemoryRow]:
         """
         Read memories from the collection.
 
@@ -161,7 +163,7 @@ class FirestoreMemoryDb(MemoryDb):
         Returns:
             List[MemoryRow]: List of memories
         """
-        memories: List[MemoryRow] = []
+        memories: list[MemoryRow] = []
 
         if user_id is None:
             return memories
@@ -248,7 +250,7 @@ class FirestoreMemoryDb(MemoryDb):
                 memory_dict["_version"] += 1
 
             # Build update data - include all fields
-            update_data: Dict[str, Any] = {
+            update_data: dict[str, Any] = {
                 "id": memory.id,
                 "user_id": memory.user_id,
                 "memory": memory.memory,

@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug
@@ -12,8 +12,8 @@ except ImportError:
 class AWSSESTool(Toolkit):
     def __init__(
         self,
-        sender_email: Optional[str] = None,
-        sender_name: Optional[str] = None,
+        sender_email: str | None = None,
+        sender_name: str | None = None,
         region_name: str = "us-east-1",
     ):
         super().__init__(name="aws_ses_tool", tools=[self.send_email])

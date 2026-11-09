@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional, Union
+from __future__ import annotations
+
+from typing import Any
 
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -17,16 +19,16 @@ class InfraApp(InfraBase):
 
     # -*- Image Configuration
     # Image can be provided as a DockerImage object
-    image: Optional[Any] = None
+    image: Any | None = None
     # OR as image_name:image_tag str
-    image_str: Optional[str] = None
+    image_str: str | None = None
     # OR as image_name and image_tag
-    image_name: Optional[str] = None
-    image_tag: Optional[str] = None
+    image_name: str | None = None
+    image_tag: str | None = None
     # Entrypoint for the container
-    entrypoint: Optional[Union[str, List[str]]] = None
+    entrypoint: str | list[str] | None = None
     # Command for the container
-    command: Optional[Union[str, List[str]]] = None
+    command: str | list[str] | None = None
 
     # -*- Python Configuration
     # Install python dependencies using a requirements.txt file
@@ -37,10 +39,10 @@ class InfraApp(InfraBase):
     set_python_path: bool = True
     # Manually provide the PYTHONPATH.
     # If None, PYTHONPATH is set to workspace_root
-    python_path: Optional[str] = None
+    python_path: str | None = None
     # Add paths to the PYTHONPATH env var
     # If python_path is provided, this value is ignored
-    add_python_paths: Optional[List[str]] = None
+    add_python_paths: list[str] | None = None
 
     # -*- App Ports
     # Open a container port if open_port=True
@@ -50,15 +52,15 @@ class InfraApp(InfraBase):
     port_number: int = 80
     # Port number on the Container to open
     # Preferred over port_number if both are set
-    container_port: Optional[int] = Field(None, validate_default=True)
+    container_port: int | None = Field(None, validate_default=True)
     # Port name for the opened port
     container_port_name: str = "http"
     # Port number on the Host to map to the Container port
     # Preferred over port_number if both are set
-    host_port: Optional[int] = Field(None, validate_default=True)
+    host_port: int | None = Field(None, validate_default=True)
 
     # -*- Extra Resources created "before" the App resources
-    resources: Optional[List[InfraResource]] = None
+    resources: list[InfraResource] | None = None
 
     #  -*- Other args
     print_env_on_load: bool = False
@@ -68,12 +70,12 @@ class InfraApp(InfraBase):
     # which is used as a starting point for building the container_env
     # Any variables set in container_env will be overridden by values
     # in the env_vars dict or env_file
-    container_env: Optional[Dict[str, Any]] = None
+    container_env: dict[str, Any] | None = None
     # Variable used to cache the container context
-    container_context: Optional[ContainerContext] = None
+    container_context: ContainerContext | None = None
 
     # -*- Cached Data
-    cached_resources: Optional[List[Any]] = None
+    cached_resources: list[Any] | None = None
 
     @field_validator("container_port", mode="before")
     def set_container_port(cls, v, info: ValidationInfo):
@@ -104,16 +106,16 @@ class InfraApp(InfraBase):
         else:
             return ""
 
-    def build_resources(self, build_context: Any) -> Optional[Any]:
+    def build_resources(self, build_context: Any) -> Any | None:
         logger.debug(f"@build_resource_group not defined for {self.get_app_name()}")
         return None
 
-    def get_dependencies(self) -> Optional[List[InfraResource]]:
+    def get_dependencies(self) -> list[InfraResource] | None:
         return (
             [dep for dep in self.depends_on if isinstance(dep, InfraResource)] if self.depends_on is not None else None
         )
 
-    def add_app_properties_to_resources(self, resources: List[InfraResource]) -> List[InfraResource]:
+    def add_app_properties_to_resources(self, resources: list[InfraResource]) -> list[InfraResource]:
         updated_resources = []
         app_properties = self.model_dump(exclude_defaults=True)
         app_group = self.get_group_name()
@@ -203,7 +205,7 @@ class InfraApp(InfraBase):
             updated_resources.append(resource)
         return updated_resources
 
-    def get_resources(self, build_context: Any) -> List[InfraResource]:
+    def get_resources(self, build_context: Any) -> list[InfraResource]:
         if self.cached_resources is not None and len(self.cached_resources) > 0:
             return self.cached_resources
 
@@ -216,7 +218,7 @@ class InfraApp(InfraBase):
         # logger.debug(f"Resources: {self.cached_resources}")
         return self.cached_resources
 
-    def matches_filters(self, group_filter: Optional[str] = None) -> bool:
+    def matches_filters(self, group_filter: str | None = None) -> bool:
         if group_filter is not None:
             group_name = self.get_group_name()
             logger.debug(f"{self.get_app_name()}: Checking {group_filter} in {group_name}")
@@ -224,17 +226,17 @@ class InfraApp(InfraBase):
                 return False
         return True
 
-    def should_create(self, group_filter: Optional[str] = None) -> bool:
+    def should_create(self, group_filter: str | None = None) -> bool:
         if not self.enabled or self.skip_create:
             return False
         return self.matches_filters(group_filter)
 
-    def should_delete(self, group_filter: Optional[str] = None) -> bool:
+    def should_delete(self, group_filter: str | None = None) -> bool:
         if not self.enabled or self.skip_delete:
             return False
         return self.matches_filters(group_filter)
 
-    def should_update(self, group_filter: Optional[str] = None) -> bool:
+    def should_update(self, group_filter: str | None = None) -> bool:
         if not self.enabled or self.skip_update:
             return False
         return self.matches_filters(group_filter)

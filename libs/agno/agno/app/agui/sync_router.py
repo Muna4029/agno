@@ -1,8 +1,10 @@
 """Async router handling exposing an Agno Agent or Team in an AG-UI compatible format."""
 
+from __future__ import annotations
+
 import logging
 import uuid
-from typing import Iterator, Optional
+from collections.abc import Iterator
 
 from ag_ui.core import (
     BaseEvent,
@@ -40,10 +42,9 @@ def run_agent(agent: Agent, run_input: RunAgentInput) -> Iterator[BaseEvent]:
         )
 
         # Stream the response content in AG-UI format
-        for event in stream_agno_response_as_agui_events(
+        yield from stream_agno_response_as_agui_events(
             response_stream=response_stream, thread_id=run_input.thread_id, run_id=run_id
-        ):
-            yield event
+        )
 
     # Emit a RunErrorEvent if any error occurs
     except Exception as e:
@@ -68,17 +69,16 @@ def run_team(team: Team, input: RunAgentInput) -> Iterator[BaseEvent]:
         )
 
         # Stream the response content in AG-UI format
-        for event in stream_agno_response_as_agui_events(
+        yield from stream_agno_response_as_agui_events(
             response_stream=response_stream, thread_id=input.thread_id, run_id=run_id
-        ):
-            yield event
+        )
 
     except Exception as e:
         logger.error(f"Error running team: {e}", exc_info=True)
         yield RunErrorEvent(type=EventType.RUN_ERROR, message=str(e))
 
 
-def get_sync_agui_router(agent: Optional[Agent] = None, team: Optional[Team] = None) -> APIRouter:
+def get_sync_agui_router(agent: Agent | None = None, team: Team | None = None) -> APIRouter:
     """Return an AG-UI compatible FastAPI router."""
     if (agent is None and team is None) or (agent is not None and team is not None):
         raise ValueError("One of 'agent' or 'team' must be provided.")

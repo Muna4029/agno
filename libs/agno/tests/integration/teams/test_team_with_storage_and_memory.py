@@ -86,7 +86,7 @@ def route_team_with_members(team_storage, agent_storage, memory):
         return f"The weather in {city} is sunny."
 
     def get_open_restaurants(city: str) -> str:
-        return f"The open restaurants in {city} are: {', '.join(['Restaurant 1', 'Restaurant 2', 'Restaurant 3'])}"
+        return f"The open restaurants in {city} are: {'Restaurant 1, Restaurant 2, Restaurant 3'}"
 
     travel_agent = Agent(
         name="Travel Agent",

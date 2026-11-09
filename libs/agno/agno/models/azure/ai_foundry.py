@@ -1,7 +1,9 @@
-from collections.abc import AsyncIterator
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -50,34 +52,34 @@ class AzureAIFoundry(Model):
     provider: str = "Azure"
 
     # Request parameters
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    frequency_penalty: Optional[float] = None
-    presence_penalty: Optional[float] = None
-    top_p: Optional[float] = None
-    stop: Optional[Union[str, List[str]]] = None
-    seed: Optional[int] = None
-    model_extras: Optional[Dict[str, Any]] = None
-    request_params: Optional[Dict[str, Any]] = None
+    temperature: float | None = None
+    max_tokens: int | None = None
+    frequency_penalty: float | None = None
+    presence_penalty: float | None = None
+    top_p: float | None = None
+    stop: str | list[str] | None = None
+    seed: int | None = None
+    model_extras: dict[str, Any] | None = None
+    request_params: dict[str, Any] | None = None
     # Client parameters
-    api_key: Optional[str] = None
-    api_version: Optional[str] = None
-    azure_endpoint: Optional[str] = None
-    timeout: Optional[float] = None
-    max_retries: Optional[int] = None
-    http_client: Optional[httpx.Client] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    api_version: str | None = None
+    azure_endpoint: str | None = None
+    timeout: float | None = None
+    max_retries: int | None = None
+    http_client: httpx.Client | None = None
+    client_params: dict[str, Any] | None = None
 
     # Azure AI clients
-    client: Optional[ChatCompletionsClient] = None
-    async_client: Optional[AsyncChatCompletionsClient] = None
+    client: ChatCompletionsClient | None = None
+    async_client: AsyncChatCompletionsClient | None = None
 
     def get_request_params(
         self,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        tools: list[dict[str, Any]] | None = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Get the parameters for creating an Azure AI request."""
         base_params = {
             "temperature": self.temperature,
@@ -126,7 +128,7 @@ class AzureAIFoundry(Model):
             log_debug(f"Calling {self.provider} with request parameters: {request_params}", log_level=2)
         return request_params
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         """Get the parameters for creating an Azure AI client."""
         self.api_key = self.api_key or getenv("AZURE_API_KEY")
         self.api_version = self.api_version or getenv("AZURE_API_VERSION", "2024-05-01-preview")
@@ -179,10 +181,10 @@ class AzureAIFoundry(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Send a chat completion request to the Azure AI API.
@@ -206,10 +208,10 @@ class AzureAIFoundry(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Sends an asynchronous chat completion request to the Azure AI API.
@@ -235,10 +237,10 @@ class AzureAIFoundry(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[Any]:
         """
         Send a streaming chat completion request to the Azure AI API.
@@ -263,10 +265,10 @@ class AzureAIFoundry(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[Any]:
         """
         Sends an asynchronous streaming chat completion request to the Azure AI API.
@@ -347,7 +349,7 @@ class AzureAIFoundry(Model):
 
     # Override base method
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[StreamingChatResponseToolCallUpdate]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[StreamingChatResponseToolCallUpdate]) -> list[dict[str, Any]]:
         """
         Build tool calls from streamed tool call data.
 
@@ -357,9 +359,9 @@ class AzureAIFoundry(Model):
         Returns:
             List[Dict[str, Any]]: The built tool calls.
         """
-        tool_calls: List[Dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
 
-        current_tool_call: Dict[str, Any] = {}
+        current_tool_call: dict[str, Any] = {}
         for tool_call in tool_calls_data:
             if tool_call.id:  # New tool call starts
                 if current_tool_call:  # Store previous tool call if exists

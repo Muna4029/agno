@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from bson import ObjectId
 
@@ -33,18 +35,18 @@ class MongoDb(VectorDb):
     def __init__(
         self,
         collection_name: str,
-        db_url: Optional[str] = "mongodb://localhost:27017/",
+        db_url: str | None = "mongodb://localhost:27017/",
         database: str = "agno",
-        embedder: Optional[Embedder] = None,
+        embedder: Embedder | None = None,
         distance_metric: str = Distance.cosine,
         overwrite: bool = False,
-        wait_until_index_ready_in_seconds: Optional[float] = 3,
-        wait_after_insert_in_seconds: Optional[float] = 3,
+        wait_until_index_ready_in_seconds: float | None = 3,
+        wait_after_insert_in_seconds: float | None = 3,
         max_pool_size: int = 100,
         retry_writes: bool = True,
-        client: Optional[MongoClient] = None,
-        search_index_name: Optional[str] = "vector_index_1",
-        cosmos_compatibility: Optional[bool] = False,
+        client: MongoClient | None = None,
+        search_index_name: str | None = "vector_index_1",
+        cosmos_compatibility: bool | None = False,
         search_type: SearchType = SearchType.vector,
         hybrid_vector_weight: float = 0.5,
         hybrid_keyword_weight: float = 0.5,
@@ -110,11 +112,11 @@ class MongoDb(VectorDb):
 
         self._client = client
         self._db = None
-        self._collection: Optional[Collection] = None
+        self._collection: Collection | None = None
 
-        self._async_client: Optional[AsyncMongoClient] = None
+        self._async_client: AsyncMongoClient | None = None
         self._async_db = None
-        self._async_collection: Optional[Collection] = None
+        self._async_collection: Collection | None = None
 
     def _get_client(self) -> MongoClient:
         """Create or retrieve the MongoDB client."""
@@ -485,7 +487,7 @@ class MongoDb(VectorDb):
             logger.error(f"Error checking document ID existence: {e}")
             return False
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents into the MongoDB collection."""
         log_debug(f"Inserting {len(documents)} documents")
         collection = self._get_collection()
@@ -509,7 +511,7 @@ class MongoDb(VectorDb):
             except Exception as e:
                 logger.error(f"Error inserting documents: {e}")
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Upsert documents into the MongoDB collection."""
         log_info(f"Upserting {len(documents)} documents")
         collection = self._get_collection()
@@ -531,8 +533,8 @@ class MongoDb(VectorDb):
         return True
 
     def search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None, min_score: float = 0.0
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None, min_score: float = 0.0
+    ) -> list[Document]:
         """Search for documents using vector similarity."""
         if self.search_type == SearchType.hybrid:
             return self.hybrid_search(query, limit=limit, filters=filters)
@@ -645,12 +647,12 @@ class MongoDb(VectorDb):
                 logger.error(f"Error during search: {e}")
                 raise
 
-    def vector_search(self, query: str, limit: int = 5) -> List[Document]:
+    def vector_search(self, query: str, limit: int = 5) -> list[Document]:
         """Perform a vector-based search."""
         log_debug("Performing vector search.")
         return self.search(query, limit=limit)
 
-    def keyword_search(self, query: str, limit: int = 5) -> List[Document]:
+    def keyword_search(self, query: str, limit: int = 5) -> list[Document]:
         """Perform a keyword-based search."""
         try:
             collection = self._get_collection()
@@ -677,8 +679,8 @@ class MongoDb(VectorDb):
         self,
         query: str,
         limit: int = 5,
-        filters: Optional[Dict[str, Any]] = None,
-    ) -> List[Document]:
+        filters: dict[str, Any] | None = None,
+    ) -> list[Document]:
         """
         Perform a hybrid search combining vector and keyword-based searches using Reciprocal Rank Fusion.
 
@@ -896,7 +898,6 @@ class MongoDb(VectorDb):
 
     def optimize(self) -> None:
         """TODO: not implemented"""
-        pass
 
     def delete(self) -> bool:
         """Delete all documents from the collection."""
@@ -914,7 +915,7 @@ class MongoDb(VectorDb):
         # Return True if collection doesn't exist (nothing to delete)
         return True
 
-    def prepare_doc(self, document: Document, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def prepare_doc(self, document: Document, filters: dict[str, Any] | None = None) -> dict[str, Any]:
         """Prepare a document for insertion or upsertion into MongoDB."""
         document.embed(embedder=self.embedder)
         if document.embedding is None:
@@ -962,7 +963,7 @@ class MongoDb(VectorDb):
             logger.error(f"Error checking document existence asynchronously: {e}")
             return False
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents asynchronously."""
         log_debug(f"Inserting {len(documents)} documents asynchronously")
         collection = await self._get_async_collection()
@@ -986,7 +987,7 @@ class MongoDb(VectorDb):
             except Exception as e:
                 logger.error(f"Error inserting documents asynchronously: {e}")
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Upsert documents asynchronously."""
         log_info(f"Upserting {len(documents)} documents asynchronously")
         collection = await self._get_async_collection()
@@ -1003,9 +1004,7 @@ class MongoDb(VectorDb):
             except Exception as e:
                 logger.error(f"Error upserting document '{document.name}' asynchronously: {e}")
 
-    async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+    async def async_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """Search for documents asynchronously."""
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:

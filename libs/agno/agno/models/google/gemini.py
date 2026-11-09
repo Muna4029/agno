@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import json
 import time
 from dataclasses import dataclass
 from os import getenv
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -61,39 +63,39 @@ class Gemini(Model):
     supports_native_structured_outputs: bool = True
 
     # Request parameters
-    function_declarations: Optional[List[Any]] = None
-    generation_config: Optional[Any] = None
-    safety_settings: Optional[List[Any]] = None
-    generative_model_kwargs: Optional[Dict[str, Any]] = None
+    function_declarations: list[Any] | None = None
+    generation_config: Any | None = None
+    safety_settings: list[Any] | None = None
+    generative_model_kwargs: dict[str, Any] | None = None
     search: bool = False
     grounding: bool = False
-    grounding_dynamic_threshold: Optional[float] = None
+    grounding_dynamic_threshold: float | None = None
 
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    top_k: Optional[int] = None
-    max_output_tokens: Optional[int] = None
-    stop_sequences: Optional[list[str]] = None
-    logprobs: Optional[bool] = None
-    presence_penalty: Optional[float] = None
-    frequency_penalty: Optional[float] = None
-    seed: Optional[int] = None
-    response_modalities: Optional[list[str]] = None  # "Text" and/or "Image"
-    speech_config: Optional[dict[str, Any]] = None
-    cached_content: Optional[Any] = None
-    thinking_budget: Optional[int] = None  # Thinking budget for Gemini 2.5 models
-    include_thoughts: Optional[bool] = None  # Include thought summaries in response
-    request_params: Optional[Dict[str, Any]] = None
+    temperature: float | None = None
+    top_p: float | None = None
+    top_k: int | None = None
+    max_output_tokens: int | None = None
+    stop_sequences: list[str] | None = None
+    logprobs: bool | None = None
+    presence_penalty: float | None = None
+    frequency_penalty: float | None = None
+    seed: int | None = None
+    response_modalities: list[str] | None = None  # "Text" and/or "Image"
+    speech_config: dict[str, Any] | None = None
+    cached_content: Any | None = None
+    thinking_budget: int | None = None  # Thinking budget for Gemini 2.5 models
+    include_thoughts: bool | None = None  # Include thought summaries in response
+    request_params: dict[str, Any] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
+    api_key: str | None = None
     vertexai: bool = False
-    project_id: Optional[str] = None
-    location: Optional[str] = None
-    client_params: Optional[Dict[str, Any]] = None
+    project_id: str | None = None
+    location: str | None = None
+    client_params: dict[str, Any] | None = None
 
     # Gemini client
-    client: Optional[GeminiClient] = None
+    client: GeminiClient | None = None
 
     # The role to map the Gemini response
     role_map = {
@@ -116,7 +118,7 @@ class Gemini(Model):
         if self.client:
             return self.client
 
-        client_params: Dict[str, Any] = {}
+        client_params: dict[str, Any] = {}
         vertexai = self.vertexai or getenv("GOOGLE_GENAI_USE_VERTEXAI", "false").lower() == "true"
 
         if not vertexai:
@@ -140,10 +142,10 @@ class Gemini(Model):
 
     def get_request_params(
         self,
-        system_message: Optional[str] = None,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        system_message: str | None = None,
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns the request keyword arguments for the GenerativeModel client.
         """
@@ -237,10 +239,10 @@ class Gemini(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ):
         """
         Invokes the model with a list of messages and returns the response.
@@ -268,10 +270,10 @@ class Gemini(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ):
         """
         Invokes the model with a list of messages and returns the response as a stream.
@@ -299,10 +301,10 @@ class Gemini(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ):
         """
         Invokes the model with a list of messages and returns the response.
@@ -331,10 +333,10 @@ class Gemini(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ):
         """
         Invokes the model with a list of messages and returns the response as a stream.
@@ -363,15 +365,15 @@ class Gemini(Model):
             log_error(f"Unknown error from Gemini API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
-    def _format_messages(self, messages: List[Message]):
+    def _format_messages(self, messages: list[Message]):
         """
         Converts a list of Message objects to the Gemini-compatible format.
 
         Args:
             messages (List[Message]): The list of messages to convert.
         """
-        formatted_messages: List = []
-        file_content: Optional[Union[GeminiFile, Part]] = None
+        formatted_messages: list = []
+        file_content: GeminiFile | Part | None = None
         system_message = None
         for message in messages:
             role = message.role
@@ -385,7 +387,7 @@ class Gemini(Model):
             # Add content to the message for the model
             content = message.content
             # Initialize message_parts to be used for Gemini
-            message_parts: List[Any] = []
+            message_parts: list[Any] = []
 
             # Function calls
             if (not content or role == "model") and message.tool_calls is not None and len(message.tool_calls) > 0:
@@ -478,7 +480,7 @@ class Gemini(Model):
 
         return formatted_messages, system_message
 
-    def _format_audio_for_message(self, audio: Audio) -> Optional[Union[Part, GeminiFile]]:
+    def _format_audio_for_message(self, audio: Audio) -> Part | GeminiFile | None:
         # Case 1: Audio is a bytes object
         if audio.content and isinstance(audio.content, bytes):
             mime_type = f"audio/{audio.format}" if audio.format else "audio/mp3"
@@ -509,11 +511,11 @@ class Gemini(Model):
                 if audio_path.exists() and audio_path.is_file():
                     audio_file = self.get_client().files.upload(
                         file=audio_path,
-                        config=dict(
-                            name=remote_file_name,
-                            display_name=audio_path.stem,
-                            mime_type=f"audio/{audio.format}" if audio.format else "audio/mp3",
-                        ),
+                        config={
+                            "name": remote_file_name,
+                            "display_name": audio_path.stem,
+                            "mime_type": f"audio/{audio.format}" if audio.format else "audio/mp3",
+                        },
                     )
                 else:
                     log_error(f"Audio file {audio_path} does not exist.")
@@ -537,7 +539,7 @@ class Gemini(Model):
             log_warning(f"Unknown audio type: {type(audio.content)}")
             return None
 
-    def _format_video_for_message(self, video: Video) -> Optional[Part]:
+    def _format_video_for_message(self, video: Video) -> Part | None:
         # Case 1: Video is a bytes object
         if video.content and isinstance(video.content, bytes):
             mime_type = f"video/{video.format}" if video.format else "video/mp4"
@@ -562,11 +564,11 @@ class Gemini(Model):
                 if video_path.exists() and video_path.is_file():
                     video_file = self.get_client().files.upload(
                         file=video_path,
-                        config=dict(
-                            name=remote_file_name,
-                            display_name=video_path.stem,
-                            mime_type=f"video/{video.format}" if video.format else "video/mp4",
-                        ),
+                        config={
+                            "name": remote_file_name,
+                            "display_name": video_path.stem,
+                            "mime_type": f"video/{video.format}" if video.format else "video/mp4",
+                        },
                     )
                 else:
                     log_error(f"Video file {video_path} does not exist.")
@@ -597,7 +599,7 @@ class Gemini(Model):
             log_warning(f"Unknown video type: {type(video.content)}")
             return None
 
-    def _format_file_for_message(self, file: File) -> Optional[Part]:
+    def _format_file_for_message(self, file: File) -> Part | None:
         # Case 1: File is a bytes object
         if file.content and isinstance(file.content, bytes) and file.mime_type:
             return Part.from_bytes(mime_type=file.mime_type, data=file.content)
@@ -662,13 +664,13 @@ class Gemini(Model):
         return None
 
     def format_function_call_results(
-        self, messages: List[Message], function_call_results: List[Message], **kwargs
+        self, messages: list[Message], function_call_results: list[Message], **kwargs
     ) -> None:
         """
         Format function call results.
         """
-        combined_content: List = []
-        combined_function_result: List = []
+        combined_content: list = []
+        combined_function_result: list = []
         message_metrics = MessageMetrics()
         if len(function_call_results) > 0:
             for result in function_call_results:
@@ -709,7 +711,7 @@ class Gemini(Model):
             for part in response_message.parts:
                 # Extract text if present
                 if hasattr(part, "text") and part.text is not None:
-                    text_content: Optional[str] = getattr(part, "text")
+                    text_content: str | None = part.text
                     if isinstance(text_content, str):
                         # Check if this is a thought summary
                         if hasattr(part, "thought") and part.thought:
@@ -897,6 +899,6 @@ class Gemini(Model):
                     setattr(new_instance, key, value)
 
         # Explicitly set client to None
-        setattr(new_instance, "client", None)
+        new_instance.client = None
 
         return new_instance

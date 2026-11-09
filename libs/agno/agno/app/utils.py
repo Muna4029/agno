@@ -1,4 +1,5 @@
-from typing import Optional
+from __future__ import annotations
+
 from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile
@@ -35,7 +36,7 @@ def process_video(file: UploadFile) -> Video:
     return Video(content=content, format=file.content_type)
 
 
-def process_document(file: UploadFile) -> Optional[FileMedia]:
+def process_document(file: UploadFile) -> FileMedia | None:
     try:
         content = file.file.read()
         if not content:
@@ -47,7 +48,7 @@ def process_document(file: UploadFile) -> Optional[FileMedia]:
         return None
 
 
-def generate_id(name: Optional[str] = None) -> str:
+def generate_id(name: str | None = None) -> str:
     if name:
         return name.lower().replace(" ", "-").replace("_", "-")
     else:

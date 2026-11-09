@@ -1,9 +1,9 @@
-from typing import Optional
+from __future__ import annotations
 
 import pytest
 from pydantic import BaseModel, Field
 
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent, RunResponse
 from agno.exceptions import ModelProviderError
 from agno.memory import AgentMemory
 from agno.memory.classifier import MemoryClassifier
@@ -135,7 +135,7 @@ def test_structured_output_json_mode():
         title: str = Field(..., description="Movie title")
         genre: str = Field(..., description="Movie genre")
         plot: str = Field(..., description="Brief plot summary")
-        release_date: Optional[str] = Field(None, description="Release date of the movie")
+        release_date: str | None = Field(None, description="Release date of the movie")
 
     agent = Agent(
         model=OpenAIResponses(id="gpt-4o-mini"),
@@ -161,7 +161,7 @@ def test_structured_output():
         title: str = Field(..., description="Movie title")
         genre: str = Field(..., description="Movie genre")
         plot: str = Field(..., description="Brief plot summary")
-        release_date: Optional[str] = Field(None, description="Release date of the movie")
+        release_date: str | None = Field(None, description="Release date of the movie")
 
     agent = Agent(
         model=OpenAIResponses(id="gpt-4o-mini"),

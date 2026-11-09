@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -16,8 +18,8 @@ except ImportError:
 class GithubTools(Toolkit):
     def __init__(
         self,
-        access_token: Optional[str] = None,
-        base_url: Optional[str] = None,
+        access_token: str | None = None,
+        base_url: str | None = None,
         search_repositories: bool = True,
         list_repositories: bool = False,
         get_repository: bool = False,
@@ -64,7 +66,7 @@ class GithubTools(Toolkit):
 
         self.g = self.authenticate()
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if search_repositories:
             tools.append(self.search_repositories)
         if list_repositories:
@@ -229,9 +231,9 @@ class GithubTools(Toolkit):
         self,
         name: str,
         private: bool = False,
-        description: Optional[str] = None,
+        description: str | None = None,
         auto_init: bool = False,
-        organization: Optional[str] = None,
+        organization: str | None = None,
     ) -> str:
         """Create a new repository on GitHub.
 
@@ -327,9 +329,9 @@ class GithubTools(Toolkit):
         self,
         repo_name: str,
         state: str = "all",
-        author: Optional[str] = None,
-        base: Optional[str] = None,
-        head: Optional[str] = None,
+        author: str | None = None,
+        base: str | None = None,
+        head: str | None = None,
     ) -> str:
         """Get the count of pull requests for a repository based on query parameters.
 
@@ -428,7 +430,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error getting pull request changes: {e}")
             return json.dumps({"error": str(e)})
 
-    def create_issue(self, repo_name: str, title: str, body: Optional[str] = NotSet) -> str:
+    def create_issue(self, repo_name: str, title: str, body: str | None = NotSet) -> str:
         """Create an issue in a repository.
 
         Args:
@@ -590,7 +592,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error reopening issue: {e}")
             return json.dumps({"error": str(e)})
 
-    def assign_issue(self, repo_name: str, issue_number: int, assignees: List[str]) -> str:
+    def assign_issue(self, repo_name: str, issue_number: int, assignees: list[str]) -> str:
         """Assign users to an issue.
 
         Args:
@@ -611,7 +613,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error assigning issue: {e}")
             return json.dumps({"error": str(e)})
 
-    def label_issue(self, repo_name: str, issue_number: int, labels: List[str]) -> str:
+    def label_issue(self, repo_name: str, issue_number: int, labels: list[str]) -> str:
         """Add labels to an issue.
 
         Args:
@@ -669,8 +671,8 @@ class GithubTools(Toolkit):
         self,
         repo_name: str,
         issue_number: int,
-        title: Optional[str] = NotSet,
-        body: Optional[str] = NotSet,
+        title: str | None = NotSet,
+        body: str | None = NotSet,
     ) -> str:
         """Edit the title or body of an issue.
 
@@ -1258,8 +1260,8 @@ class GithubTools(Toolkit):
         self,
         repo_name: str,
         pr_number: int,
-        reviewers: List[str],
-        team_reviewers: Optional[List[str]] = None,
+        reviewers: list[str],
+        team_reviewers: list[str] | None = None,
     ) -> str:
         """Create a review request for a pull request.
 
@@ -1296,7 +1298,7 @@ class GithubTools(Toolkit):
         path: str,
         content: str,
         message: str,
-        branch: Optional[str] = NotSet,
+        branch: str | None = NotSet,
     ) -> str:
         """Create a new file in a repository.
 
@@ -1339,7 +1341,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error creating file: {e}")
             return json.dumps({"error": str(e)})
 
-    def get_file_content(self, repo_name: str, path: str, ref: Optional[str] = None) -> str:
+    def get_file_content(self, repo_name: str, path: str, ref: str | None = None) -> str:
         """Get the content of a file in a repository.
 
         Args:
@@ -1402,7 +1404,7 @@ class GithubTools(Toolkit):
         content: str,
         message: str,
         sha: str,
-        branch: Optional[str] = None,
+        branch: str | None = None,
     ) -> str:
         """Update an existing file in a repository.
 
@@ -1456,7 +1458,7 @@ class GithubTools(Toolkit):
         path: str,
         message: str,
         sha: str,
-        branch: Optional[str] = None,
+        branch: str | None = None,
     ) -> str:
         """Delete a file from a repository.
 
@@ -1492,7 +1494,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error deleting file: {e}")
             return json.dumps({"error": str(e)})
 
-    def get_directory_content(self, repo_name: str, path: str, ref: Optional[str] = None) -> str:
+    def get_directory_content(self, repo_name: str, path: str, ref: str | None = None) -> str:
         """Get the contents of a directory in a repository.
 
         Args:
@@ -1557,7 +1559,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error getting branch contents: {e}")
             return json.dumps({"error": str(e)})
 
-    def create_branch(self, repo_name: str, branch_name: str, source_branch: Optional[str] = None) -> str:
+    def create_branch(self, repo_name: str, branch_name: str, source_branch: str | None = None) -> str:
         """Create a new branch in a repository.
 
         Args:
@@ -1631,11 +1633,11 @@ class GithubTools(Toolkit):
     def search_code(
         self,
         query: str,
-        language: Optional[str] = None,
-        repo: Optional[str] = None,
-        user: Optional[str] = None,
-        path: Optional[str] = None,
-        filename: Optional[str] = None,
+        language: str | None = None,
+        repo: str | None = None,
+        user: str | None = None,
+        path: str | None = None,
+        filename: str | None = None,
     ) -> str:
         """Search for code in GitHub repositories.
 
@@ -1702,11 +1704,11 @@ class GithubTools(Toolkit):
     def search_issues_and_prs(
         self,
         query: str,
-        state: Optional[str] = None,
-        type_filter: Optional[str] = None,
-        repo: Optional[str] = None,
-        user: Optional[str] = None,
-        label: Optional[str] = None,
+        state: str | None = None,
+        type_filter: str | None = None,
+        repo: str | None = None,
+        user: str | None = None,
+        label: str | None = None,
         sort: str = "created",
         order: str = "desc",
         page: int = 1,

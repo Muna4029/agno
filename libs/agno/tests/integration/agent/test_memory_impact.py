@@ -1,6 +1,5 @@
 import gc
 import tracemalloc
-from typing import List, Tuple
 
 from agno.agent.agent import Agent
 from agno.models.openai.chat import OpenAIChat
@@ -10,8 +9,8 @@ class MemoryMonitor:
     """Utility class to monitor memory usage during agent operations using tracemalloc."""
 
     def __init__(self):
-        self.memory_readings: List[Tuple[int, float]] = []
-        self.tracemalloc_snapshots: List[tracemalloc.Snapshot] = []
+        self.memory_readings: list[tuple[int, float]] = []
+        self.tracemalloc_snapshots: list[tracemalloc.Snapshot] = []
         self.baseline_memory = 0.0
 
     def start_monitoring(self):
@@ -48,7 +47,7 @@ class MemoryMonitor:
         gc.collect()
         self._take_reading("after_gc")
 
-    def get_memory_growth(self) -> List[float]:
+    def get_memory_growth(self) -> list[float]:
         """Calculate memory growth between readings."""
         if len(self.memory_readings) < 2:
             return []

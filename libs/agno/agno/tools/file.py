@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_info
@@ -9,7 +11,7 @@ from agno.utils.log import log_debug, log_error, log_info
 class FileTools(Toolkit):
     def __init__(
         self,
-        base_dir: Optional[Path] = None,
+        base_dir: Path | None = None,
         save_files: bool = True,
         read_files: bool = True,
         list_files: bool = True,
@@ -18,7 +20,7 @@ class FileTools(Toolkit):
     ):
         self.base_dir: Path = base_dir or Path.cwd()
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if save_files:
             tools.append(self.save_file)
         if read_files:

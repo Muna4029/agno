@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional, Tuple
+from __future__ import annotations
+
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -12,11 +14,11 @@ except ImportError:
 class DuckDbTools(Toolkit):
     def __init__(
         self,
-        db_path: Optional[str] = None,
-        connection: Optional[duckdb.DuckDBPyConnection] = None,
-        init_commands: Optional[List] = None,
+        db_path: str | None = None,
+        connection: duckdb.DuckDBPyConnection | None = None,
+        init_commands: list | None = None,
         read_only: bool = False,
-        config: Optional[dict] = None,
+        config: dict | None = None,
         run_queries: bool = True,
         inspect_queries: bool = False,
         create_tables: bool = True,
@@ -24,13 +26,13 @@ class DuckDbTools(Toolkit):
         export_tables: bool = False,
         **kwargs,
     ):
-        self.db_path: Optional[str] = db_path
+        self.db_path: str | None = db_path
         self.read_only: bool = read_only
-        self.config: Optional[dict] = config
-        self._connection: Optional[duckdb.DuckDBPyConnection] = connection
-        self.init_commands: Optional[List] = init_commands
+        self.config: dict | None = config
+        self._connection: duckdb.DuckDBPyConnection | None = connection
+        self.init_commands: list | None = init_commands
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.show_tables)
         tools.append(self.describe_table)
         if inspect_queries:
@@ -61,7 +63,7 @@ class DuckDbTools(Toolkit):
         :return duckdb.DuckDBPyConnection: duckdb connection
         """
         if self._connection is None:
-            connection_kwargs: Dict[str, Any] = {}
+            connection_kwargs: dict[str, Any] = {}
             if self.db_path is not None:
                 connection_kwargs["database"] = self.db_path
             if self.read_only:
@@ -182,13 +184,13 @@ class DuckDbTools(Toolkit):
         # Get the file name from the path
         file_name = path.split("/")[-1]
         # Get the file name without extension from the path
-        table, extension = os.path.splitext(file_name)
+        table, _extension = os.path.splitext(file_name)
         # If the table isn't a valid SQL identifier, we'll need to use something else
         table = table.replace("-", "_").replace(".", "_").replace(" ", "_").replace("/", "_")
 
         return table
 
-    def create_table_from_path(self, path: str, table: Optional[str] = None, replace: bool = False) -> str:
+    def create_table_from_path(self, path: str, table: str | None = None, replace: bool = False) -> str:
         """Creates a table from a path
 
         :param path: Path to load
@@ -215,7 +217,7 @@ class DuckDbTools(Toolkit):
         log_debug(f"Created table {table} from {path}")
         return table
 
-    def export_table_to_path(self, table: str, format: Optional[str] = "PARQUET", path: Optional[str] = None) -> str:
+    def export_table_to_path(self, table: str, format: str | None = "PARQUET", path: str | None = None) -> str:
         """Save a table in a desired format (default: parquet)
         If the path is provided, the table will be saved under that path.
             Eg: If path is /tmp, the table will be saved as /tmp/table.parquet
@@ -239,7 +241,7 @@ class DuckDbTools(Toolkit):
         log_debug(f"Exported {table} to {path}/{table}")
         return result
 
-    def load_local_path_to_table(self, path: str, table: Optional[str] = None) -> Tuple[str, str]:
+    def load_local_path_to_table(self, path: str, table: str | None = None) -> tuple[str, str]:
         """Load a local file into duckdb
 
         :param path: Path to load
@@ -254,7 +256,7 @@ class DuckDbTools(Toolkit):
             # Get the file name from the s3 path
             file_name = path.split("/")[-1]
             # Get the file name without extension from the s3 path
-            table, extension = os.path.splitext(file_name)
+            table, _extension = os.path.splitext(file_name)
             # If the table isn't a valid SQL identifier, we'll need to use something else
             table = table.replace("-", "_").replace(".", "_").replace(" ", "_").replace("/", "_")
 
@@ -265,8 +267,8 @@ class DuckDbTools(Toolkit):
         return table, create_statement
 
     def load_local_csv_to_table(
-        self, path: str, table: Optional[str] = None, delimiter: Optional[str] = None
-    ) -> Tuple[str, str]:
+        self, path: str, table: str | None = None, delimiter: str | None = None
+    ) -> tuple[str, str]:
         """Load a local CSV file into duckdb
 
         :param path: Path to load
@@ -282,7 +284,7 @@ class DuckDbTools(Toolkit):
             # Get the file name from the s3 path
             file_name = path.split("/")[-1]
             # Get the file name without extension from the s3 path
-            table, extension = os.path.splitext(file_name)
+            table, _extension = os.path.splitext(file_name)
             # If the table isn't a valid SQL identifier, we'll need to use something else
             table = table.replace("-", "_").replace(".", "_").replace(" ", "_").replace("/", "_")
 
@@ -298,7 +300,7 @@ class DuckDbTools(Toolkit):
         log_debug(f"Loaded CSV {path} into duckdb as {table}")
         return table, create_statement
 
-    def load_s3_path_to_table(self, path: str, table: Optional[str] = None) -> Tuple[str, str]:
+    def load_s3_path_to_table(self, path: str, table: str | None = None) -> tuple[str, str]:
         """Load a file from S3 into duckdb
 
         :param path: S3 path to load
@@ -313,7 +315,7 @@ class DuckDbTools(Toolkit):
             # Get the file name from the s3 path
             file_name = path.split("/")[-1]
             # Get the file name without extension from the s3 path
-            table, extension = os.path.splitext(file_name)
+            table, _extension = os.path.splitext(file_name)
             # If the table isn't a valid SQL identifier, we'll need to use something else
             table = table.replace("-", "_").replace(".", "_").replace(" ", "_").replace("/", "_")
 
@@ -324,8 +326,8 @@ class DuckDbTools(Toolkit):
         return table, create_statement
 
     def load_s3_csv_to_table(
-        self, path: str, table: Optional[str] = None, delimiter: Optional[str] = None
-    ) -> Tuple[str, str]:
+        self, path: str, table: str | None = None, delimiter: str | None = None
+    ) -> tuple[str, str]:
         """Load a CSV file from S3 into duckdb
 
         :param path: S3 path to load
@@ -340,7 +342,7 @@ class DuckDbTools(Toolkit):
             # Get the file name from the s3 path
             file_name = path.split("/")[-1]
             # Get the file name without extension from the s3 path
-            table, extension = os.path.splitext(file_name)
+            table, _extension = os.path.splitext(file_name)
             # If the table isn't a valid SQL identifier, we'll need to use something else
             table = table.replace("-", "_").replace(".", "_").replace(" ", "_").replace("/", "_")
 

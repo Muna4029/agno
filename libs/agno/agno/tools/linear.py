@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any
 
 import requests
 
@@ -29,7 +31,7 @@ class LinearTools(Toolkit):
         self.endpoint = "https://api.linear.app/graphql"
         self.headers = {"Authorization": f"{self.api_token}"}
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if get_user_details:
             tools.append(self.get_user_details)
         if get_teams_details:
@@ -73,7 +75,7 @@ class LinearTools(Toolkit):
             logger.error(f"Unexpected error: {e}")
             raise
 
-    def get_user_details(self) -> Optional[str]:
+    def get_user_details(self) -> str | None:
         """
         Fetch authenticated user details.
         It will return the user's unique ID, name, and email address from the viewer object in the GraphQL response.
@@ -112,7 +114,7 @@ class LinearTools(Toolkit):
             logger.error(f"Error fetching authenticated user details: {e}")
             raise
 
-    def get_teams_details(self) -> Optional[str]:
+    def get_teams_details(self) -> str | None:
         """
         Fetch the list of authenticated teams.
         It will return the unique ID and team name for each team, from the viewer object in the GraphQL response.
@@ -150,7 +152,7 @@ class LinearTools(Toolkit):
             logger.error(f"Error fetching authenticated user details: {e}")
             raise
 
-    def get_issue_details(self, issue_id: str) -> Optional[str]:
+    def get_issue_details(self, issue_id: str) -> str | None:
         """
         Retrieve details of a specific issue by issue ID.
 
@@ -195,9 +197,9 @@ class LinearTools(Toolkit):
         title: str,
         description: str,
         team_id: str,
-        project_id: Optional[str] = None,
-        assignee_id: Optional[str] = None,
-    ) -> Optional[str]:
+        project_id: str | None = None,
+        assignee_id: str | None = None,
+    ) -> str | None:
         """
         Create a new issue within a specific project and team.
 
@@ -257,7 +259,7 @@ class LinearTools(Toolkit):
             logger.error(f"Error creating issue '{title}' for team ID {team_id}: {e}")
             raise
 
-    def update_issue(self, issue_id: str, title: Optional[str]) -> Optional[str]:
+    def update_issue(self, issue_id: str, title: str | None) -> str | None:
         """
         Update the title or state of a specific issue by issue ID.
 
@@ -308,7 +310,7 @@ class LinearTools(Toolkit):
             logger.error(f"Error updating issue ID {issue_id}: {e}")
             raise
 
-    def get_user_assigned_issues(self, user_id: str) -> Optional[str]:
+    def get_user_assigned_issues(self, user_id: str) -> str | None:
         """
         Retrieve issues assigned to a specific user by user ID.
 
@@ -356,7 +358,7 @@ class LinearTools(Toolkit):
             logger.error(f"Error retrieving issues for user ID {user_id}: {e}")
             raise
 
-    def get_workflow_issues(self, workflow_id: str) -> Optional[str]:
+    def get_workflow_issues(self, workflow_id: str) -> str | None:
         """
         Retrieve issues within a specific workflow state by workflow ID.
 
@@ -399,7 +401,7 @@ class LinearTools(Toolkit):
             logger.error(f"Error retrieving issues for workflow state ID {workflow_id}: {e}")
             raise
 
-    def get_high_priority_issues(self) -> Optional[str]:
+    def get_high_priority_issues(self) -> str | None:
         """
         Retrieve issues with a high priority (priority <= 2).
 

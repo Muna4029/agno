@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 
@@ -41,22 +43,22 @@ class AzureOpenAI(OpenAILike):
 
     supports_native_structured_outputs: bool = True
 
-    api_key: Optional[str] = None
-    api_version: Optional[str] = "2024-10-21"
-    azure_endpoint: Optional[str] = None
-    azure_deployment: Optional[str] = None
-    base_url: Optional[str] = None
-    azure_ad_token: Optional[str] = None
-    azure_ad_token_provider: Optional[Any] = None
+    api_key: str | None = None
+    api_version: str | None = "2024-10-21"
+    azure_endpoint: str | None = None
+    azure_deployment: str | None = None
+    base_url: str | None = None
+    azure_ad_token: str | None = None
+    azure_ad_token_provider: Any | None = None
 
-    default_headers: Optional[Dict[str, str]] = None
-    default_query: Optional[Dict[str, Any]] = None
+    default_headers: dict[str, str] | None = None
+    default_query: dict[str, Any] | None = None
 
-    client: Optional[AzureOpenAIClient] = None
-    async_client: Optional[AsyncAzureOpenAIClient] = None
+    client: AzureOpenAIClient | None = None
+    async_client: AsyncAzureOpenAIClient | None = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
-        _client_params: Dict[str, Any] = {}
+    def _get_client_params(self) -> dict[str, Any]:
+        _client_params: dict[str, Any] = {}
 
         self.api_key = self.api_key or getenv("AZURE_OPENAI_API_KEY")
         self.azure_endpoint = self.azure_endpoint or getenv("AZURE_OPENAI_ENDPOINT")
@@ -93,7 +95,7 @@ class AzureOpenAI(OpenAILike):
         if self.client is not None and not self.client.is_closed():
             return self.client
 
-        _client_params: Dict[str, Any] = self._get_client_params()
+        _client_params: dict[str, Any] = self._get_client_params()
 
         # -*- Create client
         self.client = AzureOpenAIClient(**_client_params)
@@ -109,7 +111,7 @@ class AzureOpenAI(OpenAILike):
         if self.async_client:
             return self.async_client
 
-        _client_params: Dict[str, Any] = self._get_client_params()
+        _client_params: dict[str, Any] = self._get_client_params()
 
         if self.http_client:
             _client_params["http_client"] = self.http_client
