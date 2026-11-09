@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, AsyncGenerator, AsyncIterator, Callable, Dict, List, Optional, Union, cast, get_args
+from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Union, cast, get_args
 from uuid import uuid4
 
 from pydantic import BaseModel
