@@ -6,9 +6,17 @@ from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
+    from firecrawl import FirecrawlApp  # type: ignore[attr-defined]
 except ImportError:
     raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
+
+try:
+    from firecrawl import ScrapeOptions as FirecrawlScrapeOptions  # type: ignore[attr-defined]
+except ImportError:
+    try:
+        from firecrawl import V1ScrapeOptions as FirecrawlScrapeOptions  # type: ignore[attr-defined]
+    except ImportError:
+        FirecrawlScrapeOptions = None
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -77,6 +85,42 @@ class FirecrawlTools(Toolkit):
 
         super().__init__(name="firecrawl_tools", tools=tools, **kwargs)
 
+    def _get_scrape_options(self) -> Any:
+        if FirecrawlScrapeOptions is None:
+            return {"formats": self.formats}
+        return FirecrawlScrapeOptions(formats=self.formats)
+
+    @staticmethod
+    def _get_firecrawl_v1_client(app: Any) -> Optional[Any]:
+        app_dict = getattr(app, "__dict__", None)
+        if not isinstance(app_dict, dict):
+            return None
+        return app_dict.get("v1")
+
+    def _scrape(self, url: str, params: Dict[str, Any]) -> Any:
+        if hasattr(self.app, "scrape_url"):
+            return self.app.scrape_url(url, **params)
+        app = self._get_firecrawl_v1_client(self.app)
+        if app is not None and hasattr(app, "scrape_url"):
+            return app.scrape_url(url, **params)
+        return self.app.scrape(url, **params)
+
+    def _crawl(self, url: str, params: Dict[str, Any]) -> Any:
+        if hasattr(self.app, "crawl_url"):
+            return self.app.crawl_url(url, **params)
+        app = self._get_firecrawl_v1_client(self.app)
+        if app is not None and hasattr(app, "crawl_url"):
+            return app.crawl_url(url, **params)
+        return self.app.crawl(url, **params)
+
+    def _map(self, url: str) -> Any:
+        if hasattr(self.app, "map_url"):
+            return self.app.map_url(url)
+        app = self._get_firecrawl_v1_client(self.app)
+        if app is not None and hasattr(app, "map_url"):
+            return app.map_url(url)
+        return self.app.map(url)
+
     def scrape_website(self, url: str) -> str:
         """Use this function to scrape a website using Firecrawl.
 
@@ -87,7 +131,7 @@ class FirecrawlTools(Toolkit):
         if self.formats:
             params["formats"] = self.formats
 
-        scrape_result = self.app.scrape_url(url, **params)
+        scrape_result = self._scrape(url, params)
         return json.dumps(scrape_result.model_dump(), cls=CustomJSONEncoder)
 
     def crawl_website(self, url: str, limit: Optional[int] = None) -> str:
@@ -104,11 +148,11 @@ class FirecrawlTools(Toolkit):
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            params["scrape_options"] = self._get_scrape_options()
 
         params["poll_interval"] = self.poll_interval
 
-        crawl_result = self.app.crawl_url(url, **params)
+        crawl_result = self._crawl(url, params)
         return json.dumps(crawl_result.model_dump(), cls=CustomJSONEncoder)
 
     def map_website(self, url: str) -> str:
@@ -118,7 +162,7 @@ class FirecrawlTools(Toolkit):
             url (str): The URL to map.
 
         """
-        map_result = self.app.map_url(url)
+        map_result = self._map(url)
         return json.dumps(map_result.model_dump(), cls=CustomJSONEncoder)
 
     def search(self, query: str, limit: Optional[int] = None):
@@ -132,7 +176,7 @@ class FirecrawlTools(Toolkit):
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            params["scrape_options"] = self._get_scrape_options()
         if self.search_params:
             params.update(self.search_params)
 

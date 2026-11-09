@@ -1,12 +1,30 @@
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, TypedDict, Union
 
 from agno.document import Document
 from agno.knowledge.agent import AgentKnowledge
 from agno.utils.log import log_info, logger
 
 
+class DocumentConfig(TypedDict, total=False):
+    document: Document
+    metadata: Dict[str, Any]
+
+
 class DocumentKnowledgeBase(AgentKnowledge):
-    documents: Optional[Union[List[Document], List[Dict[str, Union[Document, Dict[str, Any]]]]]] = None
+    documents: Optional[List[Union[Document, DocumentConfig]]] = None
+
+    @staticmethod
+    def _document_with_metadata(document: Document, metadata: Dict[str, Any]) -> Document:
+        return Document(
+            content=document.content,
+            id=document.id,
+            name=document.name,
+            meta_data={**document.meta_data, **metadata},
+            embedder=document.embedder,
+            embedding=document.embedding,
+            usage=document.usage,
+            reranking_score=document.reranking_score,
+        )
 
     @property
     def document_lists(self) -> Iterator[List[Document]]:
@@ -24,21 +42,10 @@ class DocumentKnowledgeBase(AgentKnowledge):
             if isinstance(item, dict) and "document" in item:
                 # Handle document with metadata
                 document = item["document"]
-                config = item.get("metadata", {})
+                config = item["metadata"] if "metadata" in item else {}
                 if config:
                     log_info(f"Adding metadata {config} to document: {document.name}")
-                    # Create a copy of the document with updated metadata
-                    updated_document = Document(
-                        content=document.content,
-                        id=document.id,
-                        name=document.name,
-                        meta_data={**document.meta_data, **config},
-                        embedder=document.embedder,
-                        embedding=document.embedding,
-                        usage=document.usage,
-                        reranking_score=document.reranking_score,
-                    )
-                    yield [updated_document]
+                    yield [self._document_with_metadata(document, config)]
                 else:
                     yield [document]
             elif isinstance(item, Document):
@@ -63,21 +70,10 @@ class DocumentKnowledgeBase(AgentKnowledge):
             if isinstance(item, dict) and "document" in item:
                 # Handle document with metadata
                 document = item["document"]
-                config = item.get("metadata", {})
+                config = item["metadata"] if "metadata" in item else {}
                 if config:
                     log_info(f"Adding metadata {config} to document: {document.name}")
-                    # Create a copy of the document with updated metadata
-                    updated_document = Document(
-                        content=document.content,
-                        id=document.id,
-                        name=document.name,
-                        meta_data={**document.meta_data, **config},
-                        embedder=document.embedder,
-                        embedding=document.embedding,
-                        usage=document.usage,
-                        reranking_score=document.reranking_score,
-                    )
-                    yield [updated_document]
+                    yield [self._document_with_metadata(document, config)]
                 else:
                     yield [document]
             elif isinstance(item, Document):
@@ -164,17 +160,7 @@ class DocumentKnowledgeBase(AgentKnowledge):
 
         # Apply metadata if provided
         if metadata:
-            # Create a copy of the document with updated metadata
-            document = Document(
-                content=document.content,
-                id=document.id,
-                name=document.name,
-                meta_data={**document.meta_data, **metadata},
-                embedder=document.embedder,
-                embedding=document.embedding,
-                usage=document.usage,
-                reranking_score=document.reranking_score,
-            )
+            document = self._document_with_metadata(document, metadata)
 
         # Process documents
         self.process_documents(
@@ -201,17 +187,7 @@ class DocumentKnowledgeBase(AgentKnowledge):
 
         # Apply metadata if provided
         if metadata:
-            # Create a copy of the document with updated metadata
-            document = Document(
-                content=document.content,
-                id=document.id,
-                name=document.name,
-                meta_data={**document.meta_data, **metadata},
-                embedder=document.embedder,
-                embedding=document.embedding,
-                usage=document.usage,
-                reranking_score=document.reranking_score,
-            )
+            document = self._document_with_metadata(document, metadata)
 
         # Process documents
         await self.aprocess_documents(
