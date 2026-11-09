@@ -12,7 +12,6 @@ jobs:
     defaults:
       run:
         working-directory: libs/agno
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -24,7 +23,7 @@ jobs:
       run: |
         python -m pip install --upgrade \
           pip setuptools wheel \
-          ruff mypy pytest types-pyyaml
+          "ruff==0.11.10" "mypy==1.15.0" pytest types-pyyaml
         pip install --no-deps -r requirements.txt
     - name: Ruff format
       run: |
@@ -38,13 +37,13 @@ jobs:
     - name: Mypy
       run: |
         mypy .
-
   tests:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ['3.12']
-
+    env:
+      UV_EXCLUDE_NEWER: '2025-07-29T00:00:00Z'
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -61,10 +60,9 @@ jobs:
       run: |
         set -e
         ./scripts/dev_setup.sh
-
     - name: Pin zep-cloud to working version
       run: |
-        VIRTUAL_ENV=.venv uv pip install --force-reinstall "zep-cloud==2.22.1"
+        VIRTUAL_ENV=.venv uv pip install --no-deps --force-reinstall "zep-cloud==2.22.1"
 
     - name: Run tests for Agno
       working-directory: .
