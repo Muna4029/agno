@@ -2,21 +2,20 @@ import json
 from os import getenv
 from typing import Any, Dict, List, Optional
 
-from daytona_sdk import Daytona
-
 from agno.tools import Toolkit
 from agno.utils.code_execution import prepare_python_code
 from agno.utils.log import logger
 
 try:
-    from daytona_sdk import (
+    from daytona_sdk import (  # type: ignore[import-not-found]
         CodeLanguage,
         CreateSandboxParams,
+        Daytona,
         DaytonaConfig,
         Sandbox,
         SandboxTargetRegion,
     )
-    from daytona_sdk.common.process import ExecuteResponse
+    from daytona_sdk.common.process import ExecuteResponse  # type: ignore[import-not-found]
 except ImportError:
     raise ImportError("`daytona_sdk` not installed. Please install using `pip install daytona_sdk`")
 
@@ -99,6 +98,7 @@ class DaytonaTools(Toolkit):
 
         # Last execution result for reference
         self.last_execution: Optional[ExecuteResponse] = None
+        self.result: Optional[str] = None
 
         tools: List[Any] = []
 
@@ -117,8 +117,9 @@ class DaytonaTools(Toolkit):
             execution = self.sandbox.process.code_run(executable_code)
 
             self.last_execution = execution
-            self.result: str = execution.result
-            return self.result
+            result = str(execution.result)
+            self.result = result
+            return result
         except Exception as e:
             return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
 
@@ -128,7 +129,8 @@ class DaytonaTools(Toolkit):
             response = self.sandbox.process.code_run(code)
 
             self.last_execution = response
-            self.result: str = response.result
-            return self.result
+            result = str(response.result)
+            self.result = result
+            return result
         except Exception as e:
             return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
