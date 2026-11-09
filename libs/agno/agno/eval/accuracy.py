@@ -457,7 +457,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         if result is not None:
             if self._using_custom_response():
                 print(f"Evaluator Agent response: {result}")
-                return
+                return self.result
 
             self.result.results.append(result)  # type: ignore
             self.result.compute_stats()

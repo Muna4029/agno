@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Any, Dict, Optional, Union, cast
 
 import httpx
 import requests
@@ -21,7 +21,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> dict:
+def get_media(media_id: str) -> Union[bytes, Dict[str, str]]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -51,7 +51,7 @@ def get_media(media_id: str) -> dict:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> dict:
+async def get_media_async(media_id: str) -> Union[bytes, Dict[str, str]]:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -182,7 +182,7 @@ async def send_image_message_async(
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    data = {
+    data: Dict[str, Any] = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": recipient,
@@ -244,12 +244,12 @@ def send_image_message(
         import json
 
         log_debug(f"Request data: {json.dumps(data, indent=2)}")
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=cast(Any, data))
         response.raise_for_status()
         log_debug(f"Response: {response.text}")
     except requests.exceptions.RequestException as e:
         log_error(f"Failed to send WhatsApp image message: {e}")
-        log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")
+        log_error(f"Error response: {e.response.text if e.response is not None else 'No response text'}")
         raise
     except Exception as e:
         log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")
