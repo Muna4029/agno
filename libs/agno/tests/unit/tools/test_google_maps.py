@@ -2,6 +2,7 @@
 
 import json
 from datetime import datetime
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -98,9 +99,20 @@ MOCK_TIMEZONE_RESPONSE = {
 @pytest.fixture
 def google_maps_tools():
     """Create a GoogleMapTools instance with a mock API key."""
+    class MockSearchTextRequest:
+        def __init__(self, text_query):
+            self.text_query = text_query
+
+    mock_places_v1 = SimpleNamespace(
+        PlacesClient=MagicMock(return_value=MagicMock()),
+        SearchTextRequest=MockSearchTextRequest,
+    )
+    mock_googlemaps = SimpleNamespace(Client=MagicMock(return_value=MagicMock()))
+
     with patch.dict("os.environ", {"GOOGLE_MAPS_API_KEY": "AIzaTest"}):
-        with patch("google.maps.places_v1.PlacesClient"):
-            return GoogleMapTools()
+        with patch("agno.tools.google_maps.googlemaps", mock_googlemaps):
+            with patch("agno.tools.google_maps.places_v1", mock_places_v1):
+                yield GoogleMapTools()
 
 
 @pytest.fixture
