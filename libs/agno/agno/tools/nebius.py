@@ -6,7 +6,7 @@ from agno.agent import Agent
 from agno.media import ImageArtifact
 from agno.models.nebius import Nebius
 from agno.tools import Toolkit
-from agno.utils.log import log_debug, log_error, log_warning
+from agno.utils.log import log_error, log_warning
 
 
 class NebiusTools(Toolkit):
