@@ -2,19 +2,17 @@ from __future__ import annotations
 
 import asyncio
 from collections import ChainMap, defaultdict, deque
+from collections.abc import AsyncIterator, Iterator, Sequence
 from dataclasses import asdict, dataclass
 from os import getenv
 from textwrap import dedent
 from typing import (
     Any,
-    AsyncIterator,
     Callable,
     Dict,
-    Iterator,
     List,
     Literal,
     Optional,
-    Sequence,
     Set,
     Type,
     Union,
@@ -783,7 +781,7 @@ class Agent:
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_intermediate_steps: bool = False,
-    ) -> Iterator[RunResponseEvent]:
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         """Run the Agent and yield the RunResponse.
 
         Steps:
@@ -893,7 +891,7 @@ class Agent:
         retries: Optional[int] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
-    ) -> Iterator[RunResponseEvent]: ...
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]: ...
 
     def run(
         self,
@@ -911,7 +909,7 @@ class Agent:
         retries: Optional[int] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
-    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
+    ) -> Union[RunResponse, Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]]:
         """Run the Agent and return the response."""
 
         self.reset_run_state()
@@ -1079,7 +1077,7 @@ class Agent:
                     )
                     return response
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 if isinstance(e, StopAgentRun):
                     raise e
                 last_exception = e
@@ -1229,7 +1227,7 @@ class Agent:
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_intermediate_steps: bool = False,
-    ) -> AsyncIterator[RunResponseEvent]:
+    ) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         """Run the Agent and yield the RunResponse.
 
         Steps:
@@ -1487,7 +1485,7 @@ class Agent:
                         response_format=response_format,
                     )
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 if isinstance(e, StopAgentRun):
                     raise e
                 last_exception = e
@@ -1552,7 +1550,7 @@ class Agent:
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
-    ) -> Iterator[RunResponseEvent]: ...
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]: ...
 
     def continue_run(
         self,
@@ -1566,7 +1564,7 @@ class Agent:
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
-    ) -> Union[RunResponse, Iterator[RunResponseEvent]]:
+    ) -> Union[RunResponse, Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]]:
         """Continue a previous run.
 
         Args:
@@ -1748,7 +1746,7 @@ class Agent:
                     )
                     return response
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 if isinstance(e, StopAgentRun):
                     raise e
                 last_exception = e
@@ -1875,7 +1873,7 @@ class Agent:
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_intermediate_steps: bool = False,
-    ) -> Iterator[RunResponseEvent]:
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         """Continue a previous run.
 
         Steps:
@@ -2150,7 +2148,7 @@ class Agent:
                         response_format=response_format,
                     )
             except ModelProviderError as e:
-                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {str(e)}")
+                log_warning(f"Attempt {attempt + 1}/{num_attempts} failed: {e!s}")
                 if isinstance(e, StopAgentRun):
                     raise e
                 last_exception = e
@@ -2277,7 +2275,7 @@ class Agent:
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_intermediate_steps: bool = False,
-    ) -> AsyncIterator[RunResponseEvent]:
+    ) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         """Continue a previous run.
 
         Steps:
@@ -2385,7 +2383,7 @@ class Agent:
         run_messages: RunMessages,
         session_id: str,
         user_id: Optional[str] = None,
-    ) -> Iterator[RunResponseEvent]:
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         # Set the run response to paused
 
         run_response.status = RunStatus.paused
@@ -2482,7 +2480,7 @@ class Agent:
             )
         )
 
-    def _run_tool(self, run_messages: RunMessages, tool: ToolExecution) -> Iterator[RunResponseEvent]:
+    def _run_tool(self, run_messages: RunMessages, tool: ToolExecution) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.run_response = cast(RunResponse, self.run_response)
         self.model = cast(Model, self.model)
         # Execute the tool
@@ -2528,7 +2526,7 @@ class Agent:
         self,
         run_messages: RunMessages,
         tool: ToolExecution,
-    ) -> AsyncIterator[RunResponseEvent]:
+    ) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.run_response = cast(RunResponse, self.run_response)
         self.model = cast(Model, self.model)
 
@@ -2599,7 +2597,7 @@ class Agent:
 
     def _handle_tool_call_updates_stream(
         self, run_response: RunResponse, run_messages: RunMessages
-    ) -> Iterator[RunResponseEvent]:
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.model = cast(Model, self.model)
         for _t in run_response.tools or []:
             # Case 1: Handle confirmed tools and execute them
@@ -2673,7 +2671,7 @@ class Agent:
 
     async def _ahandle_tool_call_updates_stream(
         self, run_response: RunResponse, run_messages: RunMessages
-    ) -> AsyncIterator[RunResponseEvent]:
+    ) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.model = cast(Model, self.model)
         for _t in run_response.tools or []:
             # Case 1: Handle confirmed tools and execute them
@@ -2858,7 +2856,7 @@ class Agent:
         session_id: str,
         user_id: Optional[str] = None,
         stream_intermediate_steps: bool = False,
-    ) -> Iterator[RunResponseEvent]:
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.run_response = cast(RunResponse, self.run_response)
         if isinstance(self.memory, AgentMemory):
             self.memory = cast(AgentMemory, self.memory)
@@ -2919,7 +2917,7 @@ class Agent:
         session_id: str,
         user_id: Optional[str] = None,
         stream_intermediate_steps: bool = False,
-    ) -> AsyncIterator[RunResponseEvent]:
+    ) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.run_response = cast(RunResponse, self.run_response)
         if isinstance(self.memory, AgentMemory):
             self.memory = cast(AgentMemory, self.memory)
@@ -2976,7 +2974,7 @@ class Agent:
         run_messages: RunMessages,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_intermediate_steps: bool = False,
-    ) -> Iterator[RunResponseEvent]:
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.model = cast(Model, self.model)
 
         reasoning_state = {
@@ -3036,7 +3034,7 @@ class Agent:
         run_messages: RunMessages,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_intermediate_steps: bool = False,
-    ) -> AsyncIterator[RunResponseEvent]:
+    ) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.model = cast(Model, self.model)
 
         reasoning_state = {
@@ -3099,7 +3097,7 @@ class Agent:
         model_response_event: Union[ModelResponse, RunResponseEvent, TeamRunResponseEvent],
         reasoning_state: Dict[str, Any],
         stream_intermediate_steps: bool = False,
-    ) -> Iterator[RunResponseEvent]:
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         if isinstance(model_response_event, tuple(get_args(RunResponseEvent))) or isinstance(
             model_response_event, tuple(get_args(TeamRunResponseEvent))
         ):
@@ -3372,7 +3370,7 @@ class Agent:
         run_messages: RunMessages,
         session_id: str,
         user_id: Optional[str] = None,
-    ) -> Iterator[RunResponseEvent]:
+    ) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
         self.run_response = cast(RunResponse, self.run_response)
@@ -3436,7 +3434,7 @@ class Agent:
                     try:
                         future.result()
                     except Exception as e:
-                        log_warning(f"Error in memory/summary operation: {str(e)}")
+                        log_warning(f"Error in memory/summary operation: {e!s}")
 
                 if self.stream_intermediate_steps:
                     yield self._handle_event(
@@ -3448,7 +3446,7 @@ class Agent:
         run_messages: RunMessages,
         session_id: str,
         user_id: Optional[str] = None,
-    ) -> AsyncIterator[RunResponseEvent]:
+    ) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.run_response = cast(RunResponse, self.run_response)
         self.memory = cast(Memory, self.memory)
         tasks = []
@@ -3502,7 +3500,7 @@ class Agent:
             try:
                 await asyncio.gather(*tasks)
             except Exception as e:
-                log_warning(f"Error in memory/summary operation: {str(e)}")
+                log_warning(f"Error in memory/summary operation: {e!s}")
 
             if self.stream_intermediate_steps:
                 yield self._handle_event(
@@ -4152,9 +4150,7 @@ class Agent:
         """
         self.agent_session = None
         if self.memory is not None:
-            if isinstance(self.memory, AgentMemory):
-                self.memory.clear()
-            elif isinstance(self.memory, Memory):
+            if isinstance(self.memory, AgentMemory) or isinstance(self.memory, Memory):
                 self.memory.clear()
         self.session_id = str(uuid4())
         self.load_session(force=True)
@@ -4913,18 +4909,7 @@ class Agent:
             return field_value.deep_copy()
 
         # For storage, model and reasoning_model, use a deep copy
-        elif field_name in ("storage", "model", "reasoning_model"):
-            try:
-                return deepcopy(field_value)
-            except Exception:
-                try:
-                    return copy(field_value)
-                except Exception as e:
-                    log_warning(f"Failed to copy field: {field_name} - {e}")
-                    return field_value
-
-        # For compound types, attempt a deep copy
-        elif isinstance(field_value, (list, dict, set)):
+        elif field_name in ("storage", "model", "reasoning_model") or isinstance(field_value, (list, dict, set)):
             try:
                 return deepcopy(field_value)
             except Exception:
@@ -5526,7 +5511,7 @@ class Agent:
             # Consume the generator without yielding
             deque(reasoning_generator, maxlen=0)
 
-    def _handle_reasoning_stream(self, run_messages: RunMessages) -> Iterator[RunResponseEvent]:
+    def _handle_reasoning_stream(self, run_messages: RunMessages) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         if self.reasoning or self.reasoning_model is not None:
             reasoning_generator = self.reason(run_messages=run_messages)
             yield from reasoning_generator
@@ -5538,7 +5523,7 @@ class Agent:
             async for _ in reason_generator:
                 pass
 
-    async def _ahandle_reasoning_stream(self, run_messages: RunMessages) -> AsyncIterator[RunResponseEvent]:
+    async def _ahandle_reasoning_stream(self, run_messages: RunMessages) -> AsyncIterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         if self.reasoning or self.reasoning_model is not None:
             reason_generator = self.areason(run_messages=run_messages)
             async for item in reason_generator:
@@ -5567,7 +5552,7 @@ class Agent:
 
         return updated_reasoning_content
 
-    def reason(self, run_messages: RunMessages) -> Iterator[RunResponseEvent]:
+    def reason(self, run_messages: RunMessages) -> Iterator[Union[RunResponseEvent, TeamRunResponseEvent]]:
         self.run_response = cast(RunResponse, self.run_response)
         # Yield a reasoning started event
         if self.stream_intermediate_steps:
@@ -7509,7 +7494,7 @@ class Agent:
             # Log the error but don't crash
             from agno.utils.log import log_error
 
-            log_error(f"Failed to add reasoning metrics to extra_data: {str(e)}")
+            log_error(f"Failed to add reasoning metrics to extra_data: {e!s}")
 
     def _get_effective_filters(self, knowledge_filters: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """
