@@ -125,13 +125,13 @@ class Qdrant(VectorDb):
 
         if self.search_type in [SearchType.keyword, SearchType.hybrid]:
             try:
-                from fastembed import SparseTextEmbedding
+                from fastembed import SparseTextEmbedding  # type: ignore[import-not-found]
 
                 default_kwargs = {"model_name": DEFAULT_SPARSE_MODEL}
                 if fastembed_kwargs:
                     default_kwargs.update(fastembed_kwargs)
 
-                self.sparse_encoder = SparseTextEmbedding(**default_kwargs)
+                self.sparse_encoder = SparseTextEmbedding(**default_kwargs)  # type: ignore[arg-type]
 
             except ImportError as e:
                 raise ImportError(
@@ -319,7 +319,7 @@ class Qdrant(VectorDb):
 
             # TODO(v2.0.0): Remove conditional vector naming logic
             if self.use_named_vectors:
-                vector = {self.dense_vector_name: document.embedding}
+                vector: Any = {self.dense_vector_name: document.embedding}
             else:
                 vector = document.embedding
 
@@ -335,7 +335,7 @@ class Qdrant(VectorDb):
                     vector[self.dense_vector_name] = document.embedding
 
                 if self.search_type in [SearchType.keyword, SearchType.hybrid]:
-                    vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()
+                    vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()  # type: ignore[call-overload]
 
             # Create payload with document properties
             payload = {
@@ -390,10 +390,10 @@ class Qdrant(VectorDb):
                     vector[self.dense_vector_name] = document.embedding
 
                 if self.search_type in [SearchType.keyword, SearchType.hybrid]:
-                    vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()
+                    vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()  # type: ignore[call-overload]
 
             if self.search_type in [SearchType.keyword, SearchType.hybrid]:
-                vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()
+                vector[self.sparse_vector_name] = next(self.sparse_encoder.embed([document.content])).as_object()  # type: ignore[call-overload]
 
             # Create payload with document properties
             payload = {
@@ -485,7 +485,7 @@ class Qdrant(VectorDb):
         filters: Optional[Dict[str, Any]],
     ) -> List[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
-        sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
+        sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()  # type: ignore[call-overload]
         call = self.client.query_points(
             collection_name=self.collection,
             prefetch=[
@@ -541,7 +541,7 @@ class Qdrant(VectorDb):
         limit: int,
         filters: Optional[Dict[str, Any]],
     ) -> List[models.ScoredPoint]:
-        sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
+        sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()  # type: ignore[call-overload]
         call = self.client.query_points(
             collection_name=self.collection,
             query=models.SparseVector(**sparse_embedding),
@@ -590,7 +590,7 @@ class Qdrant(VectorDb):
         limit: int,
         filters: Optional[Dict[str, Any]],
     ) -> List[models.ScoredPoint]:
-        sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
+        sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()  # type: ignore[call-overload]
         call = await self.async_client.query_points(
             collection_name=self.collection,
             query=models.SparseVector(**sparse_embedding),
@@ -609,7 +609,7 @@ class Qdrant(VectorDb):
         filters: Optional[Dict[str, Any]],
     ) -> List[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
-        sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
+        sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()  # type: ignore[call-overload]
         call = await self.async_client.query_points(
             collection_name=self.collection,
             prefetch=[
