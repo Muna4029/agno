@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import webbrowser
-from typing import Any, List
+from typing import Any
 
 from agno.tools import Toolkit
 
@@ -8,7 +10,7 @@ class WebBrowserTools(Toolkit):
     """Tools for opening a page on the web browser"""
 
     def __init__(self):
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.open_page)
 
         super().__init__(name="webbrowser_tools", tools=tools)

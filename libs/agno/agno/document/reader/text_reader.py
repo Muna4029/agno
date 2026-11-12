@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 import uuid
 from pathlib import Path
-from typing import IO, Any, List, Union
+from typing import IO, Any
 
 from agno.document.base import Document
 from agno.document.reader.base import Reader
@@ -11,7 +13,7 @@ from agno.utils.log import log_info, logger
 class TextReader(Reader):
     """Reader for Text files"""
 
-    def read(self, file: Union[Path, IO[Any]]) -> List[Document]:
+    def read(self, file: Path | IO[Any]) -> list[Document]:
         try:
             if isinstance(file, Path):
                 if not file.exists():
@@ -42,7 +44,7 @@ class TextReader(Reader):
             logger.error(f"Error reading: {file}: {e}")
             return []
 
-    async def async_read(self, file: Union[Path, IO[Any]]) -> List[Document]:
+    async def async_read(self, file: Path | IO[Any]) -> list[Document]:
         try:
             if isinstance(file, Path):
                 if not file.exists():
@@ -78,7 +80,7 @@ class TextReader(Reader):
             logger.error(f"Error reading asynchronously: {file}: {e}")
             return []
 
-    async def _async_chunk_document(self, document: Document) -> List[Document]:
+    async def _async_chunk_document(self, document: Document) -> list[Document]:
         if not self.chunk or not document:
             return [document]
 

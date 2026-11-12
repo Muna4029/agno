@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug
@@ -33,18 +35,18 @@ class GoogleSearchTools(Toolkit):
 
     def __init__(
         self,
-        fixed_max_results: Optional[int] = None,
-        fixed_language: Optional[str] = None,
-        headers: Optional[Any] = None,
-        proxy: Optional[str] = None,
-        timeout: Optional[int] = 10,
+        fixed_max_results: int | None = None,
+        fixed_language: str | None = None,
+        headers: Any | None = None,
+        proxy: str | None = None,
+        timeout: int | None = 10,
         **kwargs,
     ):
-        self.fixed_max_results: Optional[int] = fixed_max_results
-        self.fixed_language: Optional[str] = fixed_language
-        self.headers: Optional[Any] = headers
-        self.proxy: Optional[str] = proxy
-        self.timeout: Optional[int] = timeout
+        self.fixed_max_results: int | None = fixed_max_results
+        self.fixed_language: str | None = fixed_language
+        self.headers: Any | None = headers
+        self.proxy: str | None = proxy
+        self.timeout: int | None = timeout
 
         tools = []
         tools.append(self.google_search)
@@ -80,7 +82,7 @@ class GoogleSearchTools(Toolkit):
         results = list(search(query, num_results=max_results, lang=language, proxy=self.proxy, advanced=True))
 
         # Collect the search results
-        res: List[Dict[str, str]] = []
+        res: list[dict[str, str]] = []
         for result in results:
             res.append(
                 {

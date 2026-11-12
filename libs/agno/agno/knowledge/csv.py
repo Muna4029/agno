@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import AsyncIterator, Iterator, List, Union
+from typing import AsyncIterator, Iterator
 
 from pydantic import Field
 
@@ -9,12 +11,12 @@ from agno.knowledge.agent import AgentKnowledge
 
 
 class CSVKnowledgeBase(AgentKnowledge):
-    path: Union[str, Path]
-    exclude_files: List[str] = Field(default_factory=list)
+    path: str | Path
+    exclude_files: list[str] = Field(default_factory=list)
     reader: CSVReader = CSVReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over CSVs and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -35,7 +37,7 @@ class CSVKnowledgeBase(AgentKnowledge):
             yield self.reader.read(file=_csv_path)
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         _csv_path: Path = Path(self.path) if isinstance(self.path, str) else self.path
 
         if _csv_path.exists() and _csv_path.is_dir():

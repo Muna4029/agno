@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass, field
 from os import getenv
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 if TYPE_CHECKING:
@@ -16,10 +18,10 @@ from agno.utils.log import logger
 @dataclass
 class ReliabilityResult:
     eval_status: str
-    failed_tool_calls: List[str]
-    passed_tool_calls: List[str]
+    failed_tool_calls: list[str]
+    passed_tool_calls: list[str]
 
-    def print_eval(self, console: Optional["Console"] = None):
+    def print_eval(self, console: Console | None = None):
         from rich.console import Console
         from rich.table import Table
 
@@ -41,29 +43,29 @@ class ReliabilityEval:
     """Evaluate the reliability of a model by checking the tool calls"""
 
     # Evaluation name
-    name: Optional[str] = None
+    name: str | None = None
     # Evaluation UUID
     eval_id: str = field(default_factory=lambda: str(uuid4()))
 
     # Agent response
-    agent_response: Optional[RunResponse] = None
+    agent_response: RunResponse | None = None
     # Team response
-    team_response: Optional[TeamRunResponse] = None
+    team_response: TeamRunResponse | None = None
     # Expected tool calls
-    expected_tool_calls: Optional[List[str]] = None
+    expected_tool_calls: list[str] | None = None
     # Result of the evaluation
-    result: Optional[ReliabilityResult] = None
+    result: ReliabilityResult | None = None
 
     # Print detailed results
     print_results: bool = False
     # If set, results will be saved in the given file path
-    file_path_to_save_results: Optional[str] = None
+    file_path_to_save_results: str | None = None
     # Enable debug logs
     debug_mode: bool = getenv("AGNO_DEBUG", "false").lower() == "true"
     # Log the results to the Agno platform. On by default.
     monitoring: bool = getenv("AGNO_MONITOR", "true").lower() == "true"
 
-    def run(self, *, print_results: bool = False) -> Optional[ReliabilityResult]:
+    def run(self, *, print_results: bool = False) -> ReliabilityResult | None:
         if self.agent_response is None and self.team_response is None:
             raise ValueError("You need to provide 'agent_response' or 'team_response' to run the evaluation.")
 
@@ -156,7 +158,7 @@ class ReliabilityEval:
         logger.debug(f"*********** Evaluation End: {self.eval_id} ***********")
         return self.result
 
-    async def arun(self, *, print_results: bool = False) -> Optional[ReliabilityResult]:
+    async def arun(self, *, print_results: bool = False) -> ReliabilityResult | None:
         if self.agent_response is None and self.team_response is None:
             raise ValueError("You need to provide 'agent_response' or 'team_response' to run the evaluation.")
 

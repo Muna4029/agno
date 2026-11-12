@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Optional
 
 from agno.models.openai.like import OpenAILike
 
@@ -22,5 +23,5 @@ class InternLM(OpenAILike):
     name: str = "InternLM"
     provider: str = "InternLM"
 
-    api_key: Optional[str] = getenv("INTERNLM_API_KEY")
-    base_url: Optional[str] = "https://internlm-chat.intern-ai.org.cn/puyu/api/v1/chat/completions"
+    api_key: str | None = getenv("INTERNLM_API_KEY")
+    base_url: str | None = "https://internlm-chat.intern-ai.org.cn/puyu/api/v1/chat/completions"

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Optional
 
 from agno.models.openai.like import OpenAILike
 
@@ -22,5 +23,5 @@ class v0(OpenAILike):
     name: str = "v0"
     provider: str = "Vercel"
 
-    api_key: Optional[str] = getenv("V0_API_KEY")
+    api_key: str | None = getenv("V0_API_KEY")
     base_url: str = "https://api.v0.dev/v1/"

@@ -247,7 +247,7 @@ def test_create_table(agent_storage):
 
 def test_drop_table(agent_storage):
     """Test dropping a table."""
-    storage, mock_session = agent_storage
+    storage, _mock_session = agent_storage
 
     # Mock table_exists to return True
     storage.table_exists = MagicMock(return_value=True)
@@ -260,15 +260,14 @@ def test_drop_table(agent_storage):
 
 def test_mode_switching():
     """Test switching between agent and workflow modes."""
-    with patch("agno.storage.postgres.scoped_session"):
-        with patch("agno.storage.postgres.inspect"):
-            with patch("agno.storage.postgres.create_engine"):
-                # Create storage in agent mode
-                storage = PostgresStorage(table_name="test_table", db_url="postgresql://user:pass@localhost/db")
-                assert storage.mode == "agent"
+    with patch("agno.storage.postgres.scoped_session"), patch("agno.storage.postgres.inspect"):
+        with patch("agno.storage.postgres.create_engine"):
+            # Create storage in agent mode
+            storage = PostgresStorage(table_name="test_table", db_url="postgresql://user:pass@localhost/db")
+            assert storage.mode == "agent"
 
-                # Switch to workflow mode
-                with patch.object(storage, "get_table") as mock_get_table:
-                    storage.mode = "workflow"
-                    assert storage.mode == "workflow"
-                    mock_get_table.assert_called_once()
+            # Switch to workflow mode
+            with patch.object(storage, "get_table") as mock_get_table:
+                storage.mode = "workflow"
+                assert storage.mode == "workflow"
+                mock_get_table.assert_called_once()

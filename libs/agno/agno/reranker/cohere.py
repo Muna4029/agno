@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from agno.document import Document
 from agno.reranker.base import Reranker
@@ -12,21 +14,21 @@ except ImportError:
 
 class CohereReranker(Reranker):
     model: str = "rerank-multilingual-v3.0"
-    api_key: Optional[str] = None
-    cohere_client: Optional[CohereClient] = None
-    top_n: Optional[int] = None
+    api_key: str | None = None
+    cohere_client: CohereClient | None = None
+    top_n: int | None = None
 
     @property
     def client(self) -> CohereClient:
         if self.cohere_client:
             return self.cohere_client
 
-        _client_params: Dict[str, Any] = {}
+        _client_params: dict[str, Any] = {}
         if self.api_key:
             _client_params["api_key"] = self.api_key
         return CohereClient(**_client_params)
 
-    def _rerank(self, query: str, documents: List[Document]) -> List[Document]:
+    def _rerank(self, query: str, documents: list[Document]) -> list[Document]:
         # Validate input documents and top_n
         if not documents:
             return []
@@ -56,7 +58,7 @@ class CohereReranker(Reranker):
 
         return compressed_docs
 
-    def rerank(self, query: str, documents: List[Document]) -> List[Document]:
+    def rerank(self, query: str, documents: list[Document]) -> list[Document]:
         try:
             return self._rerank(query=query, documents=documents)
         except Exception as e:

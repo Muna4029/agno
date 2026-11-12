@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from agno.tools import Toolkit
 from agno.utils.log import log_info, logger
@@ -7,16 +7,16 @@ from agno.utils.log import log_info, logger
 class EmailTools(Toolkit):
     def __init__(
         self,
-        receiver_email: Optional[str] = None,
-        sender_name: Optional[str] = None,
-        sender_email: Optional[str] = None,
-        sender_passkey: Optional[str] = None,
+        receiver_email: str | None = None,
+        sender_name: str | None = None,
+        sender_email: str | None = None,
+        sender_passkey: str | None = None,
         **kwargs,
     ):
-        self.receiver_email: Optional[str] = receiver_email
-        self.sender_name: Optional[str] = sender_name
-        self.sender_email: Optional[str] = sender_email
-        self.sender_passkey: Optional[str] = sender_passkey
+        self.receiver_email: str | None = receiver_email
+        self.sender_name: str | None = sender_name
+        self.sender_email: str | None = sender_email
+        self.sender_passkey: str | None = sender_passkey
 
         tools = []
         tools.append(self.email_user)

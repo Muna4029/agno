@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import AsyncIterable, Iterable, Union, get_args
+from typing import AsyncIterable, Iterable, get_args
 
 from pydantic import BaseModel
 
@@ -11,7 +13,7 @@ from agno.utils.timer import Timer
 
 
 def pprint_run_response(
-    run_response: Union[RunResponse, Iterable[RunResponseEvent], TeamRunResponse, Iterable[TeamRunResponseEvent]],
+    run_response: RunResponse | Iterable[RunResponseEvent] | TeamRunResponse | Iterable[TeamRunResponseEvent],
     markdown: bool = False,
     show_time: bool = False,
 ) -> None:
@@ -25,8 +27,8 @@ def pprint_run_response(
     from agno.cli.console import console
 
     # If run_response is a single RunResponse, wrap it in a list to make it iterable
-    if isinstance(run_response, RunResponse) or isinstance(run_response, TeamRunResponse):
-        single_response_content: Union[str, JSON, Markdown] = ""
+    if isinstance(run_response, (RunResponse, TeamRunResponse)):
+        single_response_content: str | JSON | Markdown = ""
         if isinstance(run_response.content, str):
             single_response_content = (
                 Markdown(run_response.content) if markdown else run_response.get_content_as_string(indent=4)
@@ -55,9 +57,14 @@ def pprint_run_response(
             for resp in run_response:
                 if (
                     (
-                        isinstance(resp, tuple(get_args(RunResponseEvent)))
-                        or isinstance(resp, tuple(get_args(TeamRunResponseEvent)))
-                        or isinstance(resp, tuple(get_args(WorkflowRunResponseEvent)))
+                        isinstance(
+                            resp,
+                            (
+                                tuple(get_args(RunResponseEvent)),
+                                tuple(get_args(TeamRunResponseEvent)),
+                                tuple(get_args(WorkflowRunResponseEvent)),
+                            ),
+                        )
                     )
                     and hasattr(resp, "content")
                     and isinstance(resp.content, str)
@@ -75,7 +82,7 @@ def pprint_run_response(
 
 
 async def apprint_run_response(
-    run_response: Union[RunResponse, AsyncIterable[RunResponse], TeamRunResponse, AsyncIterable[TeamRunResponse]],
+    run_response: RunResponse | AsyncIterable[RunResponse] | TeamRunResponse | AsyncIterable[TeamRunResponse],
     markdown: bool = False,
     show_time: bool = False,
 ) -> None:
@@ -89,8 +96,8 @@ async def apprint_run_response(
     from agno.cli.console import console
 
     # If run_response is a single RunResponse, wrap it in a list to make it iterable
-    if isinstance(run_response, RunResponse) or isinstance(run_response, TeamRunResponse):
-        single_response_content: Union[str, JSON, Markdown] = ""
+    if isinstance(run_response, (RunResponse, TeamRunResponse)):
+        single_response_content: str | JSON | Markdown = ""
         if isinstance(run_response.content, str):
             single_response_content = (
                 Markdown(run_response.content) if markdown else run_response.get_content_as_string(indent=4)
@@ -120,9 +127,14 @@ async def apprint_run_response(
             async for resp in run_response:
                 if (
                     (
-                        isinstance(resp, tuple(get_args(RunResponseEvent)))
-                        or isinstance(resp, tuple(get_args(TeamRunResponseEvent)))
-                        or isinstance(resp, tuple(get_args(WorkflowRunResponseEvent)))
+                        isinstance(
+                            resp,
+                            (
+                                tuple(get_args(RunResponseEvent)),
+                                tuple(get_args(TeamRunResponseEvent)),
+                                tuple(get_args(WorkflowRunResponseEvent)),
+                            ),
+                        )
                     )
                     and hasattr(resp, "content")
                     and isinstance(resp.content, str)

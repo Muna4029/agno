@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 import re
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -20,9 +22,9 @@ class ZendeskTools(Toolkit):
 
     def __init__(
         self,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        company_name: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
+        company_name: str | None = None,
         **kwargs,
     ):
         """
@@ -41,7 +43,7 @@ class ZendeskTools(Toolkit):
         if not self.username or not self.password or not self.company_name:
             logger.error("Username, password, or company name not provided.")
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.search_zendesk)
 
         super().__init__(name="zendesk_tools", tools=tools, **kwargs)

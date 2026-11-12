@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 from typing import Dict, List
 
@@ -19,9 +21,9 @@ class MovieScript(BaseModel):
         description="Genre of the movie. If not available, select action, thriller or romantic comedy.",
     )
     name: str = Field(..., description="Give a name to this movie")
-    characters: List[str] = Field(..., description="Name of characters for this movie.")
+    characters: list[str] = Field(..., description="Name of characters for this movie.")
     storyline: str = Field(..., description="3 sentence storyline for the movie. Make it exciting!")
-    rating: Dict[str, int] = Field(
+    rating: dict[str, int] = Field(
         ...,
         description="Your own rating of the movie. 1-10. Return a dictionary with the keys 'story' and 'acting'.",
     )

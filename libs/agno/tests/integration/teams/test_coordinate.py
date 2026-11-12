@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from pydantic import BaseModel
 
@@ -91,7 +91,7 @@ def test_coordinator_team_with_structured_output():
     class Article(BaseModel):
         title: str
         summary: str
-        reference_links: List[str]
+        reference_links: list[str]
 
     def get_hackernews_info() -> str:
         return "The top story on hackernews is about climate change."

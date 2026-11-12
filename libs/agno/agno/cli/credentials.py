@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from __future__ import annotations
 
 from agno.cli.settings import agno_cli_settings
 from agno.utils.json_io import read_json_file, write_json_file
@@ -10,9 +10,9 @@ def save_auth_token(auth_token: str):
     write_json_file(agno_cli_settings.credentials_path, _data)
 
 
-def read_auth_token() -> Optional[str]:
+def read_auth_token() -> str | None:
     # logger.debug(f"Reading token from {str(agno_cli_settings.credentials_path)}")
-    _data: Dict = read_json_file(agno_cli_settings.credentials_path)  # type: ignore
+    _data: dict = read_json_file(agno_cli_settings.credentials_path)  # type: ignore
     if _data is None:
         return None
 

@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Dict, Optional
 
 from httpx import AsyncClient as HttpxAsyncClient
 from httpx import Client as HttpxClient
@@ -13,15 +14,15 @@ from agno.utils.log import logger
 
 class Api:
     def __init__(self):
-        self.headers: Dict[str, str] = {
+        self.headers: dict[str, str] = {
             "user-agent": f"{agno_cli_settings.app_name}/{agno_cli_settings.app_version}",
             "Content-Type": "application/json",
         }
-        self._auth_token: Optional[str] = None
+        self._auth_token: str | None = None
         self._authenticated_headers = None
 
     @property
-    def auth_token(self) -> Optional[str]:
+    def auth_token(self) -> str | None:
         if self._auth_token is None:
             try:
                 self._auth_token = read_auth_token()
@@ -30,7 +31,7 @@ class Api:
         return self._auth_token
 
     @property
-    def authenticated_headers(self) -> Dict[str, str]:
+    def authenticated_headers(self) -> dict[str, str]:
         if self._authenticated_headers is None:
             self._authenticated_headers = self.headers.copy()
             token = self.auth_token
@@ -76,6 +77,4 @@ api = Api()
 def invalid_response(r: Response) -> bool:
     """Returns true if the response is invalid"""
 
-    if r.status_code >= 400:
-        return True
-    return False
+    return r.status_code >= 400

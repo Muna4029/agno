@@ -1,5 +1,7 @@
 """Unit tests for ExaTools class."""
 
+from __future__ import annotations
+
 import json
 from unittest.mock import Mock, patch
 
@@ -30,11 +32,11 @@ def exa_tools(mock_exa_client):
 
 def create_mock_search_result(
     url: str,
-    title: str = None,
-    author: str = None,
-    published_date: str = None,
-    text: str = None,
-    highlights: list = None,
+    title: str | None = None,
+    author: str | None = None,
+    published_date: str | None = None,
+    text: str | None = None,
+    highlights: list | None = None,
 ):
     """Helper function to create mock search result."""
     result = Mock()
@@ -49,10 +51,9 @@ def create_mock_search_result(
 
 def test_init_with_api_key():
     """Test initialization with provided API key."""
-    with patch("agno.tools.exa.Exa") as mock_exa:
-        with patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
-            ExaTools()
-            mock_exa.assert_called_once_with("test_key")
+    with patch("agno.tools.exa.Exa") as mock_exa, patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
+        ExaTools()
+        mock_exa.assert_called_once_with("test_key")
 
 
 def test_init_with_selective_tools():
