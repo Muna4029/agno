@@ -45,6 +45,7 @@ class BaseAPIApp(ABC):
         self.app_id: Optional[str] = app_id
         self.name: Optional[str] = name
         self.description = description
+        self.type: Optional[str] = type
         self.set_app_id()
 
         if self.agent:
