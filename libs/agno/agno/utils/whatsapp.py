@@ -187,7 +187,7 @@ async def send_image_message_async(
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": {"id": media_id, "caption": text or ""},
     }
 
     try:
@@ -237,7 +237,7 @@ def send_image_message(
         "recipient_type": "individual",
         "to": recipient,
         "type": "image",
-        "image": {"id": media_id, "caption": text},
+        "image": {"id": media_id, "caption": text or ""},
     }
 
     try:
