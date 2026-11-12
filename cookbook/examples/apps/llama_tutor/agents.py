@@ -27,7 +27,7 @@ from agno.tools.exa import ExaTools
 from agno.tools.file import FileTools
 
 # Import the Agent template
-from prompts import AGENT_DESCRIPTION, AGENT_INSTRUCTIONS, EXPECTED_OUTPUT_TEMPLATE
+from prompts import EXPECTED_OUTPUT_TEMPLATE
 
 # ************* Setup Paths *************
 # Define the current working directory and output directory for saving files

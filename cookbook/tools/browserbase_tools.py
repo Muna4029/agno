@@ -1,4 +1,3 @@
-from os import getenv
 
 from agno.agent import Agent
 from agno.tools.browserbase import BrowserbaseTools

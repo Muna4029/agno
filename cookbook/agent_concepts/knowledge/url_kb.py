@@ -4,7 +4,6 @@ Install dependencies: `pip install openai lancedb tantivy agno`
 """
 
 from pathlib import Path
-from textwrap import dedent
 
 from agno.agent import Agent
 from agno.knowledge.url import UrlKnowledge

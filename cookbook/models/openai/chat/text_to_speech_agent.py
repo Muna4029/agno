@@ -23,7 +23,7 @@ agent: Agent = Agent(
 
 # Ask the agent to generate speech, but not save it
 response = agent.run(
-    f'Please generate speech for the following text: "Hello from Agno! This is a demonstration of the text-to-speech capability using OpenAI"'
+    'Please generate speech for the following text: "Hello from Agno! This is a demonstration of the text-to-speech capability using OpenAI"'
 )
 
 print(f"Agent response: {response.get_content_as_string()}")

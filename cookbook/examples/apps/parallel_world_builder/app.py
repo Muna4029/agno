@@ -1,4 +1,3 @@
-from typing import Optional
 
 import streamlit as st
 from agents import World, get_world_builder

@@ -1,4 +1,3 @@
-from typing import List
 
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue

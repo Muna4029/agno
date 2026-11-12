@@ -12,7 +12,6 @@ import json
 
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from agno.utils.log import log_info
 
 # In-memory database to store user shopping lists
 # Organized by user ID and session ID

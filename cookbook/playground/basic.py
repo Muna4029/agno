@@ -3,7 +3,6 @@ from agno.memory.agent import AgentMemory
 from agno.memory.db.postgres import PgMemoryDb
 from agno.models.openai import OpenAIChat
 from agno.playground import Playground, serve_playground_app
-from agno.storage.agent.sqlite import SqliteAgentStorage
 from agno.storage.postgres import PostgresStorage
 
 agent_storage_file: str = "tmp/agents.db"

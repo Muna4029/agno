@@ -32,7 +32,7 @@ txt_file = None
 try:
     txt_file = client.files.get(name=remote_file_name)
     print(f"Txt file exists: {txt_file.uri}")
-except Exception as e:
+except Exception:
     pass
 
 if not txt_file:

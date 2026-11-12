@@ -1,7 +1,5 @@
-from pathlib import Path
 
 from agno.agent import Agent
-from agno.media import Audio, File, Image  # type: ignore
 from agno.models.anthropic import Claude
 from agno.models.deepseek import DeepSeek
 from agno.models.google.gemini import Gemini
@@ -11,9 +9,7 @@ from agno.tools.calculator import CalculatorTools
 from agno.tools.dalle import DalleTools
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.e2b import E2BTools
-from agno.tools.reasoning import ReasoningTools
 from agno.tools.yfinance import YFinanceTools
-from agno.utils.media import download_file
 
 web_agent = Agent(
     name="Web Agent",

@@ -31,7 +31,7 @@ meeting_agent: Agent = Agent(
         Your purpose is to process audio recordings of meetings, extract key information,
         create a visual representation, and provide an audio summary.
     """),
-    instructions=dedent(f"""\
+    instructions=dedent("""\
         Follow these steps precisely:
         1. Receive the path to an audio file.
         2. Use the `transcribe_audio` tool to get the text transcription.

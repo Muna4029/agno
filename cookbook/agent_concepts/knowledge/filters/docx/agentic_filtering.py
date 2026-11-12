@@ -1,4 +1,3 @@
-from pathlib import Path
 
 from agno.agent import Agent
 from agno.knowledge.docx import DocxKnowledgeBase

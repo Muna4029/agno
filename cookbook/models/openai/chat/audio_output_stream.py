@@ -1,6 +1,5 @@
 import base64
 import wave
-from pathlib import Path
 from typing import Iterator
 
 from agno.agent import Agent, RunResponse  # noqa

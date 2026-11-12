@@ -4,7 +4,6 @@ from agno.utils.media import (
     SampleDataFileExtension,
     download_knowledge_filters_sample_data,
 )
-from agno.vectordb.search import SearchType
 from agno.vectordb.weaviate import Distance, VectorIndex, Weaviate
 
 # Download all sample CVs and get their paths

@@ -8,7 +8,6 @@ from agno.memory.v2.db.sqlite import SqliteMemoryDb
 from agno.memory.v2.manager import MemoryManager
 from agno.memory.v2.memory import Memory
 from agno.models.google import Gemini
-from agno.storage.agent.sqlite import SqliteAgentStorage
 from agno.storage.sqlite import SqliteStorage
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.youtube import YouTubeTools
