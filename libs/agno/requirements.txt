@@ -72,3 +72,5 @@ typing-extensions==4.12.2
     #   pydantic-core
     #   rich
     #   typer
+# firecrawl-py is required for FirecrawlTools
+firecrawl-py>=4.53.0

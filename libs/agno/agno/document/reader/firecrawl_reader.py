@@ -9,8 +9,10 @@ from agno.utils.log import log_debug, logger
 
 try:
     from firecrawl import FirecrawlApp  # type: ignore[attr-defined]
+    firecrawl_available = True
 except ImportError:
-    raise ImportError("The `firecrawl` package is not installed. Please install it via `pip install firecrawl-py`.")
+    firecrawl_available = False
+    FirecrawlApp = None  # type: ignore
 
 
 @dataclass
@@ -28,6 +30,9 @@ class FirecrawlReader(Reader):
         chunk_size: int = 5000,
         chunking_strategy: Optional[ChunkingStrategy] = None,
     ) -> None:
+        if not firecrawl_available:
+            raise ImportError("The `firecrawl` package is not installed. Please install it via `pip install firecrawl-py`.")
+
         # Initialise base Reader (handles chunk_size / strategy)
         super().__init__(chunk=chunk, chunk_size=chunk_size, chunking_strategy=chunking_strategy)
 

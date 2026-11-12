@@ -1,3 +1,5 @@
+import pytest
+pytest.importorskip("firecrawl")
 from unittest.mock import patch
 
 import pytest
