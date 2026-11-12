@@ -369,6 +369,7 @@ module = [
   "openai.*",
   "openbb.*",
   "pandas.*",
+  "pdfplumber.*",
   "pgvector.*",
   "PIL.*",
   "pinecone_text.*",
