@@ -398,6 +398,8 @@ module = [
   "youtube_transcript_api.*",
   "couchbase.*",
   "acouchbase.*",
-  "zep_cloud.*"
+  "zep_cloud.*",
+  "unstructured.*",
+  "fastembed.*"
 ]
 ignore_missing_imports = true
