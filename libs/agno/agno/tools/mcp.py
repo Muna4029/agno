@@ -13,7 +13,7 @@ try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.sse import sse_client
     from mcp.client.stdio import get_default_environment, stdio_client
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import streamable_http_client as streamablehttp_client
 except (ImportError, ModuleNotFoundError):
     raise ImportError("`mcp` not installed. Please install using `pip install mcp`")
 
@@ -180,11 +180,14 @@ class MCPTools(Toolkit):
             self._context = stdio_client(self.server_params)  # type: ignore
             client_timeout = self.timeout_seconds
 
-        session_params = await self._context.__aenter__()  # type: ignore
-        read, write = session_params[0:2]
+        if self._context is not None:
+            session_params = await self._context.__aenter__()  # type: ignore
+            read, write = session_params[0:2]
 
-        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))  # type: ignore
-        self.session = await self._session_context.__aenter__()  # type: ignore
+            self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))  # type: ignore
+            self.session = await self._session_context.__aenter__()  # type: ignore
+        else:
+            raise ValueError("_context cannot be None")
 
         # Initialize with the new session
         await self.initialize()
@@ -241,15 +244,18 @@ class MCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
                     )
 
                     # Register the Function with the toolkit
-                    self.functions[f.name] = f
-                    log_debug(f"Function: {f.name} registered with {self.name}")
+                    if f is not None:
+                        self.functions[f.name] = f
+                        log_debug(f"Function: {f.name} registered with {self.name}")
+                    else:
+                        logger.error(f"Failed to register tool {tool.name}: f is None")
                 except Exception as e:
                     logger.error(f"Failed to register tool {tool.name}: {e}")
 
@@ -370,7 +376,7 @@ class MultiMCPTools(Toolkit):
                 stdio_transport = await self._async_exit_stack.enter_async_context(stdio_client(server_params))
                 read, write = stdio_transport
                 session = await self._async_exit_stack.enter_async_context(
-                    ClientSession(read, write, read_timeout_seconds=timedelta(seconds=self.timeout_seconds))
+                    ClientSession(read, write, read_timeout_seconds=float(self.timeout_seconds))
                 )
                 await self.initialize(session)
             # Handle SSE connections
@@ -430,15 +436,18 @@ class MultiMCPTools(Toolkit):
                     f = Function(
                         name=tool.name,
                         description=tool.description,
-                        parameters=tool.inputSchema,
+                        parameters=tool.input_schema,
                         entrypoint=entrypoint,
                         # Set skip_entrypoint_processing to True to avoid processing the entrypoint
                         skip_entrypoint_processing=True,
                     )
 
                     # Register the Function with the toolkit
-                    self.functions[f.name] = f
-                    log_debug(f"Function: {f.name} registered with {self.name}")
+                    if f is not None:
+                        self.functions[f.name] = f
+                        log_debug(f"Function: {f.name} registered with {self.name}")
+                    else:
+                        logger.error(f"Failed to register tool {tool.name}: f is None")
                 except Exception as e:
                     logger.error(f"Failed to register tool {tool.name}: {e}")
 
