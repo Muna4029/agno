@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from typing import Optional
 
@@ -21,7 +23,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> dict:
+def get_media(media_id: str) -> dict | bytes:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -51,7 +53,7 @@ def get_media(media_id: str) -> dict:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> dict:
+async def get_media_async(media_id: str) -> dict | bytes:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -204,7 +206,7 @@ async def send_image_message_async(
         log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")
         raise
     except Exception as e:
-        log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")
+        log_error(f"Unexpected error sending WhatsApp image message: {e!s}")
         raise
 
 
@@ -252,5 +254,5 @@ def send_image_message(
         log_error(f"Error response: {e.response.text if hasattr(e, 'response') else 'No response text'}")
         raise
     except Exception as e:
-        log_error(f"Unexpected error sending WhatsApp image message: {str(e)}")
+        log_error(f"Unexpected error sending WhatsApp image message: {e!s}")
         raise

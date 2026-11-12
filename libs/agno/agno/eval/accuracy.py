@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from os import getenv
 from textwrap import dedent
-from typing import TYPE_CHECKING, Callable, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Callable, List, Optional, Union
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -49,7 +49,7 @@ class AccuracyEvaluation:
         results_table.add_row("Input", self.input)
         results_table.add_row("Output", self.output)
         results_table.add_row("Expected Output", self.expected_output)
-        results_table.add_row("Accuracy Score", f"{str(self.score)}/10")
+        results_table.add_row("Accuracy Score", f"{self.score!s}/10")
         results_table.add_row("Accuracy Reason", Markdown(self.reason))
         console.print(results_table)
 
@@ -121,7 +121,7 @@ class AccuracyResult:
             results_table.add_row("Input", result.input)
             results_table.add_row("Output", result.output)
             results_table.add_row("Expected Output", result.expected_output)
-            results_table.add_row("Accuracy Score", f"{str(result.score)}/10")
+            results_table.add_row("Accuracy Score", f"{result.score!s}/10")
             results_table.add_row("Accuracy Reason", result.reason)
         console.print(results_table)
 
@@ -300,7 +300,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
             eval_input = self.get_eval_input()
             eval_expected_output = self.get_eval_expected_output()
 
-            self.agent = cast(Agent, self.agent)
+            assert self.agent is not None
 
             for i in range(self.num_iterations):
                 status = Status(f"Running evaluation {i + 1}...", spinner="dots", speed=1.0, refresh_per_second=10)
