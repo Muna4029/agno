@@ -595,7 +595,7 @@ class Team:
 
         self.initialize_team(session_id=session_id)
 
-        effective_filters = knowledge_filters
+        effective_filters: Optional[Dict[str, Any]] = knowledge_filters
 
         # When filters are passed manually
         if self.knowledge_filters or knowledge_filters:
@@ -1071,7 +1071,7 @@ class Team:
 
         self.initialize_team(session_id=session_id)
 
-        effective_filters = knowledge_filters
+        effective_filters: Optional[Dict[str, Any]] = knowledge_filters
 
         # When filters are passed manually
         if self.knowledge_filters or knowledge_filters:
@@ -1911,6 +1911,7 @@ class Team:
 
     def _initialize_session_state(self, user_id: Optional[str] = None, session_id: Optional[str] = None) -> None:
         self.session_state = self.session_state or {}
+        self.team_session_state = self.team_session_state or {}
         if user_id is not None:
             self.session_state["current_user_id"] = user_id
             self.team_session_state["current_user_id"] = user_id
@@ -6702,7 +6703,7 @@ class Team:
 
         Priority: Run-time filters > Team filters
         """
-        effective_filters = None
+        effective_filters: Optional[Dict[str, Any]] = None
 
         # Start with team-level filters if they exist
         if self.knowledge_filters:
