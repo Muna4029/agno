@@ -20,9 +20,8 @@ from textwrap import dedent
 
 from agno.agent import Agent
 from agno.models.groq import Groq
-from agno.tools.mcp import MCPTools
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+from agno.tools.mcp import ClientSession, MCPTools, StdioServerParameters
+from agno.tools.mcp.client.stdio import stdio_client
 
 
 async def create_filesystem_agent(session):
