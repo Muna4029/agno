@@ -1,7 +1,7 @@
 import json
 from dataclasses import asdict
 from io import BytesIO
-from typing import AsyncGenerator, List, Optional, cast
+from typing import Any, AsyncGenerator, Dict, List, Optional, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
@@ -262,6 +262,7 @@ def get_async_router(
         workflow_id: Optional[str] = Query(None),
         workflow_input: Optional[str] = Form(None),
     ):
+        workflow_input_dict: Dict[str, Any] = {}
         if session_id is not None and session_id != "":
             logger.debug(f"Continuing session: {session_id}")
         else:
@@ -298,9 +299,12 @@ def get_async_router(
             if not workflow_input:
                 raise HTTPException(status_code=400, detail="Workflow input is required")
             try:
-                workflow_input = json.loads(workflow_input)
+                parsed_workflow_input = json.loads(workflow_input)
             except json.JSONDecodeError:
                 raise HTTPException(status_code=400, detail="Workflow input must be a valid JSON string")
+            if not isinstance(parsed_workflow_input, dict):
+                raise HTTPException(status_code=400, detail="Workflow input must be a JSON object")
+            workflow_input_dict = parsed_workflow_input
 
         if agent:
             agent.monitoring = bool(monitor)
@@ -352,7 +356,7 @@ def get_async_router(
                 workflow_instance.user_id = user_id
                 workflow_instance.session_name = None
                 return StreamingResponse(
-                    (json.dumps(asdict(result)) for result in await workflow_instance.arun(**(workflow_input or {}))),
+                    (json.dumps(asdict(result)) for result in await workflow_instance.arun(**workflow_input_dict)),
                     media_type="text/event-stream",
                 )
         else:
@@ -386,6 +390,6 @@ def get_async_router(
                 workflow_instance = workflow.deep_copy(update={"workflow_id": workflow_id})
                 workflow_instance.user_id = user_id
                 workflow_instance.session_name = None
-                return (await workflow_instance.arun(**(workflow_input or {}))).to_dict()
+                return (await workflow_instance.arun(**workflow_input_dict)).to_dict()
 
     return router
