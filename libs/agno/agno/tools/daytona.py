@@ -269,6 +269,22 @@ class DaytonaTools(Toolkit):
         except Exception as e:
             return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
 
+    def run_python_code(self, agent: Union[Agent, Team], code: str) -> str:
+        """Execute Python code in the Daytona sandbox using the shell runner.
+
+        Kept for backwards compatibility with the previous DaytonaTools API.
+        """
+        try:
+            current_sandbox = self._get_or_create_sandbox(agent)
+            executable_code = prepare_python_code(code)
+            cwd = self._get_working_directory(agent)
+            response = current_sandbox.process.exec(f"python3 - <<'PY'\n{executable_code}\nPY", cwd=cwd)
+
+            self.result = response.result
+            return self.result
+        except Exception as e:
+            return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
+
     def run_shell_command(self, agent: Union[Agent, Team], command: str) -> str:
         """Execute a shell command in the sandbox.
 
