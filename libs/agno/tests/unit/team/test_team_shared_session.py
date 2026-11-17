@@ -142,14 +142,16 @@ def test_initialize_session_state_updates_team_session_state():
     assert team.team_session_state["existing"] == "data"
 
 
-def test_initialize_session_state_requires_existing_team_session_state(basic_team):
-    """Test _initialize_session_state requires team_session_state to already exist"""
+def test_initialize_session_state_initializes_team_session_state(basic_team):
+    """Test _initialize_session_state initializes team_session_state when missing"""
     # Ensure team_session_state is not set
     assert not hasattr(basic_team, "team_session_state") or basic_team.team_session_state is None
 
-    # This should raise an error because team_session_state doesn't exist
-    with pytest.raises((AttributeError, TypeError)):
-        basic_team._initialize_session_state(user_id="test-user", session_id="test-session")
+    basic_team._initialize_session_state(user_id="test-user", session_id="test-session")
+
+    expected_state = {"current_user_id": "test-user", "current_session_id": "test-session"}
+    assert basic_team.session_state == expected_state
+    assert basic_team.team_session_state == expected_state
 
 
 def test_initialize_session_state_with_empty_team_session_state(team_with_empty_session_state):

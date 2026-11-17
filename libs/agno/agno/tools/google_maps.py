@@ -20,9 +20,13 @@ from agno.tools import Toolkit
 
 try:
     import googlemaps
+except ImportError:
+    googlemaps = None  # type: ignore[assignment]
+
+try:
     from google.maps import places_v1
 except ImportError:
-    print("Error importing googlemaps. Please install the package using `pip install googlemaps google-maps-places`.")
+    places_v1 = None  # type: ignore[assignment]
 
 
 class GoogleMapTools(Toolkit):
@@ -42,6 +46,11 @@ class GoogleMapTools(Toolkit):
         self.api_key = key or getenv("GOOGLE_MAPS_API_KEY")
         if not self.api_key:
             raise ValueError("GOOGLE_MAPS_API_KEY is not set in the environment variables.")
+        if googlemaps is None or places_v1 is None:
+            raise ImportError(
+                "Google Maps dependencies are not installed. "
+                "Please install them using `pip install googlemaps google-maps-places`."
+            )
         self.client = googlemaps.Client(key=self.api_key)
 
         self.places_client = places_v1.PlacesClient()
