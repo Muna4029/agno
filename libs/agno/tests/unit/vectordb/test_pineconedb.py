@@ -266,6 +266,28 @@ def test_search(mock_pinecone_db, mock_embedder):
     assert results[1].content == "Test document 2"
 
 
+def test_search_with_filters(mock_pinecone_db, mock_embedder):
+    """Test search method with filters."""
+    query = "test query"
+    filters = {"type": {"$eq": "test"}}
+
+    # Mock embedder
+    mock_embedder.get_embedding.return_value = [0.1] * 1024
+
+    # Test search
+    mock_pinecone_db.search(query, limit=2, filters=filters)
+
+    # Check that index.query was called with the filter
+    mock_pinecone_db.index.query.assert_called_with(
+        vector=[0.1] * 1024,
+        top_k=2,
+        namespace=TEST_NAMESPACE,
+        include_values=None,
+        include_metadata=True,
+        filter=filters,
+    )
+
+
 def test_delete(mock_pinecone_db):
     """Test delete method."""
     # Test successful delete

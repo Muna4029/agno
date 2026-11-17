@@ -412,24 +412,27 @@ class PineconeDb(VectorDb):
 
         if self.use_hybrid_search:
             hdense, hsparse = self._hybrid_scale(dense_embedding, sparse_embedding, alpha=self.hybrid_alpha)
-            response = self.index.query(
-                vector=hdense,
-                sparse_vector=hsparse,
-                top_k=limit,
-                namespace=namespace or self.namespace,
-                filter=filters,
-                include_values=include_values,
-                include_metadata=True,
-            )
+            query_kwargs = {
+                "vector": hdense,
+                "sparse_vector": hsparse,
+                "top_k": limit,
+                "namespace": namespace or self.namespace,
+                "include_values": include_values,
+                "include_metadata": True,
+            }
         else:
-            response = self.index.query(
-                vector=dense_embedding,
-                top_k=limit,
-                namespace=namespace or self.namespace,
-                filter=filters,
-                include_values=include_values,
-                include_metadata=True,
-            )
+            query_kwargs = {
+                "vector": dense_embedding,
+                "top_k": limit,
+                "namespace": namespace or self.namespace,
+                "include_values": include_values,
+                "include_metadata": True,
+            }
+
+        if filters is not None:
+            query_kwargs["filter"] = filters
+
+        response = self.index.query(**query_kwargs)
 
         search_results = [
             Document(
