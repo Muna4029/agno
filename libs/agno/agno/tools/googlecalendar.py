@@ -6,7 +6,7 @@ from functools import wraps
 from typing import Any, Dict, List, Optional
 
 from agno.tools import Toolkit
-from agno.utils.log import log_debug, log_error, log_warning
+from agno.utils.log import log_debug, log_error, logger
 
 try:
     from google.auth.transport.requests import Request
@@ -51,6 +51,12 @@ class GoogleCalendarTools(Toolkit):
         token_path: Optional[str] = None,
         access_token: Optional[str] = None,
         port: int = 8080,
+        list_events: bool = True,
+        create_event: bool = True,
+        update_event: bool = True,
+        delete_event: bool = True,
+        fetch_all_events: bool = True,
+        find_available_slots: bool = True,
         **kwargs,
     ):
         """
@@ -80,7 +86,7 @@ class GoogleCalendarTools(Toolkit):
                 raise ValueError("Credentials Path is invalid")
 
             if not token_path:
-                log_warning(
+                logger.warning(
                     f"Google Calendar Tool: Token path is not provided, using {os.getcwd()}/token.json as default path"
                 )
                 token_path = "token.json"
@@ -91,18 +97,21 @@ class GoogleCalendarTools(Toolkit):
             log_error("Google Calendar Tool: Please provide either valid credentials path or access token")
             raise ValueError("Either credentials path or access token is required")
 
-        super().__init__(
-            name="google_calendar_tools",
-            tools=[
-                self.list_events,
-                self.create_event,
-                self.update_event,
-                self.delete_event,
-                self.fetch_all_events,
-                self.find_available_slots,
-            ],
-            **kwargs,
-        )
+        tools = []
+        if list_events:
+            tools.append(self.list_events)
+        if create_event:
+            tools.append(self.create_event)
+        if update_event:
+            tools.append(self.update_event)
+        if delete_event:
+            tools.append(self.delete_event)
+        if fetch_all_events:
+            tools.append(self.fetch_all_events)
+        if find_available_slots:
+            tools.append(self.find_available_slots)
+
+        super().__init__(name="google_calendar_tools", tools=tools, **kwargs)
 
     def _auth(self) -> None:
         """Authenticate with Google Calendar API"""
