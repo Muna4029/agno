@@ -1,14 +1,16 @@
+from __future__ import annotations
+
 import json
 from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any
 
 from pydantic import BaseModel
 
 from agno.exceptions import ModelProviderError, ModelRateLimitError
 from agno.models.base import Model
-from agno.models.message import Citations, DocumentCitation, Message, UrlCitation
+from agno.models.message import Citations, DocumentCitation, Message
 from agno.models.response import ModelResponse
 from agno.utils.log import log_debug, log_error, log_warning
 from agno.utils.models.claude import MCPServerConfiguration, format_messages
@@ -27,7 +29,6 @@ try:
     )
     from anthropic.types import (
         CitationPageLocation,
-        CitationsWebSearchResultLocation,
         ContentBlockDeltaEvent,
         ContentBlockStartEvent,
         ContentBlockStopEvent,
@@ -66,28 +67,28 @@ class Claude(Model):
     provider: str = "Anthropic"
 
     # Request parameters
-    max_tokens: Optional[int] = 4096
-    thinking: Optional[Dict[str, Any]] = None
-    temperature: Optional[float] = None
-    stop_sequences: Optional[List[str]] = None
-    top_p: Optional[float] = None
-    top_k: Optional[int] = None
-    cache_system_prompt: Optional[bool] = False
-    extended_cache_time: Optional[bool] = False
-    request_params: Optional[Dict[str, Any]] = None
-    mcp_servers: Optional[List[MCPServerConfiguration]] = None
+    max_tokens: int | None = 4096
+    thinking: dict[str, Any] | None = None
+    temperature: float | None = None
+    stop_sequences: list[str] | None = None
+    top_p: float | None = None
+    top_k: int | None = None
+    cache_system_prompt: bool | None = False
+    extended_cache_time: bool | None = False
+    request_params: dict[str, Any] | None = None
+    mcp_servers: list[MCPServerConfiguration] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
-    default_headers: Optional[Dict[str, Any]] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    default_headers: dict[str, Any] | None = None
+    client_params: dict[str, Any] | None = None
 
     # Anthropic clients
-    client: Optional[AnthropicClient] = None
-    async_client: Optional[AsyncAnthropicClient] = None
+    client: AnthropicClient | None = None
+    async_client: AsyncAnthropicClient | None = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
-        client_params: Dict[str, Any] = {}
+    def _get_client_params(self) -> dict[str, Any]:
+        client_params: dict[str, Any] = {}
 
         self.api_key = self.api_key or getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
@@ -125,11 +126,11 @@ class Claude(Model):
         self.async_client = AsyncAnthropicClient(**_client_params)
         return self.async_client
 
-    def get_request_params(self) -> Dict[str, Any]:
+    def get_request_params(self) -> dict[str, Any]:
         """
         Generate keyword arguments for API requests.
         """
-        _request_params: Dict[str, Any] = {}
+        _request_params: dict[str, Any] = {}
         if self.max_tokens:
             _request_params["max_tokens"] = self.max_tokens
         if self.thinking:
@@ -151,9 +152,7 @@ class Claude(Model):
 
         return _request_params
 
-    def _prepare_request_kwargs(
-        self, system_message: str, tools: Optional[List[Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:
+    def _prepare_request_kwargs(self, system_message: str, tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         """
         Prepare the request keyword arguments for the API call.
 
@@ -182,32 +181,32 @@ class Claude(Model):
             log_debug(f"Calling {self.provider} with request parameters: {request_kwargs}", log_level=2)
         return request_kwargs
 
-    def _format_tools_for_model(self, tools: Optional[List[Dict[str, Any]]] = None) -> Optional[List[Dict[str, Any]]]:
+    def _format_tools_for_model(self, tools: list[dict[str, Any]] | None = None) -> list[dict[str, Any]] | None:
         """
         Transforms function definitions into a format accepted by the Anthropic API.
         """
         if not tools:
             return None
 
-        parsed_tools: List[Dict[str, Any]] = []
+        parsed_tools: list[dict[str, Any]] = []
         for tool_def in tools:
             if tool_def.get("type", "") != "function":
                 parsed_tools.append(tool_def)
                 continue
 
             func_def = tool_def.get("function", {})
-            parameters: Dict[str, Any] = func_def.get("parameters", {})
-            properties: Dict[str, Any] = parameters.get("properties", {})
-            required_params: List[str] = []
+            parameters: dict[str, Any] = func_def.get("parameters", {})
+            properties: dict[str, Any] = parameters.get("properties", {})
+            required_params: list[str] = []
 
             for param_name, param_info in properties.items():
                 param_type = param_info.get("type", "")
-                param_type_list: List[str] = [param_type] if isinstance(param_type, str) else param_type or []
+                param_type_list: list[str] = [param_type] if isinstance(param_type, str) else param_type or []
 
                 if "null" not in param_type_list:
                     required_params.append(param_name)
 
-            input_properties: Dict[str, Dict[str, Union[str, List[str]]]] = {}
+            input_properties: dict[str, dict[str, str | list[str]]] = {}
             for param_name, param_info in properties.items():
                 input_properties[param_name] = {
                     "description": param_info.get("description", ""),
@@ -231,11 +230,11 @@ class Claude(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Union[AnthropicMessage, BetaMessage]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> AnthropicMessage | BetaMessage:
         """
         Send a request to the Anthropic API to generate a response.
         """
@@ -256,26 +255,26 @@ class Claude(Model):
                     **request_kwargs,
                 )
         except APIConnectionError as e:
-            log_error(f"Connection error while calling Claude API: {str(e)}")
+            log_error(f"Connection error while calling Claude API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except RateLimitError as e:
-            log_warning(f"Rate limit exceeded: {str(e)}")
+            log_warning(f"Rate limit exceeded: {e!s}")
             raise ModelRateLimitError(message=e.message, model_name=self.name, model_id=self.id) from e
         except APIStatusError as e:
-            log_error(f"Claude API error (status {e.status_code}): {str(e)}")
+            log_error(f"Claude API error (status {e.status_code}): {e!s}")
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
+            log_error(f"Unexpected error calling Claude API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Stream a response from the Anthropic API.
@@ -316,27 +315,27 @@ class Claude(Model):
                     .__enter__()
                 )
         except APIConnectionError as e:
-            log_error(f"Connection error while calling Claude API: {str(e)}")
+            log_error(f"Connection error while calling Claude API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except RateLimitError as e:
-            log_warning(f"Rate limit exceeded: {str(e)}")
+            log_warning(f"Rate limit exceeded: {e!s}")
             raise ModelRateLimitError(message=e.message, model_name=self.name, model_id=self.id) from e
         except APIStatusError as e:
-            log_error(f"Claude API error (status {e.status_code}): {str(e)}")
+            log_error(f"Claude API error (status {e.status_code}): {e!s}")
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
+            log_error(f"Unexpected error calling Claude API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Union[AnthropicMessage, BetaMessage]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> AnthropicMessage | BetaMessage:
         """
         Send an asynchronous request to the Anthropic API to generate a response.
         """
@@ -357,26 +356,26 @@ class Claude(Model):
                     **request_kwargs,
                 )
         except APIConnectionError as e:
-            log_error(f"Connection error while calling Claude API: {str(e)}")
+            log_error(f"Connection error while calling Claude API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except RateLimitError as e:
-            log_warning(f"Rate limit exceeded: {str(e)}")
+            log_warning(f"Rate limit exceeded: {e!s}")
             raise ModelRateLimitError(message=e.message, model_name=self.name, model_id=self.id) from e
         except APIStatusError as e:
-            log_error(f"Claude API error (status {e.status_code}): {str(e)}")
+            log_error(f"Claude API error (status {e.status_code}): {e!s}")
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
+            log_error(f"Unexpected error calling Claude API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[Any]:
         """
         Stream an asynchronous response from the Anthropic API.
@@ -413,21 +412,21 @@ class Claude(Model):
                     async for chunk in stream:  # type: ignore
                         yield chunk
         except APIConnectionError as e:
-            log_error(f"Connection error while calling Claude API: {str(e)}")
+            log_error(f"Connection error while calling Claude API: {e!s}")
             raise ModelProviderError(message=e.message, model_name=self.name, model_id=self.id) from e
         except RateLimitError as e:
-            log_warning(f"Rate limit exceeded: {str(e)}")
+            log_warning(f"Rate limit exceeded: {e!s}")
             raise ModelRateLimitError(message=e.message, model_name=self.name, model_id=self.id) from e
         except APIStatusError as e:
-            log_error(f"Claude API error (status {e.status_code}): {str(e)}")
+            log_error(f"Claude API error (status {e.status_code}): {e!s}")
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
+            log_error(f"Unexpected error calling Claude API: {e!s}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
-    def format_function_call_results(self, messages: List[Message], function_call_results: List[Message]) -> None:
+    def format_function_call_results(self, messages: list[Message], function_call_results: list[Message]) -> None:
         """
         Handle the results of function calls.
 
@@ -436,7 +435,7 @@ class Claude(Model):
             function_call_results (List[Message]): The results of the function calls.
         """
         if len(function_call_results) > 0:
-            fc_responses: List = []
+            fc_responses: list = []
             for _fc_message in function_call_results:
                 fc_responses.append(
                     {
@@ -447,7 +446,7 @@ class Claude(Model):
                 )
             messages.append(Message(role="user", content=fc_responses))
 
-    def get_system_message_for_model(self, tools: Optional[List[Any]] = None) -> Optional[str]:
+    def get_system_message_for_model(self, tools: list[Any] | None = None) -> str | None:
         if tools is not None and len(tools) > 0:
             tool_call_prompt = "Do not reflect on the quality of the returned search results in your response"
             return tool_call_prompt
@@ -482,13 +481,8 @@ class Claude(Model):
                             model_response.citations = Citations(raw=[], urls=[], documents=[])
                         for citation in block.citations:
                             model_response.citations.raw.append(citation.model_dump())  # type: ignore
-                            # Web search citations
-                            if isinstance(citation, CitationsWebSearchResultLocation):
-                                model_response.citations.urls.append(  # type: ignore
-                                    UrlCitation(url=citation.url, title=citation.cited_text)
-                                )
                             # Document citations
-                            elif isinstance(citation, CitationPageLocation):
+                            if isinstance(citation, CitationPageLocation):
                                 model_response.citations.documents.append(  # type: ignore
                                     DocumentCitation(
                                         document_title=citation.document_title,
@@ -542,7 +536,7 @@ class Claude(Model):
         return model_response
 
     def parse_provider_response_delta(
-        self, response: Union[ContentBlockStartEvent, ContentBlockDeltaEvent, ContentBlockStopEvent, MessageStopEvent]
+        self, response: ContentBlockStartEvent | ContentBlockDeltaEvent | ContentBlockStopEvent | MessageStopEvent
     ) -> ModelResponse:
         """
         Parse the Claude streaming response into ModelProviderResponse objects.
@@ -554,9 +548,8 @@ class Claude(Model):
             ModelResponse: Iterator of parsed response data
         """
         model_response = ModelResponse()
-        if isinstance(response, ContentBlockStartEvent):
-            if response.content_block.type == "redacted_thinking":
-                model_response.redacted_thinking = response.content_block.data
+        if isinstance(response, ContentBlockStartEvent) and response.content_block.type == "redacted_thinking":
+            model_response.redacted_thinking = response.content_block.data
 
         if isinstance(response, ContentBlockDeltaEvent):
             # Handle text content
@@ -602,11 +595,8 @@ class Claude(Model):
                     continue
                 for citation in citations:
                     model_response.citations.raw.append(citation.model_dump())  # type: ignore
-                    # Web search citations
-                    if isinstance(citation, CitationsWebSearchResultLocation):
-                        model_response.citations.urls.append(UrlCitation(url=citation.url, title=citation.cited_text))  # type: ignore
                     # Document citations
-                    elif isinstance(citation, CitationPageLocation):
+                    if isinstance(citation, CitationPageLocation):
                         model_response.citations.documents.append(  # type: ignore
                             DocumentCitation(document_title=citation.document_title, cited_text=citation.cited_text)
                         )

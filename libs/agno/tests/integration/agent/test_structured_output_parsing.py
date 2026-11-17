@@ -1,16 +1,14 @@
-from typing import List
-
 from pydantic import BaseModel, Field
 
-from agno.agent import Agent, RunResponse  # noqa
-from agno.models.openai.chat import OpenAIChat  # noqa
+from agno.agent import Agent, RunResponse
+from agno.models.openai.chat import OpenAIChat
 
 
 def test_structured_output_parsing_with_quotes():
     class MovieScript(BaseModel):
         script: str = Field(..., description="The script of the movie.")
         name: str = Field(..., description="Give a name to this movie")
-        characters: List[str] = Field(..., description="Name of characters for this movie.")
+        characters: list[str] = Field(..., description="Name of characters for this movie.")
 
     movie_agent = Agent(
         model=OpenAIChat(id="gpt-4o-mini"),

@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import List, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
@@ -23,31 +24,31 @@ class FastAPIApp(BaseAPIApp):
 
     def __init__(
         self,
-        agents: Optional[List[Agent]] = None,
-        teams: Optional[List[Team]] = None,
-        workflows: Optional[List[Workflow]] = None,
-        settings: Optional[APIAppSettings] = None,
-        api_app: Optional[FastAPI] = None,
-        router: Optional[APIRouter] = None,
-        app_id: Optional[str] = None,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        version: Optional[str] = None,
+        agents: list[Agent] | None = None,
+        teams: list[Team] | None = None,
+        workflows: list[Workflow] | None = None,
+        settings: APIAppSettings | None = None,
+        api_app: FastAPI | None = None,
+        router: APIRouter | None = None,
+        app_id: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
+        version: str | None = None,
         monitoring: bool = True,
     ):
         if not agents and not teams and not workflows:
             raise ValueError("Either agents, teams or workflows must be provided.")
 
-        self.agents: Optional[List[Agent]] = agents
-        self.teams: Optional[List[Team]] = teams
-        self.workflows: Optional[List[Workflow]] = workflows
+        self.agents: list[Agent] | None = agents
+        self.teams: list[Team] | None = teams
+        self.workflows: list[Workflow] | None = workflows
 
         self.settings: APIAppSettings = settings or APIAppSettings()
-        self.api_app: Optional[FastAPI] = api_app
-        self.router: Optional[APIRouter] = router
+        self.api_app: FastAPI | None = api_app
+        self.router: APIRouter | None = router
 
-        self.app_id: Optional[str] = app_id
-        self.name: Optional[str] = name
+        self.app_id: str | None = app_id
+        self.name: str | None = name
         self.monitoring = monitoring
         self.description = description
         self.version = version
@@ -90,7 +91,7 @@ class FastAPIApp(BaseAPIApp):
 
     def serve(
         self,
-        app: Union[str, FastAPI],
+        app: str | FastAPI,
         *,
         host: str = "localhost",
         port: int = 7777,

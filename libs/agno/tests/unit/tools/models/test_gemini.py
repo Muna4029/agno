@@ -30,8 +30,8 @@ def mock_client():
 def mock_gemini_tools(mock_client):
     def mock_getenv_side_effect(var_name):
         if var_name == "GOOGLE_GENAI_USE_VERTEXAI":
-            return None
-        return None
+            return
+        return
 
     with (
         patch("agno.tools.models.gemini.Client", return_value=mock_client) as _,
@@ -67,8 +67,8 @@ def test_gemini_tools_init_with_api_key_arg():
 
     def mock_getenv_side_effect(var_name):
         if var_name == "GOOGLE_GENAI_USE_VERTEXAI":
-            return None
-        return None
+            return
+        return
 
     with (
         patch("agno.tools.models.gemini.Client") as mock_client_cls,

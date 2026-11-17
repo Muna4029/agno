@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
-    from qdrant_client import AsyncQdrantClient, QdrantClient  # noqa: F401
+    from qdrant_client import AsyncQdrantClient, QdrantClient
     from qdrant_client.http import models
 except ImportError:
     raise ImportError(
@@ -28,25 +30,25 @@ class Qdrant(VectorDb):
     def __init__(
         self,
         collection: str,
-        embedder: Optional[Embedder] = None,
+        embedder: Embedder | None = None,
         distance: Distance = Distance.cosine,
-        location: Optional[str] = None,
-        url: Optional[str] = None,
-        port: Optional[int] = 6333,
+        location: str | None = None,
+        url: str | None = None,
+        port: int | None = 6333,
         grpc_port: int = 6334,
         prefer_grpc: bool = False,
-        https: Optional[bool] = None,
-        api_key: Optional[str] = None,
-        prefix: Optional[str] = None,
-        timeout: Optional[float] = None,
-        host: Optional[str] = None,
-        path: Optional[str] = None,
-        reranker: Optional[Reranker] = None,
+        https: bool | None = None,
+        api_key: str | None = None,
+        prefix: str | None = None,
+        timeout: float | None = None,
+        host: str | None = None,
+        path: str | None = None,
+        reranker: Reranker | None = None,
         search_type: SearchType = SearchType.vector,
         dense_vector_name: str = DEFAULT_DENSE_VECTOR_NAME,
         sparse_vector_name: str = DEFAULT_SPARSE_VECTOR_NAME,
         hybrid_fusion_strategy: models.Fusion = models.Fusion.RRF,
-        fastembed_kwargs: Optional[dict] = None,
+        fastembed_kwargs: dict | None = None,
         **kwargs,
     ):
         """
@@ -84,32 +86,32 @@ class Qdrant(VectorDb):
             log_info("Embedder not provided, using OpenAIEmbedder as default.")
 
         self.embedder: Embedder = embedder
-        self.dimensions: Optional[int] = self.embedder.dimensions
+        self.dimensions: int | None = self.embedder.dimensions
 
         # Distance metric
         self.distance: Distance = distance
 
         # Qdrant client instance
-        self._client: Optional[QdrantClient] = None
+        self._client: QdrantClient | None = None
 
         # Qdrant async client instance
-        self._async_client: Optional[AsyncQdrantClient] = None
+        self._async_client: AsyncQdrantClient | None = None
 
         # Qdrant client arguments
-        self.location: Optional[str] = location
-        self.url: Optional[str] = url
-        self.port: Optional[int] = port
+        self.location: str | None = location
+        self.url: str | None = url
+        self.port: int | None = port
         self.grpc_port: int = grpc_port
         self.prefer_grpc: bool = prefer_grpc
-        self.https: Optional[bool] = https
-        self.api_key: Optional[str] = api_key
-        self.prefix: Optional[str] = prefix
-        self.timeout: Optional[float] = timeout
-        self.host: Optional[str] = host
-        self.path: Optional[str] = path
+        self.https: bool | None = https
+        self.api_key: str | None = api_key
+        self.prefix: str | None = prefix
+        self.timeout: float | None = timeout
+        self.host: str | None = host
+        self.path: str | None = path
 
         # Reranker instance
-        self.reranker: Optional[Reranker] = reranker
+        self.reranker: Reranker | None = reranker
 
         # Qdrant client kwargs
         self.kwargs = kwargs
@@ -302,7 +304,7 @@ class Qdrant(VectorDb):
             return len(scroll_result[0]) > 0
         return False
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None, batch_size: int = 10) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None, batch_size: int = 10) -> None:
         """
         Insert documents into the database.
 
@@ -364,7 +366,7 @@ class Qdrant(VectorDb):
             self.client.upsert(collection_name=self.collection, wait=False, points=points)
         log_debug(f"Upsert {len(points)} documents")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Insert documents asynchronously.
 
@@ -426,7 +428,7 @@ class Qdrant(VectorDb):
             await self.async_client.upsert(collection_name=self.collection, wait=False, points=points)
         log_debug(f"Upserted {len(points)} documents asynchronously")
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Upsert documents into the database.
 
@@ -437,12 +439,12 @@ class Qdrant(VectorDb):
         log_debug("Redirecting the request to insert")
         self.insert(documents, filters)
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Upsert documents asynchronously."""
         log_debug("Redirecting the async request to async_insert")
         await self.async_insert(documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents in the collection.
 
@@ -463,9 +465,7 @@ class Qdrant(VectorDb):
 
         return self._build_search_results(results, query)
 
-    async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+    async def async_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         filters = self._format_filters(filters or {})  # type: ignore
         if self.search_type == SearchType.vector:
             results = await self._run_vector_search_async(query, limit, filters)
@@ -482,8 +482,8 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
-    ) -> List[models.ScoredPoint]:
+        filters: dict[str, Any] | None,
+    ) -> list[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
         call = self.client.query_points(
@@ -508,8 +508,8 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
-    ) -> List[models.ScoredPoint]:
+        filters: dict[str, Any] | None,
+    ) -> list[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
 
         # TODO(v2.0.0): Remove this conditional and always use named vectors
@@ -539,8 +539,8 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
-    ) -> List[models.ScoredPoint]:
+        filters: dict[str, Any] | None,
+    ) -> list[models.ScoredPoint]:
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
         call = self.client.query_points(
             collection_name=self.collection,
@@ -557,8 +557,8 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
-    ) -> List[models.ScoredPoint]:
+        filters: dict[str, Any] | None,
+    ) -> list[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
 
         # TODO(v2.0.0): Remove this conditional and always use named vectors
@@ -588,8 +588,8 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
-    ) -> List[models.ScoredPoint]:
+        filters: dict[str, Any] | None,
+    ) -> list[models.ScoredPoint]:
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
         call = await self.async_client.query_points(
             collection_name=self.collection,
@@ -606,8 +606,8 @@ class Qdrant(VectorDb):
         self,
         query: str,
         limit: int,
-        filters: Optional[Dict[str, Any]],
-    ) -> List[models.ScoredPoint]:
+        filters: dict[str, Any] | None,
+    ) -> list[models.ScoredPoint]:
         dense_embedding = self.embedder.get_embedding(query)
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
         call = await self.async_client.query_points(
@@ -628,8 +628,8 @@ class Qdrant(VectorDb):
         )
         return call.points
 
-    def _build_search_results(self, results, query: str) -> List[Document]:
-        search_results: List[Document] = []
+    def _build_search_results(self, results, query: str) -> list[Document]:
+        search_results: list[Document] = []
 
         for result in results:
             if result.payload is None:
@@ -651,7 +651,7 @@ class Qdrant(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def _format_filters(self, filters: Optional[Dict[str, Any]]) -> Optional[models.Filter]:
+    def _format_filters(self, filters: dict[str, Any] | None) -> models.Filter | None:
         if filters:
             filter_conditions = []
             for key, value in filters.items():

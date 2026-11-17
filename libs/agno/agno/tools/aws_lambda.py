@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 from agno.tools import Toolkit
 
@@ -19,7 +19,7 @@ class AWSLambdaTools(Toolkit):
     ):
         self.client = boto3.client("lambda", region_name=region_name)
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.list_functions)
         tools.append(self.invoke_function)
 
@@ -31,11 +31,11 @@ class AWSLambdaTools(Toolkit):
             functions = [func["FunctionName"] for func in response["Functions"]]
             return f"Available Lambda functions: {', '.join(functions)}"
         except Exception as e:
-            return f"Error listing functions: {str(e)}"
+            return f"Error listing functions: {e!s}"
 
     def invoke_function(self, function_name: str, payload: str = "{}") -> str:
         try:
             response = self.client.invoke(FunctionName=function_name, Payload=payload)
             return f"Function invoked successfully. Status code: {response['StatusCode']}, Payload: {response['Payload'].read().decode('utf-8')}"
         except Exception as e:
-            return f"Error invoking function: {str(e)}"
+            return f"Error invoking function: {e!s}"

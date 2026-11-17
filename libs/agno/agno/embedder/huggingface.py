@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.embedder.base import Embedder
 from agno.utils.log import logger
@@ -17,15 +19,15 @@ class HuggingfaceCustomEmbedder(Embedder):
     """Huggingface Custom Embedder"""
 
     id: str = "intfloat/multilingual-e5-large"
-    api_key: Optional[str] = getenv("HUGGINGFACE_API_KEY")
-    client_params: Optional[Dict[str, Any]] = None
-    huggingface_client: Optional[InferenceClient] = None
+    api_key: str | None = getenv("HUGGINGFACE_API_KEY")
+    client_params: dict[str, Any] | None = None
+    huggingface_client: InferenceClient | None = None
 
     @property
     def client(self) -> InferenceClient:
         if self.huggingface_client:
             return self.huggingface_client
-        _client_params: Dict[str, Any] = {}
+        _client_params: dict[str, Any] = {}
         if self.api_key:
             _client_params["api_key"] = self.api_key
         if self.client_params:
@@ -36,7 +38,7 @@ class HuggingfaceCustomEmbedder(Embedder):
     def _response(self, text: str):
         return self.client.feature_extraction(text=text, model=self.id)
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         response = self._response(text=text)
         try:
             # If already a list, return directly
@@ -51,5 +53,5 @@ class HuggingfaceCustomEmbedder(Embedder):
             logger.warning(f"Failed to process embeddings: {e}")
             return []
 
-    def get_embedding_and_usage(self, text: str) -> Tuple[List[float], Optional[Dict]]:
+    def get_embedding_and_usage(self, text: str) -> tuple[list[float], dict | None]:
         return self.get_embedding(text=text), None

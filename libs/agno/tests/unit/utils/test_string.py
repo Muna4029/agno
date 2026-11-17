@@ -1,4 +1,4 @@
-from typing import List, Optional
+from __future__ import annotations
 
 from pydantic import BaseModel
 
@@ -50,8 +50,8 @@ def test_url_safe_string_complex():
 
 class MockModel(BaseModel):
     name: str
-    value: Optional[str] = None
-    description: Optional[str] = None
+    value: str | None = None
+    description: str | None = None
 
 
 def test_parse_direct_json():
@@ -210,7 +210,7 @@ def test_parse_nested_json():
         description: str
 
     class Steps(BaseModel):
-        steps: List[Step]
+        steps: list[Step]
 
     content = """
     ```json

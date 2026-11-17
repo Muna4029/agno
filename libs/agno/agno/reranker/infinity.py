@@ -1,4 +1,6 @@
-from typing import Any, List, Optional
+from __future__ import annotations
+
+from typing import Any
 from urllib.parse import urlparse
 
 from agno.document import Document
@@ -17,11 +19,11 @@ class InfinityReranker(Reranker):
     model: str = "BAAI/bge-reranker-base"
     host: str = "localhost"
     port: int = 7997
-    url: Optional[str] = None
-    top_n: Optional[int] = None
-    api_key: Optional[str] = None
+    url: str | None = None
+    top_n: int | None = None
+    api_key: str | None = None
     verify_ssl: bool = True
-    _client: Optional[Any] = None
+    _client: Any | None = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -58,7 +60,7 @@ class InfinityReranker(Reranker):
 
         return self._client
 
-    def _rerank(self, query: str, documents: List[Document]) -> List[Document]:
+    def _rerank(self, query: str, documents: list[Document]) -> list[Document]:
         # Validate input documents and top_n
         if not documents:
             return []
@@ -122,14 +124,14 @@ class InfinityReranker(Reranker):
 
         return compressed_docs
 
-    def rerank(self, query: str, documents: List[Document]) -> List[Document]:
+    def rerank(self, query: str, documents: list[Document]) -> list[Document]:
         try:
             return self._rerank(query=query, documents=documents)
         except Exception as e:
             logger.error(f"Error reranking documents: {e}. Returning original documents")
             return documents
 
-    async def arerank(self, query: str, documents: List[Document]) -> List[Document]:
+    async def arerank(self, query: str, documents: list[Document]) -> list[Document]:
         """Async version of rerank"""
         # Validate input documents and top_n
         if not documents:

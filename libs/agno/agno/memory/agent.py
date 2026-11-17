@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -16,13 +16,13 @@ from agno.utils.log import log_debug, log_info, logger
 
 
 class AgentRun(BaseModel):
-    message: Optional[Message] = None
-    messages: Optional[List[Message]] = None
-    response: Optional[RunResponse] = None
+    message: Message | None = None
+    messages: list[Message] | None = None
+    response: RunResponse | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         response = {
             "message": self.message.to_dict() if self.message else None,
             "messages": [message.to_dict() for message in self.messages] if self.messages else None,
@@ -33,19 +33,19 @@ class AgentRun(BaseModel):
 
 class AgentMemory(BaseModel):
     # Runs between the user and agent
-    runs: List[AgentRun] = []
+    runs: list[AgentRun] = []
     # List of messages sent to the model
-    messages: List[Message] = []
+    messages: list[Message] = []
     update_system_message_on_change: bool = False
 
     # Summary of the session
-    summary: Optional[SessionSummary] = None
+    summary: SessionSummary | None = None
     # Create and store session summaries
     create_session_summary: bool = False
     # Update session summaries after each run
     update_session_summary_after_run: bool = True
     # Summarizer to generate session summaries
-    summarizer: Optional[MemorySummarizer] = None
+    summarizer: MemorySummarizer | None = None
 
     # Create and store personalized memories for this user
     create_user_memories: bool = False
@@ -53,14 +53,14 @@ class AgentMemory(BaseModel):
     update_user_memories_after_run: bool = True
 
     # MemoryDb to store personalized memories
-    db: Optional[MemoryDb] = None
+    db: MemoryDb | None = None
     # User ID for the personalized memories
-    user_id: Optional[str] = None
+    user_id: str | None = None
     retrieval: MemoryRetrieval = MemoryRetrieval.last_n
-    memories: Optional[List[Memory]] = None
-    num_memories: Optional[int] = None
-    classifier: Optional[MemoryClassifier] = None
-    manager: Optional[MemoryManager] = None
+    memories: list[Memory] | None = None
+    num_memories: int | None = None
+    classifier: MemoryClassifier | None = None
+    manager: MemoryManager | None = None
 
     # True when memory is being updated
     updating_memory: bool = False
@@ -69,7 +69,7 @@ class AgentMemory(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _memory_dict = self.model_dump(
             exclude_none=True,
             include={
@@ -141,18 +141,16 @@ class AgentMemory(BaseModel):
                 # Add the system message to the messages list
                 self.messages.insert(0, message)
 
-    def add_messages(self, messages: List[Message]) -> None:
+    def add_messages(self, messages: list[Message]) -> None:
         """Add a list of messages to the messages list."""
         self.messages.extend(messages)
         log_debug(f"Added {len(messages)} Messages to AgentMemory")
 
-    def get_messages(self) -> List[Dict[str, Any]]:
+    def get_messages(self) -> list[dict[str, Any]]:
         """Returns the messages list as a list of dictionaries."""
         return [message.model_dump() for message in self.messages]
 
-    def get_messages_from_last_n_runs(
-        self, last_n: Optional[int] = None, skip_role: Optional[str] = None
-    ) -> List[Message]:
+    def get_messages_from_last_n_runs(self, last_n: int | None = None, skip_role: str | None = None) -> list[Message]:
         """Returns the messages from the last_n runs, excluding previously tagged history messages.
 
         Args:
@@ -186,14 +184,14 @@ class AgentMemory(BaseModel):
         return messages_from_history
 
     def get_message_pairs(
-        self, user_role: str = "user", assistant_role: Optional[List[str]] = None
-    ) -> List[Tuple[Message, Message]]:
+        self, user_role: str = "user", assistant_role: list[str] | None = None
+    ) -> list[tuple[Message, Message]]:
         """Returns a list of tuples of (user message, assistant response)."""
 
         if assistant_role is None:
             assistant_role = ["assistant", "model", "CHATBOT"]
 
-        runs_as_message_pairs: List[Tuple[Message, Message]] = []
+        runs_as_message_pairs: list[tuple[Message, Message]] = []
         for run in self.runs:
             if run.response and run.response.messages:
                 user_messages_from_run = None
@@ -219,7 +217,7 @@ class AgentMemory(BaseModel):
                     runs_as_message_pairs.append((user_messages_from_run, assistant_messages_from_run))
         return runs_as_message_pairs
 
-    def get_tool_calls(self, num_calls: Optional[int] = None) -> List[Dict[str, Any]]:
+    def get_tool_calls(self, num_calls: int | None = None) -> list[dict[str, Any]]:
         """Returns a list of tool calls from the messages"""
 
         tool_calls = []
@@ -273,9 +271,7 @@ class AgentMemory(BaseModel):
 
         self.classifier.existing_memories = self.memories
         classifier_response = self.classifier.run(input)
-        if classifier_response == "yes":
-            return True
-        return False
+        return classifier_response == "yes"
 
     async def ashould_update_memory(self, input: str) -> bool:
         """Determines if a message should be added to the memory db."""
@@ -286,11 +282,9 @@ class AgentMemory(BaseModel):
 
         self.classifier.existing_memories = self.memories
         classifier_response = await self.classifier.arun(input)
-        if classifier_response == "yes":
-            return True
-        return False
+        return classifier_response == "yes"
 
-    def update_memory(self, input: str, force: bool = False) -> Optional[str]:
+    def update_memory(self, input: str, force: bool = False) -> str | None:
         """Creates a memory from a message and adds it to the memory db.
 
         Args:
@@ -331,7 +325,7 @@ class AgentMemory(BaseModel):
         self.updating_memory = False
         return response
 
-    async def aupdate_memory(self, input: str, force: bool = False) -> Optional[str]:
+    async def aupdate_memory(self, input: str, force: bool = False) -> str | None:
         """Creates a memory from a message and adds it to the memory db.
 
         Args:
@@ -370,7 +364,7 @@ class AgentMemory(BaseModel):
         self.updating_memory = False
         return response
 
-    def update_summary(self) -> Optional[SessionSummary]:
+    def update_summary(self) -> SessionSummary | None:
         """Creates a summary of the session"""
         from agno.memory.summarizer import MemorySummarizer
 
@@ -383,7 +377,7 @@ class AgentMemory(BaseModel):
         self.updating_memory = False
         return self.summary
 
-    async def aupdate_summary(self) -> Optional[SessionSummary]:
+    async def aupdate_summary(self) -> SessionSummary | None:
         """Creates a summary of the session"""
         from agno.memory.summarizer import MemorySummarizer
 

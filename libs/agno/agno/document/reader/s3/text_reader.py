@@ -1,6 +1,5 @@
 import asyncio
 from pathlib import Path
-from typing import List
 
 from agno.document.base import Document
 from agno.document.reader.base import Reader
@@ -12,7 +11,7 @@ except (ModuleNotFoundError, ImportError):
     raise ImportError("`agno-aws` not installed. Please install using `pip install agno-aws`")
 
 try:
-    import textract  # noqa: F401
+    import textract
 except ImportError:
     raise ImportError("`textract` not installed. Please install it via `pip install textract`.")
 
@@ -20,7 +19,7 @@ except ImportError:
 class S3TextReader(Reader):
     """Reader for text files on S3"""
 
-    def read(self, s3_object: S3Object) -> List[Document]:
+    def read(self, s3_object: S3Object) -> list[Document]:
         try:
             log_info(f"Reading: {s3_object.uri}")
 
@@ -51,7 +50,7 @@ class S3TextReader(Reader):
             logger.error(f"Error reading: {s3_object.uri}: {e}")
         return []
 
-    async def async_read(self, s3_object: S3Object) -> List[Document]:
+    async def async_read(self, s3_object: S3Object) -> list[Document]:
         """Asynchronously read text files from S3 by running the synchronous read operation in a thread.
 
         Args:

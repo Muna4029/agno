@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 from contextlib import AsyncExitStack
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from types import TracebackType
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
+
+from typing_extensions import Self
 
 from agno.tools import Toolkit
 from agno.tools.function import Function
@@ -23,9 +27,9 @@ class SSEClientParams:
     """Parameters for SSE client connection."""
 
     url: str
-    headers: Optional[Dict[str, Any]] = None
-    timeout: Optional[float] = 5
-    sse_read_timeout: Optional[float] = 60 * 5
+    headers: dict[str, Any] | None = None
+    timeout: float | None = 5
+    sse_read_timeout: float | None = 60 * 5
 
 
 @dataclass
@@ -33,10 +37,10 @@ class StreamableHTTPClientParams:
     """Parameters for Streamable HTTP client connection."""
 
     url: str
-    headers: Optional[Dict[str, Any]] = None
-    timeout: Optional[timedelta] = timedelta(seconds=30)
-    sse_read_timeout: Optional[timedelta] = timedelta(seconds=60 * 5)
-    terminate_on_close: Optional[bool] = None
+    headers: dict[str, Any] | None = None
+    timeout: timedelta | None = timedelta(seconds=30)
+    sse_read_timeout: timedelta | None = timedelta(seconds=60 * 5)
+    terminate_on_close: bool | None = None
 
 
 class MCPTools(Toolkit):
@@ -52,17 +56,17 @@ class MCPTools(Toolkit):
 
     def __init__(
         self,
-        command: Optional[str] = None,
+        command: str | None = None,
         *,
-        url: Optional[str] = None,
-        env: Optional[dict[str, str]] = None,
+        url: str | None = None,
+        env: dict[str, str] | None = None,
         transport: Literal["stdio", "sse", "streamable-http"] = "stdio",
-        server_params: Optional[Union[StdioServerParameters, SSEClientParams, StreamableHTTPClientParams]] = None,
-        session: Optional[ClientSession] = None,
+        server_params: StdioServerParameters | SSEClientParams | StreamableHTTPClientParams | None = None,
+        session: ClientSession | None = None,
         timeout_seconds: int = 5,
         client=None,
-        include_tools: Optional[list[str]] = None,
-        exclude_tools: Optional[list[str]] = None,
+        include_tools: list[str] | None = None,
+        exclude_tools: list[str] | None = None,
         **kwargs,
     ):
         """
@@ -118,10 +122,8 @@ class MCPTools(Toolkit):
                     )
 
         self.timeout_seconds = timeout_seconds
-        self.session: Optional[ClientSession] = session
-        self.server_params: Optional[Union[StdioServerParameters, SSEClientParams, StreamableHTTPClientParams]] = (
-            server_params
-        )
+        self.session: ClientSession | None = session
+        self.server_params: StdioServerParameters | SSEClientParams | StreamableHTTPClientParams | None = server_params
         self.transport = transport
         self.url = url
 
@@ -149,7 +151,7 @@ class MCPTools(Toolkit):
         self._session_context = None
         self._initialized = False
 
-    async def __aenter__(self) -> "MCPTools":
+    async def __aenter__(self) -> Self:
         """Enter the async context manager."""
 
         if self.session is not None:
@@ -273,18 +275,16 @@ class MultiMCPTools(Toolkit):
 
     def __init__(
         self,
-        commands: Optional[List[str]] = None,
-        urls: Optional[List[str]] = None,
-        urls_transports: Optional[List[Literal["sse", "streamable-http"]]] = None,
+        commands: list[str] | None = None,
+        urls: list[str] | None = None,
+        urls_transports: list[Literal["sse", "streamable-http"]] | None = None,
         *,
-        env: Optional[dict[str, str]] = None,
-        server_params_list: Optional[
-            List[Union[SSEClientParams, StdioServerParameters, StreamableHTTPClientParams]]
-        ] = None,
+        env: dict[str, str] | None = None,
+        server_params_list: list[SSEClientParams | StdioServerParameters | StreamableHTTPClientParams] | None = None,
         timeout_seconds: int = 5,
         client=None,
-        include_tools: Optional[list[str]] = None,
-        exclude_tools: Optional[list[str]] = None,
+        include_tools: list[str] | None = None,
+        exclude_tools: list[str] | None = None,
         **kwargs,
     ):
         """
@@ -320,12 +320,12 @@ class MultiMCPTools(Toolkit):
         if server_params_list is None and commands is None and urls is None:
             raise ValueError("Either server_params_list or commands or urls must be provided")
 
-        self.server_params_list: List[Union[SSEClientParams, StdioServerParameters, StreamableHTTPClientParams]] = (
+        self.server_params_list: list[SSEClientParams | StdioServerParameters | StreamableHTTPClientParams] = (
             server_params_list or []
         )
         self.timeout_seconds = timeout_seconds
-        self.commands: Optional[List[str]] = commands
-        self.urls: Optional[List[str]] = urls
+        self.commands: list[str] | None = commands
+        self.urls: list[str] | None = urls
         # Merge provided env with system env
         if env is not None:
             env = {
@@ -361,7 +361,7 @@ class MultiMCPTools(Toolkit):
 
         self._client = client
 
-    async def __aenter__(self) -> "MultiMCPTools":
+    async def __aenter__(self) -> Self:
         """Enter the async context manager."""
 
         for server_params in self.server_params_list:
@@ -395,9 +395,9 @@ class MultiMCPTools(Toolkit):
 
     async def __aexit__(
         self,
-        exc_type: Union[type[BaseException], None],
-        exc_val: Union[BaseException, None],
-        exc_tb: Union[TracebackType, None],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ):
         """Exit the async context manager."""
         await self._async_exit_stack.aclose()

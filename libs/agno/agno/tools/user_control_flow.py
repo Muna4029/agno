@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from textwrap import dedent
-from typing import Optional
 
 from agno.tools import Toolkit
 
@@ -7,7 +8,7 @@ from agno.tools import Toolkit
 class UserControlFlowTools(Toolkit):
     def __init__(
         self,
-        instructions: Optional[str] = None,
+        instructions: str | None = None,
         add_instructions: bool = True,
         **kwargs,
     ):

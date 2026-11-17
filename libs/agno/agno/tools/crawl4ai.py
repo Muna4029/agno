@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_warning
@@ -13,7 +15,7 @@ except ImportError:
 class Crawl4aiTools(Toolkit):
     def __init__(
         self,
-        max_length: Optional[int] = 5000,
+        max_length: int | None = 5000,
         timeout: int = 60,
         use_pruning: bool = False,
         pruning_threshold: float = 0.48,
@@ -31,7 +33,7 @@ class Crawl4aiTools(Toolkit):
         self.wait_until = wait_until
         self.headless = headless
 
-    def _build_config(self, search_query: Optional[str] = None) -> Dict[str, Any]:
+    def _build_config(self, search_query: str | None = None) -> dict[str, Any]:
         """Build CrawlerRunConfig parameters from toolkit settings."""
         config_params = {
             "page_timeout": self.timeout * 1000,  # Convert to milliseconds
@@ -62,11 +64,10 @@ class Crawl4aiTools(Toolkit):
             except ImportError:
                 # If advanced features not available, continue without them
                 log_warning("crawl4ai.content_filter_strategy or crawl4ai.markdown_generation_strategy not installed")
-                pass
 
         return config_params
 
-    def crawl(self, url: Union[str, List[str]], search_query: Optional[str] = None) -> Union[str, Dict[str, str]]:
+    def crawl(self, url: str | list[str], search_query: str | None = None) -> str | dict[str, str]:
         """
         Crawl URLs and extract their text content.
 
@@ -90,7 +91,7 @@ class Crawl4aiTools(Toolkit):
             results[single_url] = asyncio.run(self._async_crawl(single_url, search_query))
         return results
 
-    async def _async_crawl(self, url: str, search_query: Optional[str] = None) -> str:
+    async def _async_crawl(self, url: str, search_query: str | None = None) -> str:
         """Crawl a single URL and extract content."""
         try:
             # Use BrowserConfig to suppress crawl4ai logs
@@ -148,5 +149,5 @@ class Crawl4aiTools(Toolkit):
                 return content
 
         except Exception as e:
-            log_warning(f"Exception during crawl: {str(e)}")
-            return f"Error crawling {url}: {str(e)}"
+            log_warning(f"Exception during crawl: {e!s}")
+            return f"Error crawling {url}: {e!s}"

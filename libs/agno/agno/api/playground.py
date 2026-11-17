@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
 from pathlib import Path
-from typing import Dict, List, Union
 
 from httpx import Client as HttpxClient
 from httpx import Response
@@ -25,7 +26,7 @@ def create_playground_endpoint(playground: PlaygroundEndpointCreate) -> bool:
             if invalid_response(r):
                 return False
 
-            response_json: Union[Dict, List] = r.json()
+            response_json: dict | list = r.json()
             if response_json is None:
                 return False
 
@@ -84,9 +85,9 @@ def deploy_playground_archive(name: str, tar_path: Path) -> bool:
             if invalid_response(r):
                 raise RuntimeError(f"Deployment failed with status {r.status_code}: {r.text}")
 
-            response_json: Dict = r.json()
+            response_json: dict = r.json()
             logger.debug(f"Response: {response_json}")
             return True
 
     except Exception as e:
-        raise RuntimeError(f"Failed to deploy playground app: {str(e)}") from e
+        raise RuntimeError(f"Failed to deploy playground app: {e!s}") from e

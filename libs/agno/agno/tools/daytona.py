@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.code_execution import prepare_python_code
@@ -23,17 +25,17 @@ except ImportError:
 class DaytonaTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        api_url: Optional[str] = None,
-        sandbox_language: Optional[CodeLanguage] = None,
-        sandbox_target_region: Optional[SandboxTargetRegion] = None,
-        sandbox_os: Optional[str] = None,
-        sandbox_os_user: Optional[str] = None,
-        sandbox_env_vars: Optional[Dict[str, str]] = None,
-        sandbox_labels: Optional[Dict[str, str]] = None,
-        sandbox_public: Optional[bool] = None,
-        sandbox_auto_stop_interval: Optional[int] = None,
-        organization_id: Optional[str] = None,
+        api_key: str | None = None,
+        api_url: str | None = None,
+        sandbox_language: CodeLanguage | None = None,
+        sandbox_target_region: SandboxTargetRegion | None = None,
+        sandbox_os: str | None = None,
+        sandbox_os_user: str | None = None,
+        sandbox_env_vars: dict[str, str] | None = None,
+        sandbox_labels: dict[str, str] | None = None,
+        sandbox_public: bool | None = None,
+        sandbox_auto_stop_interval: int | None = None,
+        organization_id: str | None = None,
         timeout: int = 300,  # 5 minutes default timeout
         **kwargs,
     ):
@@ -91,12 +93,12 @@ class DaytonaTools(Toolkit):
             self.sandbox: Sandbox = daytona.create(params)
         except Exception as e:
             logger.error(f"Error creating Daytona sandbox: {e}")
-            raise e
+            raise
 
         # Last execution result for reference
-        self.last_execution: Optional[ExecuteResponse] = None
+        self.last_execution: ExecuteResponse | None = None
 
-        tools: List[Any] = []
+        tools: list[Any] = []
 
         if self.sandbox_language == CodeLanguage.PYTHON:
             tools.append(self.run_python_code)
@@ -116,7 +118,7 @@ class DaytonaTools(Toolkit):
             self.result = execution.result
             return self.result
         except Exception as e:
-            return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
+            return json.dumps({"status": "error", "message": f"Error executing code: {e!s}"})
 
     def run_code(self, code: str) -> str:
         """General function to run non-Python code in the contextual Daytona sandbox."""
@@ -127,4 +129,4 @@ class DaytonaTools(Toolkit):
             self.result = response.result
             return self.result
         except Exception as e:
-            return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
+            return json.dumps({"status": "error", "message": f"Error executing code: {e!s}"})

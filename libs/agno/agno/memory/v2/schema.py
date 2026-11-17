@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -8,12 +10,12 @@ class UserMemory:
     """Model for User Memories"""
 
     memory: str
-    topics: Optional[List[str]] = None
-    input: Optional[str] = None
-    last_updated: Optional[datetime] = None
-    memory_id: Optional[str] = None
+    topics: list[str] | None = None
+    input: str | None = None
+    last_updated: datetime | None = None
+    memory_id: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = {
             "memory_id": self.memory_id,
             "memory": self.memory,
@@ -24,7 +26,7 @@ class UserMemory:
         return {k: v for k, v in _dict.items() if v is not None}
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "UserMemory":
+    def from_dict(cls, data: dict[str, Any]) -> UserMemory:
         last_updated = data.get("last_updated")
         if last_updated:
             data["last_updated"] = datetime.fromisoformat(last_updated)
@@ -36,10 +38,10 @@ class SessionSummary:
     """Model for Session Summary."""
 
     summary: str
-    topics: Optional[List[str]] = None
-    last_updated: Optional[datetime] = None
+    topics: list[str] | None = None
+    last_updated: datetime | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = {
             "summary": self.summary,
             "topics": self.topics,
@@ -48,7 +50,7 @@ class SessionSummary:
         return {k: v for k, v in _dict.items() if v is not None}
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "SessionSummary":
+    def from_dict(cls, data: dict[str, Any]) -> SessionSummary:
         last_updated = data.get("last_updated")
         if last_updated:
             data["last_updated"] = datetime.fromisoformat(last_updated)

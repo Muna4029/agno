@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, ClassVar, Dict, Iterator, List, Optional, Union
+from typing import Any, ClassVar
 
 import textract
 from pydantic import Field
@@ -19,26 +20,26 @@ class LightRagKnowledgeBase(AgentKnowledge):
 
     # Constants
     DEFAULT_SERVER_URL: ClassVar[str] = "http://localhost:9621"
-    SUPPORTED_EXTENSIONS: ClassVar[List[str]] = [".pdf", ".md", ".txt"]
+    SUPPORTED_EXTENSIONS: ClassVar[list[str]] = [".pdf", ".md", ".txt"]
 
     lightrag_server_url: str = DEFAULT_SERVER_URL
-    path: Optional[Union[str, Path, List[Dict[str, Union[str, Dict[str, Any]]]]]] = None
-    urls: Optional[Union[List[str], List[Dict[str, Union[str, Dict[str, Any]]]]]] = None
-    exclude_files: List[str] = Field(default_factory=list)
+    path: str | Path | list[dict[str, str | dict[str, Any]]] | None = None
+    urls: list[str] | list[dict[str, str | dict[str, Any]]] | None = None
+    exclude_files: list[str] = Field(default_factory=list)
 
     pdf_url_reader: PDFUrlReader = PDFUrlReader()
     markdown_reader: MarkdownReader = MarkdownReader()
     url_reader: URLReader = URLReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over documents and yield lists of Document objects."""
         # Convert text lists to Document objects to match parent class signature
         for text_list in self._text_document_lists():
             documents = [Document(content=text) for text in text_list]
             yield documents
 
-    def _text_document_lists(self) -> Iterator[List[str]]:
+    def _text_document_lists(self) -> Iterator[list[str]]:
         """Internal method to iterate over documents and yield lists of text content."""
         if self.path is not None:
             yield from self._process_paths()
@@ -49,7 +50,7 @@ class LightRagKnowledgeBase(AgentKnowledge):
         if self.urls is None and self.path is None:
             raise ValueError("Path or URLs are not set")
 
-    def _process_paths(self) -> Iterator[List[str]]:
+    def _process_paths(self) -> Iterator[list[str]]:
         """Process path-based documents."""
         if self.path is None:
             return
@@ -63,7 +64,7 @@ class LightRagKnowledgeBase(AgentKnowledge):
         else:
             yield from self._process_single_path(Path(self.path))
 
-    def _process_single_path(self, path: Path) -> Iterator[List[str]]:
+    def _process_single_path(self, path: Path) -> Iterator[list[str]]:
         """Process a single path (file or directory)."""
         if path.is_dir():
             for file_path in path.glob("**/*"):
@@ -82,7 +83,7 @@ class LightRagKnowledgeBase(AgentKnowledge):
                 text_str = textract.process(str(path)).decode("utf-8")
                 yield [text_str]
 
-    def _process_urls(self) -> Iterator[List[str]]:
+    def _process_urls(self) -> Iterator[list[str]]:
         """Process URL-based documents."""
         if self.urls is None:
             return
@@ -97,7 +98,7 @@ class LightRagKnowledgeBase(AgentKnowledge):
             elif isinstance(item, str):
                 yield from self._process_simple_url(item)
 
-    def _process_url_with_metadata(self, url: str, config: Dict[str, Any]) -> Iterator[List[str]]:
+    def _process_url_with_metadata(self, url: str, config: dict[str, Any]) -> Iterator[list[str]]:
         """Process URL with metadata configuration."""
         log_debug(f"Processing URL with metadata - URL: {url}, Config: {config}")
         if self._is_valid_url(url):
@@ -117,7 +118,7 @@ class LightRagKnowledgeBase(AgentKnowledge):
                     text_contents.append(doc.content)
                 yield text_contents
 
-    def _process_simple_url(self, url: str) -> Iterator[List[str]]:
+    def _process_simple_url(self, url: str) -> Iterator[list[str]]:
         """Process a simple URL without metadata."""
         log_info(f"Processing simple URL: {url}")
         if self._is_valid_url(url):
@@ -157,14 +158,14 @@ class LightRagKnowledgeBase(AgentKnowledge):
         await self.load(recreate=recreate, upsert=upsert, skip_existing=skip_existing)
 
     async def load_text(
-        self, text: str, upsert: bool = False, skip_existing: bool = True, filters: Optional[Dict[str, Any]] = None
+        self, text: str, upsert: bool = False, skip_existing: bool = True, filters: dict[str, Any] | None = None
     ) -> None:
         """Load a single text into the LightRAG server asynchronously."""
         await self._insert_text(text)
 
     async def async_search(
-        self, query: str, num_documents: Optional[int] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, num_documents: int | None = None, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """Override the async_search method from AgentKnowledge to query the LightRAG server."""
         import httpx
 
@@ -189,7 +190,7 @@ class LightRagKnowledgeBase(AgentKnowledge):
             else:
                 return [Document(content=str(result), meta_data={"query": query, "mode": mode})]
 
-    async def _insert_text(self, text: str) -> Dict[str, Any]:
+    async def _insert_text(self, text: str) -> dict[str, Any]:
         """Insert text into the LightRAG server."""
         import httpx
 
@@ -217,7 +218,7 @@ async def lightrag_retriever(
     num_documents: int = 5,
     mode: str = "hybrid",  # Default mode, can be "local", "global", or "hybrid"
     lightrag_server_url: str = "http://localhost:9621",
-) -> Optional[List[Dict[str, Any]]]:
+) -> list[dict[str, Any]] | None:
     """
     Custom retriever function to search the LightRAG server for relevant documents.
 
@@ -246,20 +247,20 @@ async def lightrag_retriever(
             return _format_lightrag_response(result, query, mode)
 
     except httpx.RequestError as e:
-        logger.error(f"HTTP Request Error: {type(e).__name__}: {str(e)}")
+        logger.error(f"HTTP Request Error: {type(e).__name__}: {e!s}")
         return None
     except httpx.HTTPStatusError as e:
         logger.error(f"HTTP Status Error: {e.response.status_code} - {e.response.text}")
         return None
     except Exception as e:
-        logger.error(f"Unexpected error during LightRAG server search: {type(e).__name__}: {str(e)}")
+        logger.error(f"Unexpected error during LightRAG server search: {type(e).__name__}: {e!s}")
         import traceback
 
         logger.error(f"Full traceback: {traceback.format_exc()}")
         return None
 
 
-def _format_lightrag_response(result: Any, query: str, mode: str) -> List[Dict[str, Any]]:
+def _format_lightrag_response(result: Any, query: str, mode: str) -> list[dict[str, Any]]:
     """Format LightRAG server response to expected document format."""
     # LightRAG server returns a dict with 'response' key, but we expect a list of documents
     # Convert the response to the expected format

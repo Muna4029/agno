@@ -131,7 +131,7 @@ def test_scrape_as_markdown_success(brightdata_tools, mock_requests):
 
     assert result == "# Markdown Content\n\nThis is a test."
     mock_requests.post.assert_called_once()
-    args, kwargs = mock_requests.post.call_args
+    _args, kwargs = mock_requests.post.call_args
     payload = json.loads(kwargs["data"])
     assert payload["url"] == "https://example.com"
     assert payload["data_format"] == "markdown"
@@ -181,7 +181,7 @@ def test_get_screenshot_success(brightdata_tools, mock_requests, mock_agent):
 
     # Verify API call
     mock_requests.post.assert_called_once()
-    args, kwargs = mock_requests.post.call_args
+    _args, kwargs = mock_requests.post.call_args
     payload = json.loads(kwargs["data"])
     assert payload["url"] == "https://example.com"
     assert payload["data_format"] == "screenshot"
@@ -238,7 +238,7 @@ def test_search_engine_success(brightdata_tools, mock_requests):
 
     assert result == "Search results markdown content"
     mock_requests.post.assert_called_once()
-    args, kwargs = mock_requests.post.call_args
+    _args, kwargs = mock_requests.post.call_args
     payload = json.loads(kwargs["data"])
     assert "python%20web%20scraping" in payload["url"]
     assert payload["data_format"] == "markdown"
@@ -255,7 +255,7 @@ def test_search_engine_with_params(brightdata_tools, mock_requests):
     brightdata_tools.search_engine("test query", engine="google", num_results=10, language="en", country_code="US")
 
     mock_requests.post.assert_called_once()
-    args, kwargs = mock_requests.post.call_args
+    _args, kwargs = mock_requests.post.call_args
     payload = json.loads(kwargs["data"])
     assert "hl=en" in payload["url"]
     assert "gl=US" in payload["url"]
@@ -272,7 +272,7 @@ def test_search_engine_bing(brightdata_tools, mock_requests):
     brightdata_tools.search_engine("test query", engine="bing")
 
     mock_requests.post.assert_called_once()
-    args, kwargs = mock_requests.post.call_args
+    _args, kwargs = mock_requests.post.call_args
     payload = json.loads(kwargs["data"])
     assert "bing.com/search" in payload["url"]
 

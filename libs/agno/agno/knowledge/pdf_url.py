@@ -1,4 +1,7 @@
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
+from typing import Any
 
 from agno.document import Document
 from agno.document.reader.pdf_reader import PDFUrlImageReader, PDFUrlReader
@@ -7,12 +10,12 @@ from agno.utils.log import log_info, logger
 
 
 class PDFUrlKnowledgeBase(AgentKnowledge):
-    urls: Optional[Union[List[str], List[Dict[str, Union[str, Dict[str, Any]]]]]] = None
-    formats: List[str] = [".pdf"]
-    reader: Union[PDFUrlReader, PDFUrlImageReader] = PDFUrlReader()
+    urls: list[str] | list[dict[str, str | dict[str, Any]]] | None = None
+    formats: list[str] = [".pdf"]
+    reader: PDFUrlReader | PDFUrlImageReader = PDFUrlReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over PDF URLs and yield lists of documents."""
         if self.urls is None:
             raise ValueError("URLs are not set")
@@ -42,7 +45,7 @@ class PDFUrlKnowledgeBase(AgentKnowledge):
         return True
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Iterate over PDF URLs and yield lists of documents asynchronously."""
         if not self.urls:
             raise ValueError("URLs are not set")
@@ -67,7 +70,7 @@ class PDFUrlKnowledgeBase(AgentKnowledge):
     def load_document(
         self,
         url: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
         recreate: bool = False,
         upsert: bool = False,
         skip_existing: bool = True,
@@ -109,7 +112,7 @@ class PDFUrlKnowledgeBase(AgentKnowledge):
     async def aload_document(
         self,
         url: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
         recreate: bool = False,
         upsert: bool = False,
         skip_existing: bool = True,

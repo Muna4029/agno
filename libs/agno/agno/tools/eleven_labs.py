@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from base64 import b64encode
+from collections.abc import Iterator
 from io import BytesIO
 from os import getenv, path
 from pathlib import Path
-from typing import Any, Iterator, List, Literal, Optional, Union
+from typing import Any, Literal
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -35,8 +38,8 @@ class ElevenLabsTools(Toolkit):
     def __init__(
         self,
         voice_id: str = "JBFqnCBsd6RMkjVDRZzb",
-        api_key: Optional[str] = None,
-        target_directory: Optional[str] = None,
+        api_key: str | None = None,
+        target_directory: str | None = None,
         model_id: str = "eleven_multilingual_v2",
         output_format: ElevenLabsAudioOutputFormat = "mp3_44100_64",
         **kwargs,
@@ -56,7 +59,7 @@ class ElevenLabsTools(Toolkit):
 
         self.eleven_labs_client = ElevenLabs(api_key=self.api_key)
 
-        tools: List[Any] = []
+        tools: list[Any] = []
 
         tools.append(self.get_voices)
         tools.append(self.generate_sound_effect)
@@ -122,9 +125,7 @@ class ElevenLabsTools(Toolkit):
 
         return base64_audio
 
-    def generate_sound_effect(
-        self, agent: Union[Agent, Team], prompt: str, duration_seconds: Optional[float] = None
-    ) -> str:
+    def generate_sound_effect(self, agent: Agent | Team, prompt: str, duration_seconds: float | None = None) -> str:
         """
         Use this function to generate sound effect audio from a text prompt.
 
@@ -156,7 +157,7 @@ class ElevenLabsTools(Toolkit):
             logger.error(f"Failed to generate audio: {e}")
             return f"Error: {e}"
 
-    def text_to_speech(self, agent: Union[Agent, Team], prompt: str) -> str:
+    def text_to_speech(self, agent: Agent | Team, prompt: str) -> str:
         """
         Use this function to convert text to speech audio.
 

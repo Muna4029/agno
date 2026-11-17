@@ -1,11 +1,11 @@
-from typing import Any, Dict
+from typing import Any
 
 import requests
 
 from agno.utils.log import log_warning
 
 
-def get_location() -> Dict[str, Any]:
+def get_location() -> dict[str, Any]:
     """Get approximate location using IP geolocation."""
     try:
         response = requests.get("https://api.ipify.org?format=json", timeout=5)

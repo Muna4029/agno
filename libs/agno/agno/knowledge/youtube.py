@@ -1,5 +1,5 @@
 import asyncio
-from typing import AsyncIterator, Iterator, List
+from collections.abc import AsyncIterator, Iterator
 
 from agno.document import Document
 from agno.document.reader.youtube_reader import YouTubeReader
@@ -7,11 +7,11 @@ from agno.knowledge.agent import AgentKnowledge
 
 
 class YouTubeKnowledgeBase(AgentKnowledge):
-    urls: List[str] = []
+    urls: list[str] = []
     reader: YouTubeReader = YouTubeReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over YouTube URLs and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -22,7 +22,7 @@ class YouTubeKnowledgeBase(AgentKnowledge):
             yield self.reader.read(video_url=url)
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Asynchronously iterate over YouTube URLs and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Optional
 
 from agno.models.openai.like import OpenAILike
 
@@ -22,7 +23,7 @@ class DeepInfra(OpenAILike):
     name: str = "DeepInfra"
     provider: str = "DeepInfra"
 
-    api_key: Optional[str] = getenv("DEEPINFRA_API_KEY")
+    api_key: str | None = getenv("DEEPINFRA_API_KEY")
     base_url: str = "https://api.deepinfra.com/v1/openai"
 
     supports_native_structured_outputs: bool = False

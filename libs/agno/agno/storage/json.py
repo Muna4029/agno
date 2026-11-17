@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import time
 from dataclasses import asdict
 from pathlib import Path
-from typing import List, Literal, Optional, Union
+from typing import Literal
 
 from agno.storage.base import Storage
 from agno.storage.session import Session
@@ -13,7 +15,7 @@ from agno.utils.log import logger
 
 
 class JsonStorage(Storage):
-    def __init__(self, dir_path: Union[str, Path], mode: Optional[Literal["agent", "team", "workflow"]] = "agent"):
+    def __init__(self, dir_path: str | Path, mode: Literal["agent", "team", "workflow"] | None = "agent"):
         super().__init__(mode)
         self.dir_path = Path(dir_path)
         self.dir_path.mkdir(parents=True, exist_ok=True)
@@ -29,7 +31,7 @@ class JsonStorage(Storage):
         if not self.dir_path.exists():
             self.dir_path.mkdir(parents=True, exist_ok=True)
 
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         """Read an AgentSession from storage."""
         try:
             with open(self.dir_path / f"{session_id}.json", "r", encoding="utf-8") as f:
@@ -45,7 +47,7 @@ class JsonStorage(Storage):
         except FileNotFoundError:
             return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: str | None = None, entity_id: str | None = None) -> list[str]:
         """Get all session IDs, optionally filtered by user_id and/or entity_id."""
         session_ids = []
         for file in self.dir_path.glob("*.json"):
@@ -53,36 +55,45 @@ class JsonStorage(Storage):
                 data = self.deserialize(f.read())
                 if user_id or entity_id:
                     if user_id and entity_id:
-                        if self.mode == "agent" and data["agent_id"] == entity_id and data["user_id"] == user_id:
-                            session_ids.append(data["session_id"])
-                        elif self.mode == "team" and data["team_id"] == entity_id and data["user_id"] == user_id:
-                            session_ids.append(data["session_id"])
-                        elif (
-                            self.mode == "workflow" and data["workflow_id"] == entity_id and data["user_id"] == user_id
+                        if (
+                            self.mode == "agent"
+                            and data["agent_id"] == entity_id
+                            and data["user_id"] == user_id
+                            or self.mode == "team"
+                            and data["team_id"] == entity_id
+                            and data["user_id"] == user_id
+                            or (
+                                self.mode == "workflow"
+                                and data["workflow_id"] == entity_id
+                                and data["user_id"] == user_id
+                            )
                         ):
                             session_ids.append(data["session_id"])
                     elif user_id and data["user_id"] == user_id:
                         session_ids.append(data["session_id"])
                     elif entity_id:
-                        if self.mode == "agent" and data["agent_id"] == entity_id:
-                            session_ids.append(data["session_id"])
-                        elif self.mode == "team" and data["team_id"] == entity_id:
-                            session_ids.append(data["session_id"])
-                        elif self.mode == "workflow" and data["workflow_id"] == entity_id:
+                        if (
+                            self.mode == "agent"
+                            and data["agent_id"] == entity_id
+                            or self.mode == "team"
+                            and data["team_id"] == entity_id
+                            or self.mode == "workflow"
+                            and data["workflow_id"] == entity_id
+                        ):
                             session_ids.append(data["session_id"])
                 else:
                     # No filters applied, add all session_ids
                     session_ids.append(data["session_id"])
         return session_ids
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
         """Get all sessions, optionally filtered by user_id and/or entity_id."""
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         for file in self.dir_path.glob("*.json"):
             with open(file, "r", encoding="utf-8") as f:
                 data = self.deserialize(f.read())
                 if user_id or entity_id:
-                    _session: Optional[Session] = None
+                    _session: Session | None = None
 
                     if user_id and entity_id:
                         if self.mode == "agent" and data["agent_id"] == entity_id and data["user_id"] == user_id:
@@ -124,10 +135,10 @@ class JsonStorage(Storage):
 
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -138,9 +149,9 @@ class JsonStorage(Storage):
         Returns:
             List[Session]: List of most recent sessions
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         # List of (created_at, data) tuples for sorting
-        session_data: List[tuple[int, dict]] = []
+        session_data: list[tuple[int, dict]] = []
 
         # First pass: collect and filter sessions
         for file in self.dir_path.glob("*.json"):
@@ -152,11 +163,14 @@ class JsonStorage(Storage):
                         continue
 
                     if entity_id:
-                        if self.mode == "agent" and data["agent_id"] != entity_id:
-                            continue
-                        elif self.mode == "team" and data["team_id"] != entity_id:
-                            continue
-                        elif self.mode == "workflow" and data["workflow_id"] != entity_id:
+                        if (
+                            self.mode == "agent"
+                            and data["agent_id"] != entity_id
+                            or self.mode == "team"
+                            and data["team_id"] != entity_id
+                            or self.mode == "workflow"
+                            and data["workflow_id"] != entity_id
+                        ):
                             continue
 
                     # Store with created_at for sorting
@@ -174,7 +188,7 @@ class JsonStorage(Storage):
 
         # Convert filtered and sorted data to Session objects
         for _, data in session_data:
-            session: Optional[Session] = None
+            session: Session | None = None
             if self.mode == "agent":
                 session = AgentSession.from_dict(data)
             elif self.mode == "team":
@@ -187,7 +201,7 @@ class JsonStorage(Storage):
 
         return sessions
 
-    def upsert(self, session: Session) -> Optional[Session]:
+    def upsert(self, session: Session) -> Session | None:
         """Insert or update a Session in storage."""
         try:
             data = asdict(session)
@@ -202,7 +216,7 @@ class JsonStorage(Storage):
             logger.error(f"Error upserting session: {e}")
             return None
 
-    def delete_session(self, session_id: Optional[str] = None):
+    def delete_session(self, session_id: str | None = None):
         """Delete a session from storage."""
         if session_id is None:
             return
@@ -218,4 +232,3 @@ class JsonStorage(Storage):
 
     def upgrade_schema(self) -> None:
         """Upgrade the schema of the storage."""
-        pass

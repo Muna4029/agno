@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_warning
@@ -14,15 +16,15 @@ except ImportError:
 class ValyuTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         text_length: int = 1000,
         max_results: int = 10,
         relevance_threshold: float = 0.5,
-        content_category: Optional[str] = None,
-        search_start_date: Optional[str] = None,
-        search_end_date: Optional[str] = None,
-        search_domains: Optional[List[str]] = None,
-        sources: Optional[List[str]] = None,
+        content_category: str | None = None,
+        search_start_date: str | None = None,
+        search_end_date: str | None = None,
+        search_domains: list[str] | None = None,
+        sources: list[str] | None = None,
         max_price: float = 30.0,
         tool_call_mode: bool = False,
         **kwargs,
@@ -49,7 +51,7 @@ class ValyuTools(Toolkit):
             **kwargs,
         )
 
-    def _parse_results(self, results: List[Any]) -> str:
+    def _parse_results(self, results: list[Any]) -> str:
         parsed_results = []
         for result in results:
             result_dict = {}
@@ -83,10 +85,10 @@ class ValyuTools(Toolkit):
         self,
         query: str,
         search_type: str,
-        content_category: Optional[str] = None,
-        sources: Optional[List[str]] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        content_category: str | None = None,
+        sources: list[str] | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
     ) -> str:
         try:
             search_params = {
@@ -118,15 +120,15 @@ class ValyuTools(Toolkit):
             return self._parse_results(response.results or [])
 
         except Exception as e:
-            error_msg = f"Valyu search failed: {str(e)}"
+            error_msg = f"Valyu search failed: {e!s}"
             log_error(error_msg)
             return f"Error: {error_msg}"
 
     def search_academic_sources(
         self,
         query: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
     ) -> str:
         """Search academic sources (ArXiv, PubMed, academic publishers).
 
@@ -151,9 +153,9 @@ class ValyuTools(Toolkit):
     def search_web(
         self,
         query: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        content_category: Optional[str] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        content_category: str | None = None,
     ) -> str:
         """Search web sources for real-time information.
 

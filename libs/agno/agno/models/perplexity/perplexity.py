@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -40,25 +42,25 @@ class Perplexity(OpenAILike):
     name: str = "Perplexity"
     provider: str = "Perplexity"
 
-    api_key: Optional[str] = getenv("PERPLEXITY_API_KEY")
+    api_key: str | None = getenv("PERPLEXITY_API_KEY")
     base_url: str = "https://api.perplexity.ai/"
     max_tokens: int = 1024
-    top_k: Optional[float] = None
+    top_k: float | None = None
 
     supports_native_structured_outputs: bool = False
     supports_json_schema_outputs: bool = True
 
     def get_request_params(
         self,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
         """
         # Define base request parameters
-        base_params: Dict[str, Any] = {
+        base_params: dict[str, Any] = {
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
             "top_p": self.top_p,
@@ -80,7 +82,7 @@ class Perplexity(OpenAILike):
             log_debug(f"Calling {self.provider} with request parameters: {request_params}", log_level=2)
         return request_params
 
-    def parse_provider_response(self, response: Union[ChatCompletion, ParsedChatCompletion], **kwargs) -> ModelResponse:
+    def parse_provider_response(self, response: ChatCompletion | ParsedChatCompletion, **kwargs) -> ModelResponse:
         """
         Parse the Perplexity response into a ModelResponse.
 

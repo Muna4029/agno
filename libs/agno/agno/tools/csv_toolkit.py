@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import csv
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -10,17 +12,17 @@ from agno.utils.log import log_debug, log_info, logger
 class CsvTools(Toolkit):
     def __init__(
         self,
-        csvs: Optional[List[Union[str, Path]]] = None,
-        row_limit: Optional[int] = None,
+        csvs: list[str | Path] | None = None,
+        row_limit: int | None = None,
         read_csvs: bool = True,
         list_csvs: bool = True,
         query_csvs: bool = True,
         read_column_names: bool = True,
-        duckdb_connection: Optional[Any] = None,
-        duckdb_kwargs: Optional[Dict[str, Any]] = None,
+        duckdb_connection: Any | None = None,
+        duckdb_kwargs: dict[str, Any] | None = None,
         **kwargs,
     ):
-        self.csvs: List[Path] = []
+        self.csvs: list[Path] = []
         if csvs:
             for _csv in csvs:
                 if isinstance(_csv, str):
@@ -30,10 +32,10 @@ class CsvTools(Toolkit):
                 else:
                     raise ValueError(f"Invalid csv file: {_csv}")
         self.row_limit = row_limit
-        self.duckdb_connection: Optional[Any] = duckdb_connection
-        self.duckdb_kwargs: Optional[Dict[str, Any]] = duckdb_kwargs
+        self.duckdb_connection: Any | None = duckdb_connection
+        self.duckdb_kwargs: dict[str, Any] | None = duckdb_kwargs
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if read_csvs:
             tools.append(self.read_csv_file)
         if list_csvs:
@@ -58,7 +60,7 @@ class CsvTools(Toolkit):
         """
         return json.dumps([_csv.stem for _csv in self.csvs])
 
-    def read_csv_file(self, csv_name: str, row_limit: Optional[int] = None) -> str:
+    def read_csv_file(self, csv_name: str, row_limit: int | None = None) -> str:
         """Use this function to read the contents of a csv file `name` without the extension.
 
         Args:
@@ -73,7 +75,7 @@ class CsvTools(Toolkit):
                 return f"File: {csv_name} not found, please use one of {self.list_csv_files()}"
 
             log_info(f"Reading file: {csv_name}")
-            file_path = [_csv for _csv in self.csvs if _csv.stem == csv_name][0]
+            file_path = next(_csv for _csv in self.csvs if _csv.stem == csv_name)
 
             # Read the csv file
             csv_data = []
@@ -103,7 +105,7 @@ class CsvTools(Toolkit):
                 return f"File: {csv_name} not found, please use one of {self.list_csv_files()}"
 
             log_info(f"Reading columns from file: {csv_name}")
-            file_path = [_csv for _csv in self.csvs if _csv.stem == csv_name][0]
+            file_path = next(_csv for _csv in self.csvs if _csv.stem == csv_name)
 
             # Get the columns of the csv file
             with open(str(file_path), newline="") as csvfile:
@@ -138,7 +140,7 @@ class CsvTools(Toolkit):
 
             # Load the csv file into duckdb
             log_info(f"Loading csv file: {csv_name}")
-            file_path = [_csv for _csv in self.csvs if _csv.stem == csv_name][0]
+            file_path = next(_csv for _csv in self.csvs if _csv.stem == csv_name)
 
             # Create duckdb connection
             con = self.duckdb_connection

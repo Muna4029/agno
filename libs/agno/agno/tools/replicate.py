@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import os
+from collections.abc import Iterable, Iterator
 from os import getenv
-from typing import Any, Iterable, Iterator, List, Optional, Union
+from typing import Any
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -20,7 +23,7 @@ except ImportError:
 class ReplicateTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model: str = "minimax/video-01",
         **kwargs,
     ):
@@ -29,12 +32,12 @@ class ReplicateTools(Toolkit):
             logger.error("REPLICATE_API_TOKEN not set. Please set the REPLICATE_API_TOKEN environment variable.")
         self.model = model
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.generate_media)
 
         super().__init__(name="replicate_toolkit", tools=tools, **kwargs)
 
-    def generate_media(self, agent: Union[Agent, Team], prompt: str) -> str:
+    def generate_media(self, agent: Agent | Team, prompt: str) -> str:
         """
         Use this function to generate an image or a video using a replicate model.
         Args:
@@ -65,7 +68,7 @@ class ReplicateTools(Toolkit):
             results.append(result)
         return "\n".join(results)
 
-    def _parse_output(self, agent: Union[Agent, Team], output: FileOutput) -> str:
+    def _parse_output(self, agent: Agent | Team, output: FileOutput) -> str:
         """
         Parse the outputs from the replicate model.
         """

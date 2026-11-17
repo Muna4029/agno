@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import hashlib
 import hmac
 import os
-from typing import Optional
 
 
 def is_development_mode() -> bool:
@@ -22,7 +23,7 @@ def get_app_secret() -> str:
     return app_secret
 
 
-def validate_webhook_signature(payload: bytes, signature_header: Optional[str]) -> bool:
+def validate_webhook_signature(payload: bytes, signature_header: str | None) -> bool:
     """
     Validate the webhook payload using SHA256 signature.
     In development mode, signature validation can be bypassed.

@@ -127,7 +127,7 @@ class OpenCVTools(Toolkit):
                 log_debug("Camera resources released")
 
         except Exception as e:
-            error_msg = f"Error capturing image: {str(e)}"
+            error_msg = f"Error capturing image: {e!s}"
             log_error(error_msg)
             return error_msg
 
@@ -192,7 +192,7 @@ class OpenCVTools(Toolkit):
 
                 for codec_fourcc, codec_name in codecs_to_try:
                     try:
-                        fourcc = getattr(cv2, "VideoWriter_fourcc")(*codec_fourcc)
+                        fourcc = cv2.VideoWriter_fourcc(*codec_fourcc)
                         out = cv2.VideoWriter(temp_filepath, fourcc, actual_fps, (frame_width, frame_height))
 
                         if out.isOpened():
@@ -300,6 +300,6 @@ class OpenCVTools(Toolkit):
                 log_debug("Video capture resources released")
 
         except Exception as e:
-            error_msg = f"Error capturing video: {str(e)}"
+            error_msg = f"Error capturing video: {e!s}"
             log_error(error_msg)
             return error_msg

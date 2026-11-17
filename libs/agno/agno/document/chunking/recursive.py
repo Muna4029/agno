@@ -1,5 +1,4 @@
 import warnings
-from typing import List
 
 from agno.document.base import Document
 from agno.document.chunking.strategy import ChunkingStrategy
@@ -22,12 +21,12 @@ class RecursiveChunking(ChunkingStrategy):
         self.chunk_size = chunk_size
         self.overlap = overlap
 
-    def chunk(self, document: Document) -> List[Document]:
+    def chunk(self, document: Document) -> list[Document]:
         """Recursively chunk text by finding natural break points"""
         if len(document.content) <= self.chunk_size:
             return [document]
 
-        chunks: List[Document] = []
+        chunks: list[Document] = []
         start = 0
         chunk_meta_data = document.meta_data
         chunk_number = 1

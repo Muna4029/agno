@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -11,11 +13,11 @@ from agno.utils.log import log_debug, log_error, log_warning
 class SerperTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         location: str = "us",
         language: str = "en",
         num_results: int = 10,
-        date_range: Optional[str] = None,
+        date_range: str | None = None,
         **kwargs,
     ):
         """
@@ -37,7 +39,7 @@ class SerperTools(Toolkit):
         self.num_results = num_results
         self.date_range = date_range
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.search)
         tools.append(self.search_news)
         tools.append(self.search_scholar)
@@ -45,7 +47,7 @@ class SerperTools(Toolkit):
 
         super().__init__(name="serper_tools", tools=tools, **kwargs)
 
-    def _make_request(self, endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _make_request(self, endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
         """
         Makes a request to the Serper API.
 
@@ -85,13 +87,13 @@ class SerperTools(Toolkit):
             log_debug(f"Successfully received response from {endpoint} endpoint")
             return {"success": True, "data": response.json(), "raw_response": response.text}
         except Exception as e:
-            log_error(f"Serper API error: {str(e)}")
+            log_error(f"Serper API error: {e!s}")
             return {"success": False, "error": str(e)}
 
     def search(
         self,
         query: str,
-        num_results: Optional[int] = None,
+        num_results: int | None = None,
     ) -> str:
         """
         Searches Google for the provided query using the Serper API.
@@ -125,12 +127,12 @@ class SerperTools(Toolkit):
 
         except Exception as e:
             log_error(f"Unexpected error searching Google for query {query}: {e}")
-            return json.dumps({"error": f"An unexpected error occurred: {str(e)}"}, indent=2)
+            return json.dumps({"error": f"An unexpected error occurred: {e!s}"}, indent=2)
 
     def search_news(
         self,
         query: str,
-        num_results: Optional[int] = None,
+        num_results: int | None = None,
     ) -> str:
         """
         Searches for news articles using the Serper News API.
@@ -164,12 +166,12 @@ class SerperTools(Toolkit):
 
         except Exception as e:
             log_error(f"Unexpected error searching news for query {query}: {e}")
-            return json.dumps({"error": f"An unexpected error occurred: {str(e)}"}, indent=2)
+            return json.dumps({"error": f"An unexpected error occurred: {e!s}"}, indent=2)
 
     def search_scholar(
         self,
         query: str,
-        num_results: Optional[int] = None,
+        num_results: int | None = None,
     ) -> str:
         """
         Searches for academic papers using Google Scholar via Serper API.
@@ -203,7 +205,7 @@ class SerperTools(Toolkit):
 
         except Exception as e:
             log_error(f"Unexpected error searching scholar for query {query}: {e}")
-            return json.dumps({"error": f"An unexpected error occurred: {str(e)}"}, indent=2)
+            return json.dumps({"error": f"An unexpected error occurred: {e!s}"}, indent=2)
 
     def scrape_webpage(
         self,
@@ -243,4 +245,4 @@ class SerperTools(Toolkit):
 
         except Exception as e:
             log_error(f"Unexpected error scraping webpage {url}: {e}")
-            return json.dumps({"error": f"An unexpected error occurred: {str(e)}"}, indent=2)
+            return json.dumps({"error": f"An unexpected error occurred: {e!s}"}, indent=2)

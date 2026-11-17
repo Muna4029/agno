@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -43,31 +45,31 @@ class Cerebras(Model):
 
     # Request parameters
     parallel_tool_calls: bool = False
-    max_completion_tokens: Optional[int] = None
-    repetition_penalty: Optional[float] = None
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    top_k: Optional[int] = None
-    extra_headers: Optional[Any] = None
-    extra_query: Optional[Any] = None
-    extra_body: Optional[Any] = None
-    request_params: Optional[Dict[str, Any]] = None
+    max_completion_tokens: int | None = None
+    repetition_penalty: float | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    top_k: int | None = None
+    extra_headers: Any | None = None
+    extra_query: Any | None = None
+    extra_body: Any | None = None
+    request_params: dict[str, Any] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
-    base_url: Optional[Union[str, httpx.URL]] = None
-    timeout: Optional[float] = None
-    max_retries: Optional[int] = None
-    default_headers: Optional[Any] = None
-    default_query: Optional[Any] = None
-    http_client: Optional[httpx.Client] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    base_url: str | httpx.URL | None = None
+    timeout: float | None = None
+    max_retries: int | None = None
+    default_headers: Any | None = None
+    default_query: Any | None = None
+    http_client: httpx.Client | None = None
+    client_params: dict[str, Any] | None = None
 
     # Cerebras clients
-    client: Optional[CerebrasClient] = None
-    async_client: Optional[AsyncCerebrasClient] = None
+    client: CerebrasClient | None = None
+    async_client: AsyncCerebrasClient | None = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Fetch API key from env if not already set
         if not self.api_key:
             self.api_key = getenv("CEREBRAS_API_KEY")
@@ -102,7 +104,7 @@ class Cerebras(Model):
         if self.client:
             return self.client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client is not None:
             client_params["http_client"] = self.http_client
         self.client = CerebrasClient(**client_params)
@@ -118,7 +120,7 @@ class Cerebras(Model):
         if self.async_client:
             return self.async_client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client:
             client_params["http_client"] = self.http_client
         else:
@@ -131,9 +133,9 @@ class Cerebras(Model):
 
     def get_request_params(
         self,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-    ) -> Dict[str, Any]:
+        tools: list[dict[str, Any]] | None = None,
+        response_format: dict | type[BaseModel] | None = None,
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
@@ -154,7 +156,7 @@ class Cerebras(Model):
         }
 
         # Filter out None values
-        request_params: Dict[str, Any] = {k: v for k, v in base_params.items() if v is not None}
+        request_params: dict[str, Any] = {k: v for k, v in base_params.items() if v is not None}
 
         # Add tools
         if tools is not None and len(tools) > 0:
@@ -174,18 +176,17 @@ class Cerebras(Model):
             request_params["parallel_tool_calls"] = self.parallel_tool_calls
 
         # Handle response format for structured outputs
-        if response_format is not None:
-            if (
-                isinstance(response_format, dict)
-                and response_format.get("type") == "json_schema"
-                and isinstance(response_format.get("json_schema"), dict)
-            ):
-                # Ensure json_schema has strict=True as required by Cerebras API
-                schema = response_format["json_schema"]
-                if isinstance(schema.get("schema"), dict) and "strict" not in schema:
-                    schema["strict"] = True
+        if response_format is not None and (
+            isinstance(response_format, dict)
+            and response_format.get("type") == "json_schema"
+            and isinstance(response_format.get("json_schema"), dict)
+        ):
+            # Ensure json_schema has strict=True as required by Cerebras API
+            schema = response_format["json_schema"]
+            if isinstance(schema.get("schema"), dict) and "strict" not in schema:
+                schema["strict"] = True
 
-                request_params["response_format"] = response_format
+            request_params["response_format"] = response_format
 
         # Add additional request params if provided
         if self.request_params:
@@ -197,10 +198,10 @@ class Cerebras(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> ChatCompletion:
         """
         Send a chat completion request to the Cerebras API.
@@ -219,10 +220,10 @@ class Cerebras(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> ChatCompletion:
         """
         Sends an asynchronous chat completion request to the Cerebras API.
@@ -241,10 +242,10 @@ class Cerebras(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ChatChunkResponse]:
         """
         Send a streaming chat completion request to the Cerebras API.
@@ -264,10 +265,10 @@ class Cerebras(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[ChatChunkResponse]:
         """
         Sends an asynchronous streaming chat completion request to the Cerebras API.
@@ -287,7 +288,7 @@ class Cerebras(Model):
         async for chunk in async_stream:  # type: ignore
             yield chunk  # type: ignore
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Format a message into the format expected by the Cerebras API.
 
@@ -298,7 +299,7 @@ class Cerebras(Model):
             Dict[str, Any]: The formatted message.
         """
         # Basic message content
-        message_dict: Dict[str, Any] = {
+        message_dict: dict[str, Any] = {
             "role": message.role,
             "content": message.content if message.content is not None else "",
         }

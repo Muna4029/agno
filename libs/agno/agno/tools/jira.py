@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 import os
-from typing import Any, List, Optional, cast
+from typing import Any, cast
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -14,10 +16,10 @@ except ImportError:
 class JiraTools(Toolkit):
     def __init__(
         self,
-        server_url: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        token: Optional[str] = None,
+        server_url: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        token: str | None = None,
         **kwargs,
     ):
         self.server_url = server_url or os.getenv("JIRA_SERVER_URL")
@@ -41,7 +43,7 @@ class JiraTools(Toolkit):
         else:
             self.jira = JIRA(server=self.server_url)
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.get_issue)
         tools.append(self.create_issue)
         tools.append(self.search_issues)

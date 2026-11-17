@@ -1,4 +1,4 @@
-from typing import List, Optional
+from __future__ import annotations
 
 from agno.document.base import Document
 from agno.document.chunking.strategy import ChunkingStrategy
@@ -15,7 +15,7 @@ class SemanticChunking(ChunkingStrategy):
     """Chunking strategy that splits text into semantic chunks using chonkie"""
 
     def __init__(
-        self, embedder: Optional[Embedder] = None, chunk_size: int = 5000, similarity_threshold: Optional[float] = 0.5
+        self, embedder: Embedder | None = None, chunk_size: int = 5000, similarity_threshold: float | None = 0.5
     ):
         self.embedder = embedder or OpenAIEmbedder(id="text-embedding-3-small")  # type: ignore
         self.chunk_size = chunk_size
@@ -26,7 +26,7 @@ class SemanticChunking(ChunkingStrategy):
             threshold=self.similarity_threshold,
         )
 
-    def chunk(self, document: Document) -> List[Document]:
+    def chunk(self, document: Document) -> list[Document]:
         """Split document into semantic chunks using chokie"""
         if not document.content:
             return [document]
@@ -35,7 +35,7 @@ class SemanticChunking(ChunkingStrategy):
         chunks = self.chunker.chunk(self.clean_text(document.content))
 
         # Convert chunks to Documents
-        chunked_documents: List[Document] = []
+        chunked_documents: list[Document] = []
         for i, chunk in enumerate(chunks, 1):
             meta_data = document.meta_data.copy()
             meta_data["chunk"] = i

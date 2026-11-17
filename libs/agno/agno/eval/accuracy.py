@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass, field
 from os import getenv
 from textwrap import dedent
-from typing import TYPE_CHECKING, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Callable
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -31,7 +33,7 @@ class AccuracyEvaluation:
     score: int
     reason: str
 
-    def print_eval(self, console: Optional["Console"] = None):
+    def print_eval(self, console: Console | None = None):
         from rich.box import ROUNDED
         from rich.console import Console
         from rich.markdown import Markdown
@@ -51,14 +53,14 @@ class AccuracyEvaluation:
         results_table.add_row("Input", self.input)
         results_table.add_row("Output", self.output)
         results_table.add_row("Expected Output", self.expected_output)
-        results_table.add_row("Accuracy Score", f"{str(self.score)}/10")
+        results_table.add_row("Accuracy Score", f"{self.score!s}/10")
         results_table.add_row("Accuracy Reason", Markdown(self.reason))
         console.print(results_table)
 
 
 @dataclass
 class AccuracyResult:
-    results: List[AccuracyEvaluation] = field(default_factory=list)
+    results: list[AccuracyEvaluation] = field(default_factory=list)
     avg_score: float = field(init=False)
     mean_score: float = field(init=False)
     min_score: float = field(init=False)
@@ -79,7 +81,7 @@ class AccuracyResult:
             self.max_score = max(_results)
             self.std_dev_score = statistics.stdev(_results) if len(_results) > 1 else 0
 
-    def print_summary(self, console: Optional["Console"] = None):
+    def print_summary(self, console: Console | None = None):
         from rich.box import ROUNDED
         from rich.console import Console
         from rich.table import Table
@@ -103,7 +105,7 @@ class AccuracyResult:
         summary_table.add_row("Standard Deviation", f"{self.std_dev_score:.2f}")
         console.print(summary_table)
 
-    def print_results(self, console: Optional["Console"] = None):
+    def print_results(self, console: Console | None = None):
         from rich.box import ROUNDED
         from rich.console import Console
         from rich.table import Table
@@ -123,7 +125,7 @@ class AccuracyResult:
             results_table.add_row("Input", result.input)
             results_table.add_row("Output", result.output)
             results_table.add_row("Expected Output", result.expected_output)
-            results_table.add_row("Accuracy Score", f"{str(result.score)}/10")
+            results_table.add_row("Accuracy Score", f"{result.score!s}/10")
             results_table.add_row("Accuracy Reason", result.reason)
         console.print(results_table)
 
@@ -133,38 +135,38 @@ class AccuracyEval:
     """Interface to evaluate the accuracy of an Agent or Team, given a prompt and expected answer"""
 
     # Input to evaluate
-    input: Union[str, Callable]
+    input: str | Callable
     # Expected answer to the input
-    expected_output: Union[str, Callable]
+    expected_output: str | Callable
     # Agent to evaluate
-    agent: Optional[Agent] = None
+    agent: Agent | None = None
     # Team to evaluate
-    team: Optional[Team] = None
+    team: Team | None = None
 
     # Evaluation name
-    name: Optional[str] = None
+    name: str | None = None
     # Evaluation UUID
     eval_id: str = field(default_factory=lambda: str(uuid4()))
     # Number of iterations to run
     num_iterations: int = 1
     # Result of the evaluation
-    result: Optional[AccuracyResult] = None
+    result: AccuracyResult | None = None
 
     # Model for the evaluator agent
-    model: Optional[Model] = None
+    model: Model | None = None
     # Agent used to evaluate the answer
-    evaluator_agent: Optional[Agent] = None
+    evaluator_agent: Agent | None = None
     # Guidelines for the evaluator agent
-    additional_guidelines: Optional[Union[str, List[str]]] = None
+    additional_guidelines: str | list[str] | None = None
     # Additional context to the evaluator agent
-    additional_context: Optional[str] = None
+    additional_context: str | None = None
 
     # Print summary of results
     print_summary: bool = False
     # Print detailed results
     print_results: bool = False
     # If set, results will be saved in the given file path
-    file_path_to_save_results: Optional[str] = None
+    file_path_to_save_results: str | None = None
     # Enable debug logs
     debug_mode: bool = getenv("AGNO_DEBUG", "false").lower() == "true"
     # Log the results to the Agno platform. On by default.
@@ -266,7 +268,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         evaluation_input: str,
         evaluator_expected_output: str,
         agent_output: str,
-    ) -> Optional[AccuracyEvaluation]:
+    ) -> AccuracyEvaluation | None:
         """Orchestrate the evaluation process."""
         try:
             accuracy_agent_response = evaluator_agent.run(evaluation_input).content
@@ -290,7 +292,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         evaluation_input: str,
         evaluator_expected_output: str,
         agent_output: str,
-    ) -> Optional[AccuracyEvaluation]:
+    ) -> AccuracyEvaluation | None:
         """Orchestrate the evaluation process asynchronously."""
         try:
             response = await evaluator_agent.arun(evaluation_input)
@@ -313,7 +315,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         *,
         print_summary: bool = True,
         print_results: bool = True,
-    ) -> Optional[AccuracyResult]:
+    ) -> AccuracyResult | None:
         if self.agent is None and self.team is None:
             logger.error("You need to provide one of 'agent' or 'team' to run the evaluation.")
             return None
@@ -433,7 +435,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         *,
         print_summary: bool = True,
         print_results: bool = True,
-    ) -> Optional[AccuracyResult]:
+    ) -> AccuracyResult | None:
         if self.agent is None and self.team is None:
             logger.error("You need to provide one of 'agent' or 'team' to run the evaluation.")
             return None
@@ -544,7 +546,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         output: str,
         print_summary: bool = True,
         print_results: bool = True,
-    ) -> Optional[AccuracyResult]:
+    ) -> AccuracyResult | None:
         """Run the evaluation logic against the given answer, instead of generating an answer with the Agent"""
         set_log_level_to_debug() if self.debug_mode else set_log_level_to_info()
 
@@ -638,7 +640,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         output: str,
         print_summary: bool = True,
         print_results: bool = True,
-    ) -> Optional[AccuracyResult]:
+    ) -> AccuracyResult | None:
         """Run the evaluation logic against the given answer, instead of generating an answer with the Agent"""
         set_log_level_to_debug() if self.debug_mode else set_log_level_to_info()
 

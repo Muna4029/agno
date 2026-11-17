@@ -68,14 +68,16 @@ def browserbase_tools(mock_browserbase):
 
 def test_init_with_env_vars():
     """Test initialization with environment variables."""
-    with patch("agno.tools.browserbase.Browserbase"):
-        with patch.dict(
+    with (
+        patch("agno.tools.browserbase.Browserbase"),
+        patch.dict(
             "os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY, "BROWSERBASE_PROJECT_ID": TEST_PROJECT_ID}, clear=True
-        ):  # Clear=True to ensure no other env vars leak in
-            tools = BrowserbaseTools()
-            assert tools.api_key == TEST_API_KEY
-            assert tools.project_id == TEST_PROJECT_ID
-            assert tools.base_url is None
+        ),
+    ):  # Clear=True to ensure no other env vars leak in
+        tools = BrowserbaseTools()
+        assert tools.api_key == TEST_API_KEY
+        assert tools.project_id == TEST_PROJECT_ID
+        assert tools.base_url is None
 
 
 def test_init_with_params():

@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Literal
 
 from agno.models.base import Model
 from agno.models.message import Message
@@ -38,7 +38,7 @@ def get_next_action(reasoning_step: ReasoningStep) -> NextAction:
 
 def update_messages_with_reasoning(
     run_messages: RunMessages,
-    reasoning_messages: List[Message],
+    reasoning_messages: list[Message],
 ) -> None:
     run_messages.messages.append(
         Message(

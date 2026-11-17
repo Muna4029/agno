@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import base64
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -18,7 +20,7 @@ except ImportError:
 class BrightDataTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         serp_zone: str = "serp_api",
         web_unlocker_zone: str = "web_unlocker1",
         scrape_as_markdown: bool = True,
@@ -46,7 +48,7 @@ class BrightDataTools(Toolkit):
         self.serp_zone = getenv("BRIGHT_DATA_SERP_ZONE", serp_zone)
         self.timeout = timeout
 
-        tools: List[Any] = []
+        tools: list[Any] = []
 
         if scrape_as_markdown:
             tools.append(self.scrape_as_markdown)
@@ -59,7 +61,7 @@ class BrightDataTools(Toolkit):
 
         super().__init__(name="brightdata_tools", tools=tools, **kwargs)
 
-    def _make_request(self, payload: Dict) -> str:
+    def _make_request(self, payload: dict) -> str:
         """Make a request to Bright Data API."""
         try:
             if self.verbose:
@@ -158,8 +160,8 @@ class BrightDataTools(Toolkit):
         query: str,
         engine: str = "google",
         num_results: int = 10,
-        language: Optional[str] = None,
-        country_code: Optional[str] = None,
+        language: str | None = None,
+        country_code: str | None = None,
     ) -> str:
         """
         Search using Google, Bing, or Yandex and return results in Markdown.
@@ -225,7 +227,7 @@ class BrightDataTools(Toolkit):
         self,
         source_type: str,
         url: str,
-        num_of_reviews: Optional[int] = None,
+        num_of_reviews: int | None = None,
     ) -> str:
         """
         Retrieve structured web data from various sources like LinkedIn, Amazon, Instagram, etc.

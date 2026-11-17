@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Mapping, Optional
+from typing import Any
 
 from agno.utils.log import logger
 
@@ -13,37 +14,37 @@ class WorkflowSession:
     # Session UUID
     session_id: str
     # ID of the user interacting with this agent
-    user_id: Optional[str] = None
+    user_id: str | None = None
     # Agent Memory
-    memory: Optional[Dict[str, Any]] = None
+    memory: dict[str, Any] | None = None
     # Session Data: session_name, session_state, images, videos, audio
-    session_data: Optional[Dict[str, Any]] = None
+    session_data: dict[str, Any] | None = None
     # Extra Data stored with this agent
-    extra_data: Optional[Dict[str, Any]] = None
+    extra_data: dict[str, Any] | None = None
     # The unix timestamp when this session was created
-    created_at: Optional[int] = None
+    created_at: int | None = None
     # The unix timestamp when this session was last updated
-    updated_at: Optional[int] = None
+    updated_at: int | None = None
 
     # ID of the workflow that this session is associated with
-    workflow_id: Optional[str] = None
+    workflow_id: str | None = None
     # Workflow Data
-    workflow_data: Optional[Dict[str, Any]] = None
+    workflow_data: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
-    def monitoring_data(self) -> Dict[str, Any]:
+    def monitoring_data(self) -> dict[str, Any]:
         return asdict(self)
 
-    def telemetry_data(self) -> Dict[str, Any]:
+    def telemetry_data(self) -> dict[str, Any]:
         return {
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> Optional[WorkflowSession]:
+    def from_dict(cls, data: Mapping[str, Any]) -> WorkflowSession | None:
         if data is None or data.get("session_id") is None:
             logger.warning("WorkflowSession is missing session_id")
             return None

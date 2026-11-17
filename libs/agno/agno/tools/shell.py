@@ -1,13 +1,14 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Optional, Union
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
 
 
 class ShellTools(Toolkit):
-    def __init__(self, base_dir: Optional[Union[Path, str]] = None, **kwargs):
-        self.base_dir: Optional[Path] = None
+    def __init__(self, base_dir: Path | str | None = None, **kwargs):
+        self.base_dir: Path | None = None
         if base_dir is not None:
             self.base_dir = Path(base_dir) if isinstance(base_dir, str) else base_dir
 
@@ -16,7 +17,7 @@ class ShellTools(Toolkit):
 
         super().__init__(name="shell_tools", tools=tools, **kwargs)
 
-    def run_shell_command(self, args: List[str], tail: int = 100) -> str:
+    def run_shell_command(self, args: list[str], tail: int = 100) -> str:
         """Runs a shell command and returns the output or error.
 
         Args:

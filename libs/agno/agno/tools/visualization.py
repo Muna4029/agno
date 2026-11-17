@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_info, logger
@@ -63,8 +65,8 @@ class VisualizationTools(Toolkit):
             self.register(self.create_histogram)
 
     def _normalize_data_for_charts(
-        self, data: Union[Dict[str, Any], List[Dict[str, Any]], List[Any], str]
-    ) -> Dict[str, Union[int, float]]:
+        self, data: dict[str, Any] | list[dict[str, Any]] | list[Any] | str
+    ) -> dict[str, int | float]:
         """
         Normalize various data formats into a simple dictionary format for charts.
 
@@ -103,11 +105,11 @@ class VisualizationTools(Toolkit):
 
     def create_bar_chart(
         self,
-        data: Union[Dict[str, Union[int, float]], List[Dict[str, Any]], str],
+        data: dict[str, int | float] | list[dict[str, Any]] | str,
         title: str = "Bar Chart",
         x_label: str = "Categories",
         y_label: str = "Values",
-        filename: Optional[str] = None,
+        filename: str | None = None,
     ) -> str:
         """
         Create a bar chart from the provided data.
@@ -170,16 +172,16 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.error(f"Error creating bar chart: {str(e)}")
+            logger.error(f"Error creating bar chart: {e!s}")
             return json.dumps({"chart_type": "bar_chart", "error": str(e), "status": "error"})
 
     def create_line_chart(
         self,
-        data: Union[Dict[str, Union[int, float]], List[Dict[str, Any]], str],
+        data: dict[str, int | float] | list[dict[str, Any]] | str,
         title: str = "Line Chart",
         x_label: str = "X-axis",
         y_label: str = "Y-axis",
-        filename: Optional[str] = None,
+        filename: str | None = None,
     ) -> str:
         """
         Create a line chart from the provided data.
@@ -243,14 +245,14 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.error(f"Error creating line chart: {str(e)}")
+            logger.error(f"Error creating line chart: {e!s}")
             return json.dumps({"chart_type": "line_chart", "error": str(e), "status": "error"})
 
     def create_pie_chart(
         self,
-        data: Union[Dict[str, Union[int, float]], List[Dict[str, Any]], str],
+        data: dict[str, int | float] | list[dict[str, Any]] | str,
         title: str = "Pie Chart",
-        filename: Optional[str] = None,
+        filename: str | None = None,
     ) -> str:
         """
         Create a pie chart from the provided data.
@@ -308,21 +310,21 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.error(f"Error creating pie chart: {str(e)}")
+            logger.error(f"Error creating pie chart: {e!s}")
             return json.dumps({"chart_type": "pie_chart", "error": str(e), "status": "error"})
 
     def create_scatter_plot(
         self,
-        x_data: Optional[List[Union[int, float]]] = None,
-        y_data: Optional[List[Union[int, float]]] = None,
+        x_data: list[int | float] | None = None,
+        y_data: list[int | float] | None = None,
         title: str = "Scatter Plot",
         x_label: str = "X-axis",
         y_label: str = "Y-axis",
-        filename: Optional[str] = None,
+        filename: str | None = None,
         # Alternative parameter names that agents might use
-        x: Optional[List[Union[int, float]]] = None,
-        y: Optional[List[Union[int, float]]] = None,
-        data: Optional[Union[List[List[Union[int, float]]], Dict[str, List[Union[int, float]]]]] = None,
+        x: list[int | float] | None = None,
+        y: list[int | float] | None = None,
+        data: list[list[int | float]] | dict[str, list[int | float]] | None = None,
     ) -> str:
         """
         Create a scatter plot from the provided data.
@@ -397,17 +399,17 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.error(f"Error creating scatter plot: {str(e)}")
+            logger.error(f"Error creating scatter plot: {e!s}")
             return json.dumps({"chart_type": "scatter_plot", "error": str(e), "status": "error"})
 
     def create_histogram(
         self,
-        data: List[Union[int, float]],
+        data: list[int | float],
         bins: int = 10,
         title: str = "Histogram",
         x_label: str = "Values",
         y_label: str = "Frequency",
-        filename: Optional[str] = None,
+        filename: str | None = None,
     ) -> str:
         """
         Create a histogram from the provided data.
@@ -472,5 +474,5 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.error(f"Error creating histogram: {str(e)}")
+            logger.error(f"Error creating histogram: {e!s}")
             return json.dumps({"chart_type": "histogram", "error": str(e), "status": "error"})

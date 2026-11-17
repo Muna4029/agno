@@ -1,19 +1,19 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
 
 
 class AirflowTools(Toolkit):
-    def __init__(
-        self, dags_dir: Optional[Union[Path, str]] = None, save_dag: bool = True, read_dag: bool = True, **kwargs
-    ):
+    def __init__(self, dags_dir: Path | str | None = None, save_dag: bool = True, read_dag: bool = True, **kwargs):
         """
         quick start to work with airflow : https://airflow.apache.org/docs/apache-airflow/stable/start.html
         """
 
-        _dags_dir: Optional[Path] = None
+        _dags_dir: Path | None = None
         if dags_dir is not None:
             if isinstance(dags_dir, str):
                 _dags_dir = Path.cwd().joinpath(dags_dir)
@@ -21,7 +21,7 @@ class AirflowTools(Toolkit):
                 _dags_dir = dags_dir
         self.dags_dir: Path = _dags_dir or Path.cwd()
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if save_dag:
             tools.append(self.save_dag_file)
         if read_dag:

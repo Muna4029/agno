@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 from xml.etree import ElementTree
 
 import httpx
@@ -12,20 +14,20 @@ class PubmedTools(Toolkit):
     def __init__(
         self,
         email: str = "your_email@example.com",
-        max_results: Optional[int] = None,
+        max_results: int | None = None,
         results_expanded: bool = False,
         **kwargs,
     ):
-        self.max_results: Optional[int] = max_results
+        self.max_results: int | None = max_results
         self.email: str = email
         self.results_expanded: bool = results_expanded
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.search_pubmed)
 
         super().__init__(name="pubmed", tools=tools, **kwargs)
 
-    def fetch_pubmed_ids(self, query: str, max_results: int, email: str) -> List[str]:
+    def fetch_pubmed_ids(self, query: str, max_results: int, email: str) -> list[str]:
         url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
         params = {
             "db": "pubmed",
@@ -38,13 +40,13 @@ class PubmedTools(Toolkit):
         root = ElementTree.fromstring(response.content)
         return [id_elem.text for id_elem in root.findall(".//Id") if id_elem.text is not None]
 
-    def fetch_details(self, pubmed_ids: List[str]) -> ElementTree.Element:
+    def fetch_details(self, pubmed_ids: list[str]) -> ElementTree.Element:
         url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
         params = {"db": "pubmed", "id": ",".join(pubmed_ids), "retmode": "xml"}
         response = httpx.get(url, params=params)
         return ElementTree.fromstring(response.content)
 
-    def parse_details(self, xml_root: ElementTree.Element) -> List[Dict[str, Any]]:
+    def parse_details(self, xml_root: ElementTree.Element) -> list[dict[str, Any]]:
         articles = []
         for article in xml_root.findall(".//PubmedArticle"):
             # Get existing fields
@@ -133,7 +135,7 @@ class PubmedTools(Toolkit):
 
         return articles
 
-    def search_pubmed(self, query: str, max_results: Optional[int] = 10) -> str:
+    def search_pubmed(self, query: str, max_results: int | None = 10) -> str:
         """Use this function to search PubMed for articles.
 
         Args:

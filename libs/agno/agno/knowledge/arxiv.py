@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Iterator, List
+from collections.abc import AsyncIterator, Iterator
 
 from agno.document import Document
 from agno.document.reader.arxiv_reader import ArxivReader
@@ -6,11 +6,11 @@ from agno.knowledge.agent import AgentKnowledge
 
 
 class ArxivKnowledgeBase(AgentKnowledge):
-    queries: List[str] = []
+    queries: list[str] = []
     reader: ArxivReader = ArxivReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over urls and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -22,7 +22,7 @@ class ArxivKnowledgeBase(AgentKnowledge):
             yield self.reader.read(query=_query)
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Iterate over queries and yield lists of documents asynchronously.
         Each object yielded by the iterator is a list of documents.
 

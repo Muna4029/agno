@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 from urllib.parse import urlparse
 
 from agno.tools import Toolkit
@@ -17,8 +19,8 @@ except ImportError:
 class OxylabsTools(Toolkit):
     def __init__(
         self,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         **kwargs,
     ):
         self.username = username or getenv("OXYLABS_USERNAME")
@@ -37,7 +39,7 @@ class OxylabsTools(Toolkit):
             log_debug(f"Failed to initialize Oxylabs client: {e}")
             raise
 
-        tools: List[Callable[..., str]] = [
+        tools: list[Callable[..., str]] = [
             self.search_google,
             self.get_amazon_product,
             self.search_amazon_products,
@@ -115,7 +117,7 @@ class OxylabsTools(Toolkit):
             return json.dumps(response_data, indent=2)
 
         except Exception as e:
-            error_msg = f"Google search failed: {str(e)}"
+            error_msg = f"Google search failed: {e!s}"
             log_error(error_msg)
             return self._error_response("search_google", error_msg, {"query": query})
 
@@ -207,7 +209,7 @@ class OxylabsTools(Toolkit):
             return json.dumps(response_data, indent=2)
 
         except Exception as e:
-            error_msg = f"Amazon product lookup failed: {str(e)}"
+            error_msg = f"Amazon product lookup failed: {e!s}"
             log_error(error_msg)
             return self._error_response("get_amazon_product", error_msg, {"asin": asin})
 
@@ -295,7 +297,7 @@ class OxylabsTools(Toolkit):
             return json.dumps(response_data, indent=2)
 
         except Exception as e:
-            error_msg = f"Amazon search failed: {str(e)}"
+            error_msg = f"Amazon search failed: {e!s}"
             log_error(error_msg)
             return self._error_response("search_amazon_products", error_msg, {"query": query})
 
@@ -375,11 +377,11 @@ class OxylabsTools(Toolkit):
             return json.dumps(response_data, indent=2)
 
         except Exception as e:
-            error_msg = f"Website scraping failed: {str(e)}"
+            error_msg = f"Website scraping failed: {e!s}"
             log_error(error_msg)
             return self._error_response("scrape_website", error_msg, {"url": url})
 
-    def _error_response(self, tool_name: str, error_message: str, context: Optional[Dict[str, Any]] = None) -> str:
+    def _error_response(self, tool_name: str, error_message: str, context: dict[str, Any] | None = None) -> str:
         """Generate a standardized error response."""
         error_data = {"tool": tool_name, "error": error_message, "context": context or {}}
         return json.dumps(error_data, indent=2)

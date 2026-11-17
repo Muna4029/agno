@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import asdict, dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -41,38 +43,38 @@ class HuggingFace(Model):
     provider: str = "HuggingFace"
 
     # Request parameters
-    store: Optional[bool] = None
-    frequency_penalty: Optional[float] = None
-    logit_bias: Optional[Any] = None
-    logprobs: Optional[bool] = None
-    max_tokens: Optional[int] = None
-    presence_penalty: Optional[float] = None
-    seed: Optional[int] = None
-    stop: Optional[Union[str, List[str]]] = None
-    temperature: Optional[float] = None
-    top_logprobs: Optional[int] = None
-    top_p: Optional[float] = None
-    request_params: Optional[Dict[str, Any]] = None
+    store: bool | None = None
+    frequency_penalty: float | None = None
+    logit_bias: Any | None = None
+    logprobs: bool | None = None
+    max_tokens: int | None = None
+    presence_penalty: float | None = None
+    seed: int | None = None
+    stop: str | list[str] | None = None
+    temperature: float | None = None
+    top_logprobs: int | None = None
+    top_p: float | None = None
+    request_params: dict[str, Any] | None = None
 
     # Client parameters
-    api_key: Optional[str] = None
-    base_url: Optional[Union[str, httpx.URL]] = None
-    timeout: Optional[float] = None
-    max_retries: Optional[int] = None
-    default_headers: Optional[Any] = None
-    default_query: Optional[Any] = None
-    client_params: Optional[Dict[str, Any]] = None
+    api_key: str | None = None
+    base_url: str | httpx.URL | None = None
+    timeout: float | None = None
+    max_retries: int | None = None
+    default_headers: Any | None = None
+    default_query: Any | None = None
+    client_params: dict[str, Any] | None = None
 
     # HuggingFace Hub Inference clients
-    client: Optional[InferenceClient] = None
-    async_client: Optional[AsyncInferenceClient] = None
+    client: InferenceClient | None = None
+    async_client: AsyncInferenceClient | None = None
 
-    def get_client_params(self) -> Dict[str, Any]:
+    def get_client_params(self) -> dict[str, Any]:
         self.api_key = self.api_key or getenv("HF_TOKEN")
         if not self.api_key:
             log_error("HF_TOKEN not set. Please set the HF_TOKEN environment variable.")
 
-        _client_params: Dict[str, Any] = {}
+        _client_params: dict[str, Any] = {}
         if self.api_key is not None:
             _client_params["api_key"] = self.api_key
         if self.base_url is not None:
@@ -99,7 +101,7 @@ class HuggingFace(Model):
         if self.client:
             return self.client
 
-        _client_params: Dict[str, Any] = self.get_client_params()
+        _client_params: dict[str, Any] = self.get_client_params()
         self.client = InferenceClient(**_client_params)
         return self.client
 
@@ -113,20 +115,20 @@ class HuggingFace(Model):
         if self.async_client:
             return self.async_client
 
-        _client_params: Dict[str, Any] = self.get_client_params()
+        _client_params: dict[str, Any] = self.get_client_params()
         self.async_client = AsyncInferenceClient(**_client_params)
         return self.async_client
 
     def get_request_params(
-        self, tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Optional[Union[str, Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:
+        self, tools: list[dict[str, Any]] | None = None, tool_choice: str | dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Returns keyword arguments for inference model client requests.
 
         Returns:
             Dict[str, Any]: A dictionary of keyword arguments for inference model client requests.
         """
-        _request_params: Dict[str, Any] = {}
+        _request_params: dict[str, Any] = {}
         if self.store is not None:
             _request_params["store"] = self.store
         if self.frequency_penalty is not None:
@@ -162,7 +164,7 @@ class HuggingFace(Model):
             log_debug(f"Calling {self.provider} with request parameters: {_request_params}", log_level=2)
         return _request_params
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the model to a dictionary.
 
@@ -188,7 +190,7 @@ class HuggingFace(Model):
         cleaned_dict = {k: v for k, v in _dict.items() if v is not None}
         return cleaned_dict
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Format a message into the format expected by HuggingFace.
 
@@ -198,7 +200,7 @@ class HuggingFace(Model):
         Returns:
             Dict[str, Any]: The formatted message.
         """
-        message_dict: Dict[str, Any] = {
+        message_dict: dict[str, Any] = {
             "role": message.role,
             "content": message.content if message.content is not None else "",
             "name": message.name or message.tool_name,
@@ -227,11 +229,11 @@ class HuggingFace(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Union[ChatCompletionOutput]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> ChatCompletionOutput:
         """
         Send a chat completion request to the HuggingFace Hub.
         """
@@ -250,11 +252,11 @@ class HuggingFace(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Union[ChatCompletionOutput]:
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> ChatCompletionOutput:
         """
         Sends an asynchronous chat completion request to the HuggingFace Hub Inference.
         """
@@ -274,10 +276,10 @@ class HuggingFace(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ChatCompletionStreamOutput]:
         """
         Send a streaming chat completion request to the HuggingFace API.
@@ -299,10 +301,10 @@ class HuggingFace(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[Any]:
         """
         Sends an asynchronous streaming chat completion request to the HuggingFace API.
@@ -327,7 +329,7 @@ class HuggingFace(Model):
 
     # Override base method
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[ChatCompletionStreamOutputDeltaToolCall]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[ChatCompletionStreamOutputDeltaToolCall]) -> list[dict[str, Any]]:
         """
         Build tool calls from streamed tool call data.
 
@@ -337,7 +339,7 @@ class HuggingFace(Model):
         Returns:
             List[Dict[str, Any]]: The built tool calls.
         """
-        tool_calls: List[Dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
         for _tool_call in tool_calls_data:
             _index = _tool_call.index
             _tool_call_id = _tool_call.id
@@ -369,7 +371,7 @@ class HuggingFace(Model):
     def parse_provider_response(
         self,
         response: ChatCompletionOutput,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: dict | type[BaseModel] | None = None,
     ) -> ModelResponse:
         """
         Parse the provider response into a ModelResponse.

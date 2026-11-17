@@ -1,6 +1,5 @@
 import os
 import tempfile
-from typing import List
 
 try:
     from unstructured.chunking.title import chunk_by_title  # type: ignore
@@ -19,7 +18,7 @@ class MarkdownChunking(ChunkingStrategy):
         self.chunk_size = chunk_size
         self.overlap = overlap
 
-    def _partition_markdown_content(self, content: str) -> List[str]:
+    def _partition_markdown_content(self, content: str) -> list[str]:
         """
         Partition markdown content and return a list of text chunks.
         Falls back to paragraph splitting if the markdown chunking fails.
@@ -67,7 +66,7 @@ class MarkdownChunking(ChunkingStrategy):
         except Exception:
             return self.clean_text(content).split("\n\n")
 
-    def chunk(self, document: Document) -> List[Document]:
+    def chunk(self, document: Document) -> list[Document]:
         """Split markdown document into chunks based on markdown structure"""
         if not document.content or len(document.content) <= self.chunk_size:
             return [document]
@@ -75,7 +74,7 @@ class MarkdownChunking(ChunkingStrategy):
         # Split using markdown chunking logic, or fallback to paragraphs
         sections = self._partition_markdown_content(document.content)
 
-        chunks: List[Document] = []
+        chunks: list[Document] = []
         current_chunk = []
         current_size = 0
         chunk_meta_data = document.meta_data

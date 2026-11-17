@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 try:
     from sqlalchemy.dialects import postgresql
@@ -20,9 +22,9 @@ class PostgresMemoryDb(MemoryDb):
     def __init__(
         self,
         table_name: str,
-        schema: Optional[str] = "ai",
-        db_url: Optional[str] = None,
-        db_engine: Optional[Engine] = None,
+        schema: str | None = "ai",
+        db_url: str | None = None,
+        db_engine: Engine | None = None,
     ):
         """
         This class provides a memory store backed by a postgres table.
@@ -37,7 +39,7 @@ class PostgresMemoryDb(MemoryDb):
             db_url (Optional[str]): The database URL to connect to. Defaults to None.
             db_engine (Optional[Engine]): The database engine to use. Defaults to None.
         """
-        _engine: Optional[Engine] = db_engine
+        _engine: Engine | None = db_engine
         if _engine is None and db_url is not None:
             _engine = create_engine(db_url)
 
@@ -45,15 +47,15 @@ class PostgresMemoryDb(MemoryDb):
             raise ValueError("Must provide either db_url or db_engine")
 
         self.table_name: str = table_name
-        self.schema: Optional[str] = schema
-        self.db_url: Optional[str] = db_url
+        self.schema: str | None = schema
+        self.db_url: str | None = db_url
         self.db_engine: Engine = _engine
         self.inspector = inspect(self.db_engine)
         self.metadata: MetaData = MetaData(schema=self.schema)
         self.Session: scoped_session = scoped_session(sessionmaker(bind=self.db_engine))
         self.table: Table = self.get_table()
 
-    def __dict__(self) -> Dict[str, Any]:
+    def __dict__(self) -> dict[str, Any]:
         return {
             "name": "PostgresMemoryDb",
             "table_name": self.table_name,
@@ -93,9 +95,9 @@ class PostgresMemoryDb(MemoryDb):
             return result is not None
 
     def read_memories(
-        self, user_id: Optional[str] = None, limit: Optional[int] = None, sort: Optional[str] = None
-    ) -> List[MemoryRow]:
-        memories: List[MemoryRow] = []
+        self, user_id: str | None = None, limit: int | None = None, sort: str | None = None
+    ) -> list[MemoryRow]:
+        memories: list[MemoryRow] = []
         try:
             with self.Session() as sess, sess.begin():
                 stmt = select(self.table)
@@ -136,10 +138,10 @@ class PostgresMemoryDb(MemoryDb):
                 # See: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#postgresql-insert-on-conflict
                 stmt = stmt.on_conflict_do_update(
                     index_elements=["id"],
-                    set_=dict(
-                        user_id=stmt.excluded.user_id,
-                        memory=stmt.excluded.memory,
-                    ),
+                    set_={
+                        "user_id": stmt.excluded.user_id,
+                        "memory": stmt.excluded.memory,
+                    },
                 )
 
                 sess.execute(stmt)

@@ -43,6 +43,8 @@ Note: The first time you run the application, it will open a browser window for 
 A token.json file will be created to store the authentication credentials for future use.
 """
 
+from __future__ import annotations
+
 import base64
 import mimetypes
 import re
@@ -50,7 +52,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from agno.tools import Toolkit
 
@@ -112,11 +114,11 @@ class GmailTools(Toolkit):
         send_email: bool = True,
         send_email_reply: bool = True,
         search_emails: bool = True,
-        creds: Optional[Credentials] = None,
-        credentials_path: Optional[str] = None,
-        token_path: Optional[str] = None,
-        scopes: Optional[List[str]] = None,
-        port: Optional[int] = None,
+        creds: Credentials | None = None,
+        credentials_path: str | None = None,
+        token_path: str | None = None,
+        scopes: list[str] | None = None,
+        port: int | None = None,
         **kwargs,
     ):
         """Initialize GmailTools and authenticate with Gmail API
@@ -169,7 +171,7 @@ class GmailTools(Toolkit):
             if read_scope not in self.scopes and write_scope not in self.scopes:
                 raise ValueError(f"The scope {read_scope} is required for email reading operations")
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if get_latest_emails:
             tools.append(self.get_latest_emails)
         if get_emails_from_user:
@@ -228,7 +230,7 @@ class GmailTools(Toolkit):
             if self.creds and self.creds.valid:
                 token_file.write_text(self.creds.to_json())
 
-    def _format_emails(self, emails: List[dict]) -> str:
+    def _format_emails(self, emails: list[dict]) -> str:
         """Format list of email dictionaries into a readable string"""
         if not emails:
             return "No emails found"
@@ -375,9 +377,7 @@ class GmailTools(Toolkit):
             return f"Unexpected error retrieving emails by context '{context}': {type(error).__name__}: {error}"
 
     @authenticate
-    def get_emails_by_date(
-        self, start_date: int, range_in_days: Optional[int] = None, num_emails: Optional[int] = 10
-    ) -> str:
+    def get_emails_by_date(self, start_date: int, range_in_days: int | None = None, num_emails: int | None = 10) -> str:
         """
         Get emails based on date range. start_date is an integer representing a unix timestamp
 
@@ -411,8 +411,8 @@ class GmailTools(Toolkit):
         to: str,
         subject: str,
         body: str,
-        cc: Optional[str] = None,
-        attachments: Optional[Union[str, List[str]]] = None,
+        cc: str | None = None,
+        attachments: str | list[str] | None = None,
     ) -> str:
         """
         Create and save a draft email. to and cc are comma separated string of email ids
@@ -454,8 +454,8 @@ class GmailTools(Toolkit):
         to: str,
         subject: str,
         body: str,
-        cc: Optional[str] = None,
-        attachments: Optional[Union[str, List[str]]] = None,
+        cc: str | None = None,
+        attachments: str | list[str] | None = None,
     ) -> str:
         """
         Send an email immediately. to and cc are comma separated string of email ids
@@ -499,8 +499,8 @@ class GmailTools(Toolkit):
         to: str,
         subject: str,
         body: str,
-        cc: Optional[str] = None,
-        attachments: Optional[Union[str, List[str]]] = None,
+        cc: str | None = None,
+        attachments: str | list[str] | None = None,
     ) -> str:
         """
         Respond to an existing email thread.
@@ -589,18 +589,18 @@ class GmailTools(Toolkit):
 
     def _create_message(
         self,
-        to: List[str],
+        to: list[str],
         subject: str,
         body: str,
-        cc: Optional[List[str]] = None,
-        thread_id: Optional[str] = None,
-        message_id: Optional[str] = None,
-        attachments: Optional[List[str]] = None,
+        cc: list[str] | None = None,
+        thread_id: str | None = None,
+        message_id: str | None = None,
+        attachments: list[str] | None = None,
     ) -> dict:
         body = body.replace("\\n", "\n")
 
         # Create multipart message if attachments exist, otherwise simple text message
-        message: Union[MIMEMultipart, MIMEText]
+        message: MIMEMultipart | MIMEText
         if attachments:
             message = MIMEMultipart()
 
@@ -619,7 +619,7 @@ class GmailTools(Toolkit):
                 if content_type is None or encoding is not None:
                     content_type = "application/octet-stream"
 
-                main_type, sub_type = content_type.split("/", 1)
+                _main_type, sub_type = content_type.split("/", 1)
 
                 # Read file and create attachment
                 with open(file_path, "rb") as file:
@@ -652,7 +652,7 @@ class GmailTools(Toolkit):
 
         return email_data
 
-    def _get_message_details(self, messages: List[dict]) -> List[dict]:
+    def _get_message_details(self, messages: list[dict]) -> list[dict]:
         """Get details for list of messages"""
         details = []
         for msg in messages:

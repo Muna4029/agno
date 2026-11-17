@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from os import getenv
-from typing import Any, Dict, Optional, Union
+from typing import Any
 from uuid import uuid4
 
 import uvicorn
@@ -17,20 +19,20 @@ from agno.utils.log import log_debug, log_info
 
 
 class BaseAPIApp(ABC):
-    type: Optional[str] = None
+    type: str | None = None
 
     def __init__(
         self,
-        agent: Optional[Agent] = None,
-        team: Optional[Team] = None,
-        settings: Optional[APIAppSettings] = None,
-        api_app: Optional[FastAPI] = None,
-        router: Optional[APIRouter] = None,
+        agent: Agent | None = None,
+        team: Team | None = None,
+        settings: APIAppSettings | None = None,
+        api_app: FastAPI | None = None,
+        router: APIRouter | None = None,
         monitoring: bool = True,
-        app_id: Optional[str] = None,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        version: Optional[str] = None,
+        app_id: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
+        version: str | None = None,
     ):
         if not agent and not team:
             raise ValueError("Either agent or team must be provided.")
@@ -38,14 +40,14 @@ class BaseAPIApp(ABC):
         if agent and team:
             raise ValueError("Only one of agent or team can be provided.")
 
-        self.agent: Optional[Agent] = agent
-        self.team: Optional[Team] = team
+        self.agent: Agent | None = agent
+        self.team: Team | None = team
         self.settings: APIAppSettings = settings or APIAppSettings()
-        self.api_app: Optional[FastAPI] = api_app
-        self.router: Optional[APIRouter] = router
+        self.api_app: FastAPI | None = api_app
+        self.router: APIRouter | None = router
         self.monitoring = monitoring
-        self.app_id: Optional[str] = app_id
-        self.name: Optional[str] = name
+        self.app_id: str | None = app_id
+        self.name: str | None = name
         self.description = description
         self.version = version
         self.set_app_id()
@@ -152,7 +154,7 @@ class BaseAPIApp(ABC):
 
     def serve(
         self,
-        app: Union[str, FastAPI],
+        app: str | FastAPI,
         *,
         host: str = "localhost",
         port: int = 7777,
@@ -182,7 +184,7 @@ class BaseAPIApp(ABC):
             log_debug(f"Could not create Agent app: {e}")
         log_debug(f"Agent app created: {self.name}, {self.app_id}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         payload = {
             "agents": [
                 {

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -13,7 +15,7 @@ from agno.utils.log import log_error
 
 @dataclass
 class BaseRunResponseEvent:
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = {
             k: v
             for k, v in asdict(self).items()
@@ -114,7 +116,7 @@ class BaseRunResponseEvent:
         return json.dumps(_dict, indent=2)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
+    def from_dict(cls, data: dict[str, Any]):
         tool = data.pop("tool", None)
         if tool:
             data["tool"] = ToolExecution.from_dict(tool)
@@ -160,12 +162,12 @@ class BaseRunResponseEvent:
 
 @dataclass
 class RunResponseExtraData:
-    references: Optional[List[MessageReferences]] = None
-    add_messages: Optional[List[Message]] = None
-    reasoning_steps: Optional[List[ReasoningStep]] = None
-    reasoning_messages: Optional[List[Message]] = None
+    references: list[MessageReferences] | None = None
+    add_messages: list[Message] | None = None
+    reasoning_steps: list[ReasoningStep] | None = None
+    reasoning_messages: list[Message] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         _dict = {}
         if self.add_messages is not None:
             _dict["add_messages"] = [m.to_dict() for m in self.add_messages]
@@ -178,7 +180,7 @@ class RunResponseExtraData:
         return _dict
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "RunResponseExtraData":
+    def from_dict(cls, data: dict[str, Any]) -> RunResponseExtraData:
         add_messages = data.pop("add_messages", None)
         if add_messages is not None:
             add_messages = [Message.model_validate(message) for message in add_messages]

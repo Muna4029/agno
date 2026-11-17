@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from agno.document.base import Document
 
@@ -8,7 +7,7 @@ class ChunkingStrategy(ABC):
     """Base class for chunking strategies"""
 
     @abstractmethod
-    def chunk(self, document: Document) -> List[Document]:
+    def chunk(self, document: Document) -> list[Document]:
         raise NotImplementedError
 
     def clean_text(self, text: str) -> str:

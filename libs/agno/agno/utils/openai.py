@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import base64
 import mimetypes
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any
 
 from agno.media import Audio, File, Image
 from agno.utils.log import log_error, log_warning
@@ -10,7 +13,7 @@ from agno.utils.log import log_error, log_warning
 mimetypes.add_type("image/webp", ".webp")
 
 
-def audio_to_message(audio: Sequence[Audio]) -> List[Dict[str, Any]]:
+def audio_to_message(audio: Sequence[Audio]) -> list[dict[str, Any]]:
     """
     Add audio to a message for the model. By default, we use the OpenAI audio format but other Models
     can override this method to use a different audio format.
@@ -28,8 +31,8 @@ def audio_to_message(audio: Sequence[Audio]) -> List[Dict[str, Any]]:
 
     audio_messages = []
     for audio_snippet in audio:
-        encoded_string: Optional[str] = None
-        audio_format: Optional[str] = audio_snippet.format
+        encoded_string: str | None = None
+        audio_format: str | None = audio_snippet.format
 
         # The audio is raw data
         if audio_snippet.content:
@@ -93,7 +96,7 @@ def audio_to_message(audio: Sequence[Audio]) -> List[Dict[str, Any]]:
     return audio_messages
 
 
-def _process_bytes_image(image: bytes) -> Dict[str, Any]:
+def _process_bytes_image(image: bytes) -> dict[str, Any]:
     """Process bytes image data."""
     base64_image = base64.b64encode(image).decode("utf-8")
     # Assuming JPEG if type not specified, could attempt detection
@@ -101,7 +104,7 @@ def _process_bytes_image(image: bytes) -> Dict[str, Any]:
     return {"type": "image_url", "image_url": {"url": image_url}}
 
 
-def _process_image_path(image_path: Union[Path, str]) -> Dict[str, Any]:
+def _process_image_path(image_path: Path | str) -> dict[str, Any]:
     """Process image ( file path)."""
     # Process local file image
     path = Path(image_path)  # Ensure it's a Path object
@@ -121,18 +124,18 @@ def _process_image_path(image_path: Union[Path, str]) -> Dict[str, Any]:
         raise  # Re-raise the exception after logging
 
 
-def _process_image_url(image_url: str) -> Dict[str, Any]:
+def _process_image_url(image_url: str) -> dict[str, Any]:
     """Process image (base64 or URL)."""
 
-    if image_url.startswith("data:image") or image_url.startswith(("http://", "https://")):
+    if image_url.startswith(("data:image", "http://", "https://")):
         return {"type": "image_url", "image_url": {"url": image_url}}
     else:
         raise ValueError("Image URL must start with 'data:image' or 'http(s)://'.")
 
 
-def process_image(image: Image) -> Optional[Dict[str, Any]]:
+def process_image(image: Image) -> dict[str, Any] | None:
     """Process an image based on the format."""
-    image_payload: Optional[Dict[str, Any]] = None  # Initialize
+    image_payload: dict[str, Any] | None = None  # Initialize
     try:
         if image.url is not None:
             image_payload = _process_image_url(image.url)
@@ -156,15 +159,15 @@ def process_image(image: Image) -> Optional[Dict[str, Any]]:
         return image_payload
 
     except (FileNotFoundError, IsADirectoryError, ValueError) as e:
-        log_error(f"Failed to process image due to invalid input: {str(e)}")
+        log_error(f"Failed to process image due to invalid input: {e!s}")
         return None  # Return None for handled validation errors
     except Exception as e:
-        log_error(f"An unexpected error occurred while processing image: {str(e)}")
+        log_error(f"An unexpected error occurred while processing image: {e!s}")
         # Depending on policy, you might want to return None or re-raise
         return None  # Return None for unexpected errors as well, preventing crashes
 
 
-def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
+def images_to_message(images: Sequence[Image]) -> list[dict[str, Any]]:
     """
     Add images to a message for the model. By default, we use the OpenAI image format but other Models
     can override this method to use a different image format.
@@ -180,7 +183,7 @@ def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
     """
 
     # Create a default message content with text
-    image_messages: List[Dict[str, Any]] = []
+    image_messages: list[dict[str, Any]] = []
 
     # Add images to the message content
     for image in images:
@@ -189,13 +192,13 @@ def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
             if image_data:
                 image_messages.append(image_data)
         except Exception as e:
-            log_error(f"Failed to process image: {str(e)}")
+            log_error(f"Failed to process image: {e!s}")
             continue
 
     return image_messages
 
 
-def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
+def _format_file_for_message(file: File) -> dict[str, Any] | None:
     """
     Add a document url, base64 encoded content or OpenAI file to a message.
     """

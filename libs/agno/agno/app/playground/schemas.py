@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable
 from uuid import uuid4
 
 from fastapi import UploadFile
@@ -14,27 +16,27 @@ from agno.team import Team
 
 
 class AgentModel(BaseModel):
-    name: Optional[str] = None
-    model: Optional[str] = None
-    provider: Optional[str] = None
+    name: str | None = None
+    model: str | None = None
+    provider: str | None = None
 
 
 class AgentGetResponse(BaseModel):
-    agent_id: Optional[str] = None
-    name: Optional[str] = None
-    model: Optional[AgentModel] = None
-    add_context: Optional[bool] = None
-    tools: Optional[List[Dict[str, Any]]] = None
-    memory: Optional[Dict[str, Any]] = None
-    storage: Optional[Dict[str, Any]] = None
-    knowledge: Optional[Dict[str, Any]] = None
-    description: Optional[str] = None
-    instructions: Optional[Union[List[str], str, Callable]] = None
+    agent_id: str | None = None
+    name: str | None = None
+    model: AgentModel | None = None
+    add_context: bool | None = None
+    tools: list[dict[str, Any]] | None = None
+    memory: dict[str, Any] | None = None
+    storage: dict[str, Any] | None = None
+    knowledge: dict[str, Any] | None = None
+    description: str | None = None
+    instructions: list[str] | str | Callable | None = None
 
     @classmethod
-    def from_agent(self, agent: Agent, async_mode: bool = False) -> "AgentGetResponse":
+    def from_agent(self, agent: Agent, async_mode: bool = False) -> AgentGetResponse:
         if agent.memory:
-            memory_dict: Optional[Dict[str, Any]] = {}
+            memory_dict: dict[str, Any] | None = {}
             if isinstance(agent.memory, AgentMemory) and agent.memory.db:
                 memory_dict = {"name": agent.memory.db.__class__.__name__}
             elif isinstance(agent.memory, Memory) and agent.memory.db:
@@ -76,9 +78,9 @@ class AgentRunRequest(BaseModel):
     agent_id: str
     stream: bool = True
     monitor: bool = False
-    session_id: Optional[str] = None
-    user_id: Optional[str] = None
-    files: Optional[List[UploadFile]] = None
+    session_id: str | None = None
+    user_id: str | None = None
+    files: list[UploadFile] | None = None
 
 
 class AgentRenameRequest(BaseModel):
@@ -87,16 +89,16 @@ class AgentRenameRequest(BaseModel):
 
 
 class AgentSessionsResponse(BaseModel):
-    title: Optional[str] = None
-    session_id: Optional[str] = None
-    session_name: Optional[str] = None
-    created_at: Optional[int] = None
+    title: str | None = None
+    session_id: str | None = None
+    session_name: str | None = None
+    created_at: int | None = None
 
 
 class MemoryResponse(BaseModel):
     memory: str
-    topics: Optional[List[str]] = None
-    last_updated: Optional[datetime] = None
+    topics: list[str] | None = None
+    last_updated: datetime | None = None
 
 
 class WorkflowRenameRequest(BaseModel):
@@ -104,59 +106,59 @@ class WorkflowRenameRequest(BaseModel):
 
 
 class WorkflowRunRequest(BaseModel):
-    input: Dict[str, Any]
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
+    input: dict[str, Any]
+    user_id: str | None = None
+    session_id: str | None = None
 
 
 class WorkflowSessionResponse(BaseModel):
-    title: Optional[str] = None
-    session_id: Optional[str] = None
-    session_name: Optional[str] = None
-    created_at: Optional[int] = None
+    title: str | None = None
+    session_id: str | None = None
+    session_name: str | None = None
+    created_at: int | None = None
 
 
 class WorkflowGetResponse(BaseModel):
     workflow_id: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    parameters: Optional[Dict[str, Any]] = None
-    storage: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    parameters: dict[str, Any] | None = None
+    storage: str | None = None
 
 
 class WorkflowsGetResponse(BaseModel):
     workflow_id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class TeamModel(BaseModel):
-    name: Optional[str] = None
-    model: Optional[str] = None
-    provider: Optional[str] = None
+    name: str | None = None
+    model: str | None = None
+    provider: str | None = None
 
 
 class TeamGetResponse(BaseModel):
-    team_id: Optional[str] = None
-    name: Optional[str] = None
-    description: Optional[str] = None
-    mode: Optional[str] = None
-    model: Optional[TeamModel] = None
-    success_criteria: Optional[str] = None
-    instructions: Optional[Union[List[str], str, Callable]] = None
-    members: Optional[List[Union[AgentGetResponse, "TeamGetResponse"]]] = None
-    expected_output: Optional[str] = None
-    context: Optional[str] = None
-    enable_agentic_context: Optional[bool] = None
-    storage: Optional[Dict[str, Any]] = None
-    memory: Optional[Dict[str, Any]] = None
+    team_id: str | None = None
+    name: str | None = None
+    description: str | None = None
+    mode: str | None = None
+    model: TeamModel | None = None
+    success_criteria: str | None = None
+    instructions: list[str] | str | Callable | None = None
+    members: list[AgentGetResponse | TeamGetResponse] | None = None
+    expected_output: str | None = None
+    context: str | None = None
+    enable_agentic_context: bool | None = None
+    storage: dict[str, Any] | None = None
+    memory: dict[str, Any] | None = None
     async_mode: bool = False
 
     @classmethod
-    def from_team(self, team: Team, async_mode: bool = False) -> "TeamGetResponse":
+    def from_team(self, team: Team, async_mode: bool = False) -> TeamGetResponse:
         import json
 
-        memory_dict: Optional[Dict[str, Any]] = {}
+        memory_dict: dict[str, Any] | None = {}
         if isinstance(team.memory, Memory):
             memory_dict = {"name": "Memory"}
             if team.memory.model is not None:
@@ -201,17 +203,17 @@ class TeamGetResponse(BaseModel):
 
 
 class TeamRunRequest(BaseModel):
-    input: Dict[str, Any]
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    files: Optional[List[UploadFile]] = None
+    input: dict[str, Any]
+    user_id: str | None = None
+    session_id: str | None = None
+    files: list[UploadFile] | None = None
 
 
 class TeamSessionResponse(BaseModel):
-    title: Optional[str] = None
-    session_id: Optional[str] = None
-    session_name: Optional[str] = None
-    created_at: Optional[int] = None
+    title: str | None = None
+    session_id: str | None = None
+    session_name: str | None = None
+    created_at: int | None = None
 
 
 class TeamRenameRequest(BaseModel):

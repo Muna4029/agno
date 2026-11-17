@@ -1,8 +1,10 @@
 """Async router handling exposing an Agno Agent or Team in an AG-UI compatible format."""
 
+from __future__ import annotations
+
 import logging
 import uuid
-from typing import AsyncIterator, Optional
+from collections.abc import AsyncIterator
 
 from ag_ui.core import (
     BaseEvent,
@@ -78,7 +80,7 @@ async def run_team(team: Team, input: RunAgentInput) -> AsyncIterator[BaseEvent]
         yield RunErrorEvent(type=EventType.RUN_ERROR, message=str(e))
 
 
-def get_async_agui_router(agent: Optional[Agent] = None, team: Optional[Team] = None) -> APIRouter:
+def get_async_agui_router(agent: Agent | None = None, team: Team | None = None) -> APIRouter:
     """Return an AG-UI compatible FastAPI router."""
     if (agent is None and team is None) or (agent is not None and team is not None):
         raise ValueError("One of 'agent' or 'team' must be provided.")

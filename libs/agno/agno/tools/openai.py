@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, List, Literal, Optional, Union
+from typing import Any, Literal
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -24,7 +26,7 @@ class OpenAITools(Toolkit):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         enable_transcription: bool = True,
         enable_image_generation: bool = True,
         enable_speech_generation: bool = True,
@@ -32,10 +34,10 @@ class OpenAITools(Toolkit):
         text_to_speech_voice: OpenAIVoice = "alloy",
         text_to_speech_model: OpenAITTSModel = "tts-1",
         text_to_speech_format: OpenAITTSFormat = "mp3",
-        image_model: Optional[str] = "dall-e-3",
-        image_quality: Optional[str] = None,
-        image_size: Optional[Literal["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"]] = None,
-        image_style: Optional[Literal["vivid", "natural"]] = None,
+        image_model: str | None = "dall-e-3",
+        image_quality: str | None = None,
+        image_size: Literal["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"] | None = None,
+        image_style: Literal["vivid", "natural"] | None = None,
         **kwargs,
     ):
         self.api_key = api_key or getenv("OPENAI_API_KEY")
@@ -52,7 +54,7 @@ class OpenAITools(Toolkit):
         self.image_style = image_style
         self.image_size = image_size
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if enable_transcription:
             tools.append(self.transcribe_audio)
         if enable_image_generation:
@@ -77,15 +79,15 @@ class OpenAITools(Toolkit):
                 response_format="text",
             )
         except Exception as e:  # type: ignore[return]
-            log_error(f"Failed to transcribe audio: {str(e)}")
-            return f"Failed to transcribe audio: {str(e)}"
+            log_error(f"Failed to transcribe audio: {e!s}")
+            return f"Failed to transcribe audio: {e!s}"
 
         log_debug(f"Transcript: {transcript}")
         return transcript  # type: ignore[return-value]
 
     def generate_image(
         self,
-        agent: Union[Agent, Team],
+        agent: Agent | Team,
         prompt: str,
     ) -> str:
         """Generate images based on a text prompt.
@@ -140,7 +142,7 @@ class OpenAITools(Toolkit):
 
     def generate_speech(
         self,
-        agent: Union[Agent, Team],
+        agent: Agent | Team,
         text_input: str,
     ) -> str:
         """Generate speech from text using OpenAI's Text-to-Speech API.
@@ -173,4 +175,4 @@ class OpenAITools(Toolkit):
             )
             return f"Speech generated successfully with ID: {media_id}"
         except Exception as e:
-            return f"Failed to generate speech: {str(e)}"
+            return f"Failed to generate speech: {e!s}"

@@ -1,6 +1,5 @@
 import asyncio
 from io import BytesIO
-from typing import List
 from uuid import uuid4
 
 from agno.document.base import Document
@@ -13,7 +12,7 @@ except (ModuleNotFoundError, ImportError):
     raise ImportError("`agno-aws` not installed. Please install using `pip install agno-aws`")
 
 try:
-    from pypdf import PdfReader as DocumentReader  # noqa: F401
+    from pypdf import PdfReader as DocumentReader
 except ImportError:
     raise ImportError("`pypdf` not installed. Please install it via `pip install pypdf`.")
 
@@ -21,7 +20,7 @@ except ImportError:
 class S3PDFReader(Reader):
     """Reader for PDF files on S3"""
 
-    def read(self, s3_object: S3Object) -> List[Document]:
+    def read(self, s3_object: S3Object) -> list[Document]:
         try:
             log_info(f"Reading: {s3_object.uri}")
 
@@ -47,7 +46,7 @@ class S3PDFReader(Reader):
         except Exception:
             raise
 
-    async def async_read(self, s3_object: S3Object) -> List[Document]:
+    async def async_read(self, s3_object: S3Object) -> list[Document]:
         """Asynchronously read PDF files from S3 by running the synchronous read operation in a thread.
 
         Args:

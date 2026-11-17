@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Optional
 
 from agno.models.openai.like import OpenAILike
 
@@ -23,6 +24,6 @@ class OpenRouter(OpenAILike):
     name: str = "OpenRouter"
     provider: str = "OpenRouter"
 
-    api_key: Optional[str] = getenv("OPENROUTER_API_KEY")
+    api_key: str | None = getenv("OPENROUTER_API_KEY")
     base_url: str = "https://openrouter.ai/api/v1"
     max_tokens: int = 1024
