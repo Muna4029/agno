@@ -6,11 +6,14 @@ from agno.reranker.base import Reranker
 from agno.utils.log import logger
 
 try:
-    from infinity_client import AuthenticatedClient, Client
-    from infinity_client.api.default import rerank
-    from infinity_client.models import RerankInput
+    from infinity_client import AuthenticatedClient, Client  # type: ignore[import-not-found]
+    from infinity_client.api.default import rerank  # type: ignore[import-not-found]
+    from infinity_client.models import RerankInput  # type: ignore[import-not-found]
 except ImportError:
-    raise ImportError("infinity_client not installed, please run `pip install infinity_client`")
+    AuthenticatedClient = None  # type: ignore[assignment]
+    Client = None  # type: ignore[assignment]
+    rerank = None  # type: ignore[assignment]
+    RerankInput = None  # type: ignore[assignment]
 
 
 class InfinityReranker(Reranker):
@@ -49,6 +52,9 @@ class InfinityReranker(Reranker):
         if self._client:
             return self._client
 
+        if Client is None or AuthenticatedClient is None:
+            raise ImportError("infinity_client not installed, please run `pip install infinity_client`")
+
         base_url = self.base_url
 
         if self.api_key:
@@ -71,6 +77,9 @@ class InfinityReranker(Reranker):
         compressed_docs: list[Document] = []
 
         try:
+            if RerankInput is None or rerank is None:
+                raise ImportError("infinity_client not installed, please run `pip install infinity_client`")
+
             # Prepare the request body for Infinity reranking
             rerank_input = {
                 "model": self.model,
@@ -143,6 +152,9 @@ class InfinityReranker(Reranker):
         compressed_docs: list[Document] = []
 
         try:
+            if RerankInput is None or rerank is None:
+                raise ImportError("infinity_client not installed, please run `pip install infinity_client`")
+
             # Prepare the request body for Infinity reranking
             rerank_input = {
                 "model": self.model,
