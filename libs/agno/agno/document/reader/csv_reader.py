@@ -114,7 +114,7 @@ class CSVReader(Reader):
 
                     return Document(
                         name=csv_name,
-                        id=str(uuid4()),
+                        id=f"{csv_name}_page{page_number}",
                         meta_data={"page": page_number, "start_row": start_row, "rows": len(page_rows)},
                         content=page_content,
                     )
