@@ -1,10 +1,12 @@
 import os
-from typing import Optional
+from typing import Any, Dict, Optional, Union
 
 import httpx
 import requests
 
 from agno.utils.log import log_debug, log_error
+
+WhatsAppMediaResponse = Union[bytes, Dict[str, Any]]
 
 
 def get_access_token() -> str:
@@ -21,7 +23,7 @@ def get_phone_number_id() -> str:
     return phone_number_id
 
 
-def get_media(media_id: str) -> dict:
+def get_media(media_id: str) -> WhatsAppMediaResponse:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
@@ -51,7 +53,7 @@ def get_media(media_id: str) -> dict:
         return {"error": str(e)}
 
 
-async def get_media_async(media_id: str) -> dict:
+async def get_media_async(media_id: str) -> WhatsAppMediaResponse:
     """
     Sends a GET request to the Facebook Graph API to retrieve media information.
 
