@@ -8,9 +8,6 @@ from agno.media import Audio, File, Image, Video
 from agno.team.team import Team, TeamRunResponse
 from agno.utils.log import log_info, log_warning
 
-from typing import List
-from agno.tools.function import UserInputField
-
 from textwrap import dedent
 
 try:
