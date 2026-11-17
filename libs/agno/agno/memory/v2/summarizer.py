@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from copy import deepcopy
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -19,9 +21,9 @@ class SessionSummaryResponse(BaseModel):
         ...,
         description="Summary of the session. Be concise and focus on only important information. Do not make anything up.",
     )
-    topics: Optional[List[str]] = Field(None, description="Topics discussed in the session.")
+    topics: list[str] | None = Field(None, description="Topics discussed in the session.")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return self.model_dump(exclude_none=True)
 
     def to_json(self) -> str:
@@ -31,22 +33,22 @@ class SessionSummaryResponse(BaseModel):
 @dataclass
 class SessionSummarizer:
     # Model used for summarization
-    model: Optional[Model] = None
+    model: Model | None = None
 
     # System message for the summarizer. If not provided, a default prompt will be used.
-    system_message: Optional[str] = None
+    system_message: str | None = None
 
     # Additional instructions for the summarizer. If not provided, a default prompt will be used.
-    additional_instructions: Optional[str] = None
+    additional_instructions: str | None = None
 
     # Whether the summarizer has created a summary
     summary_updated: bool = False
 
     def __init__(
         self,
-        model: Optional[Model] = None,
-        system_message: Optional[str] = None,
-        additional_instructions: Optional[str] = None,
+        model: Model | None = None,
+        system_message: str | None = None,
+        additional_instructions: str | None = None,
     ):
         self.model = model
         if self.model is not None and isinstance(self.model, str):
@@ -54,7 +56,7 @@ class SessionSummarizer:
         self.system_message = system_message
         self.additional_instructions = additional_instructions
 
-    def get_response_format(self, model: Model) -> Union[Dict[str, Any], Type[BaseModel]]:
+    def get_response_format(self, model: Model) -> dict[str, Any] | type[BaseModel]:
         if model.supports_native_structured_outputs:
             return SessionSummaryResponse
 
@@ -70,7 +72,7 @@ class SessionSummarizer:
             return {"type": "json_object"}
 
     def get_system_message(
-        self, conversation: List[Message], response_format: Union[Dict[str, Any], Type[BaseModel]]
+        self, conversation: list[Message], response_format: dict[str, Any] | type[BaseModel]
     ) -> Message:
         if self.system_message is not None:
             return Message(role="system", content=self.system_message)
@@ -103,8 +105,8 @@ class SessionSummarizer:
 
     def run(
         self,
-        conversation: List[Message],
-    ) -> Optional[SessionSummaryResponse]:
+        conversation: list[Message],
+    ) -> SessionSummaryResponse | None:
         if self.model is None:
             log_error("No model provided for summary_manager")
             return None
@@ -119,7 +121,7 @@ class SessionSummarizer:
         response_format = self.get_response_format(model_copy)
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [
+        messages_for_model: list[Message] = [
             self.get_system_message(conversation, response_format=response_format),
             # For models that require a non-system message
             Message(role="user", content="Provide the summary of the conversation."),
@@ -144,7 +146,7 @@ class SessionSummarizer:
         # Otherwise convert the response to the structured format
         if isinstance(response.content, str):
             try:
-                session_summary: Optional[SessionSummaryResponse] = parse_response_model_str(  # type: ignore
+                session_summary: SessionSummaryResponse | None = parse_response_model_str(  # type: ignore
                     response.content, SessionSummaryResponse
                 )
 
@@ -160,8 +162,8 @@ class SessionSummarizer:
 
     async def arun(
         self,
-        conversation: List[Message],
-    ) -> Optional[SessionSummaryResponse]:
+        conversation: list[Message],
+    ) -> SessionSummaryResponse | None:
         if self.model is None:
             log_error("No model provided for summary_manager")
             return None
@@ -176,7 +178,7 @@ class SessionSummarizer:
         response_format = self.get_response_format(model_copy)
 
         # Prepare the List of messages to send to the Model
-        messages_for_model: List[Message] = [
+        messages_for_model: list[Message] = [
             self.get_system_message(conversation, response_format=response_format),
             # For models that require a non-system message
             Message(role="user", content="Provide the summary of the conversation."),
@@ -201,7 +203,7 @@ class SessionSummarizer:
         # Otherwise convert the response to the structured format
         if isinstance(response.content, str):
             try:
-                session_summary: Optional[SessionSummaryResponse] = parse_response_model_str(  # type: ignore
+                session_summary: SessionSummaryResponse | None = parse_response_model_str(  # type: ignore
                     response.content, SessionSummaryResponse
                 )
 

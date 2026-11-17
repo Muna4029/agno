@@ -1,14 +1,16 @@
-from typing import Iterator, List
+from __future__ import annotations
+
+from typing import Iterator
 
 from agno.document import Document
 from agno.knowledge.agent import AgentKnowledge
 
 
 class DocumentKnowledgeBase(AgentKnowledge):
-    documents: List[Document]
+    documents: list[Document]
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over documents and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 

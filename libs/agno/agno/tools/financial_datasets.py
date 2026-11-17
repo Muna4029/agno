@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -10,7 +12,7 @@ from agno.utils.log import log_error
 class FinancialDatasetsTools(Toolkit):
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         enable_financial_statements: bool = True,
         enable_company_info: bool = True,
         enable_market_data: bool = True,
@@ -36,7 +38,7 @@ class FinancialDatasetsTools(Toolkit):
             enable_search: Enable search related functions
         """
 
-        self.api_key: Optional[str] = api_key or getenv("FINANCIAL_DATASETS_API_KEY")
+        self.api_key: str | None = api_key or getenv("FINANCIAL_DATASETS_API_KEY")
         if not self.api_key:
             log_error(
                 "FINANCIAL_DATASETS_API_KEY not set. Please set the FINANCIAL_DATASETS_API_KEY environment variable."
@@ -44,7 +46,7 @@ class FinancialDatasetsTools(Toolkit):
 
         self.base_url = "https://api.financialdatasets.ai"
 
-        tools: List[Any] = []
+        tools: list[Any] = []
 
         if enable_financial_statements:
             tools.extend(
@@ -73,7 +75,7 @@ class FinancialDatasetsTools(Toolkit):
 
         super().__init__(name="financial_datasets_tools", tools=tools, **kwargs)
 
-    def _make_request(self, endpoint: str, params: Dict[str, Any]) -> str:
+    def _make_request(self, endpoint: str, params: dict[str, Any]) -> str:
         """
         Makes a request to the Financial Datasets API.
 
@@ -96,8 +98,8 @@ class FinancialDatasetsTools(Toolkit):
             response.raise_for_status()
             return response.text
         except requests.exceptions.RequestException as e:
-            log_error(f"Error making request to {url}: {str(e)}")
-            return f"Error making request to {url}: {str(e)}"
+            log_error(f"Error making request to {url}: {e!s}")
+            return f"Error making request to {url}: {e!s}"
 
     # Financial Statements
     def get_income_statements(self, ticker: str, period: str = "annual", limit: int = 10) -> str:
@@ -229,7 +231,7 @@ class FinancialDatasetsTools(Toolkit):
         params = {"ticker": ticker}
         return self._make_request("institutional-ownership", params)
 
-    def get_news(self, ticker: Optional[str] = None, limit: int = 50) -> str:
+    def get_news(self, ticker: str | None = None, limit: int = 50) -> str:
         """
         Get market news, optionally filtered by ticker.
 
@@ -240,7 +242,7 @@ class FinancialDatasetsTools(Toolkit):
         Returns:
             Dictionary containing news items
         """
-        params: Dict[str, Any] = {"limit": limit}
+        params: dict[str, Any] = {"limit": limit}
         if ticker:
             params["ticker"] = ticker
         return self._make_request("news", params)
@@ -274,7 +276,7 @@ class FinancialDatasetsTools(Toolkit):
         params = {"query": query, "limit": limit}
         return self._make_request("search", params)
 
-    def get_sec_filings(self, ticker: str, form_type: Optional[str] = None, limit: int = 50) -> str:
+    def get_sec_filings(self, ticker: str, form_type: str | None = None, limit: int = 50) -> str:
         """
         Get SEC filings for a ticker.
 
@@ -286,7 +288,7 @@ class FinancialDatasetsTools(Toolkit):
         Returns:
             Dictionary containing SEC filings
         """
-        params: Dict[str, Any] = {"ticker": ticker, "limit": limit}
+        params: dict[str, Any] = {"ticker": ticker, "limit": limit}
         if form_type:
             params["form_type"] = form_type
         return self._make_request("sec-filings", params)

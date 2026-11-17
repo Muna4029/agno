@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 
@@ -9,7 +9,7 @@ from agno.tools.slack import SlackTools
 from agno.utils.log import log_info
 
 
-def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None) -> APIRouter:
+def get_async_router(agent: Agent | None = None, team: Team | None = None) -> APIRouter:
     router = APIRouter()
 
     @router.post("/slack/events")
@@ -35,7 +35,6 @@ def get_async_router(agent: Optional[Agent] = None, team: Optional[Team] = None)
             event = data["event"]
             if event.get("bot_id"):
                 log_info("bot event")
-                pass
             else:
                 background_tasks.add_task(_process_slack_event, event)
 

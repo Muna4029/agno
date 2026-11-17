@@ -54,9 +54,8 @@ def test_init_with_env_var():
 
 def test_init_without_token():
     """Test initialization without API token."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="Webex access token is not set"):
-            WebexTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="Webex access token is not set"):
+        WebexTools()
 
 
 def test_init_with_selective_tools():

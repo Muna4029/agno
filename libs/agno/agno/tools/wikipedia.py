@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import json
-from typing import List, Optional
 
 from agno.document import Document
 from agno.knowledge.wikipedia import WikipediaKnowledgeBase
@@ -8,10 +9,10 @@ from agno.utils.log import log_debug, log_info
 
 
 class WikipediaTools(Toolkit):
-    def __init__(self, knowledge_base: Optional[WikipediaKnowledgeBase] = None, **kwargs):
+    def __init__(self, knowledge_base: WikipediaKnowledgeBase | None = None, **kwargs):
         tools = []
 
-        self.knowledge_base: Optional[WikipediaKnowledgeBase] = knowledge_base
+        self.knowledge_base: WikipediaKnowledgeBase | None = knowledge_base
         if self.knowledge_base is not None and isinstance(self.knowledge_base, WikipediaKnowledgeBase):
             tools.append(self.search_wikipedia_and_update_knowledge_base)
         else:
@@ -36,7 +37,7 @@ class WikipediaTools(Toolkit):
         log_debug("Loading knowledge base.")
         self.knowledge_base.load(recreate=False)
         log_debug(f"Searching knowledge base: {topic}")
-        relevant_docs: List[Document] = self.knowledge_base.search(query=topic)
+        relevant_docs: list[Document] = self.knowledge_base.search(query=topic)
         return json.dumps([doc.to_dict() for doc in relevant_docs])
 
     def search_wikipedia(self, query: str) -> str:
@@ -46,7 +47,7 @@ class WikipediaTools(Toolkit):
         :return: Relevant documents from wikipedia.
         """
         try:
-            import wikipedia  # noqa: F401
+            import wikipedia
         except ImportError:
             raise ImportError(
                 "The `wikipedia` package is not installed. Please install it via `pip install wikipedia`."

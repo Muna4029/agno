@@ -1,4 +1,6 @@
-from typing import AsyncIterator, Iterator, List
+from __future__ import annotations
+
+from typing import AsyncIterator, Iterator
 
 from agno.document import Document
 from agno.document.reader.s3.text_reader import S3TextReader
@@ -6,11 +8,11 @@ from agno.knowledge.s3.base import S3KnowledgeBase
 
 
 class S3TextKnowledgeBase(S3KnowledgeBase):
-    formats: List[str] = [".doc", ".docx"]
+    formats: list[str] = [".doc", ".docx"]
     reader: S3TextReader = S3TextReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Iterate over text files in a s3 bucket and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -22,7 +24,7 @@ class S3TextKnowledgeBase(S3KnowledgeBase):
                 yield self.reader.read(s3_object=s3_object)
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Iterate over text files in a s3 bucket and yield lists of documents asynchronously.
         Each object yielded by the iterator is a list of documents.
 

@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import List, Literal, Optional
+from typing import Literal
 
 from agno.storage.session import Session
 
 
 class Storage(ABC):
-    def __init__(self, mode: Optional[Literal["agent", "team", "workflow"]] = "agent"):
+    def __init__(self, mode: Literal["agent", "team", "workflow"] | None = "agent"):
         self._mode: Literal["agent", "team", "workflow"] = "agent" if mode is None else mode
 
     @property
@@ -14,7 +16,7 @@ class Storage(ABC):
         return self._mode
 
     @mode.setter
-    def mode(self, value: Optional[Literal["agent", "team", "workflow"]]) -> None:
+    def mode(self, value: Literal["agent", "team", "workflow"] | None) -> None:
         """Set the mode of the storage."""
         self._mode = "agent" if value is None else value
 
@@ -23,32 +25,32 @@ class Storage(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
+    def read(self, session_id: str, user_id: str | None = None) -> Session | None:
         raise NotImplementedError
 
     @abstractmethod
-    def get_all_session_ids(self, user_id: Optional[str] = None, agent_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: str | None = None, agent_id: str | None = None) -> list[str]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: str | None = None, entity_id: str | None = None) -> list[Session]:
         raise NotImplementedError
 
     @abstractmethod
     def get_recent_sessions(
         self,
-        user_id: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        limit: Optional[int] = 2,
-    ) -> List[Session]:
+        user_id: str | None = None,
+        entity_id: str | None = None,
+        limit: int | None = 2,
+    ) -> list[Session]:
         raise NotImplementedError
 
     @abstractmethod
-    def upsert(self, session: Session) -> Optional[Session]:
+    def upsert(self, session: Session) -> Session | None:
         raise NotImplementedError
 
     @abstractmethod
-    def delete_session(self, session_id: Optional[str] = None):
+    def delete_session(self, session_id: str | None = None):
         raise NotImplementedError
 
     @abstractmethod

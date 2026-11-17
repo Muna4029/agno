@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Optional
 
 from agno.models.openai.like import OpenAILike
 
@@ -21,5 +22,5 @@ class Together(OpenAILike):
     id: str = "mistralai/Mixtral-8x7B-Instruct-v0.1"
     name: str = "Together"
     provider: str = "Together"
-    api_key: Optional[str] = getenv("TOGETHER_API_KEY")
+    api_key: str | None = getenv("TOGETHER_API_KEY")
     base_url: str = "https://api.together.xyz/v1"

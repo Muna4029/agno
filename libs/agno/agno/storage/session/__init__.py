@@ -8,7 +8,7 @@ Session = Union[AgentSession, TeamSession, WorkflowSession]
 
 __all__ = [
     "AgentSession",
+    "Session",
     "TeamSession",
     "WorkflowSession",
-    "Session",
 ]

@@ -19,7 +19,7 @@ def mock_mongo_client():
 @pytest.fixture
 def agent_storage(mock_mongo_client):
     """Create a MongoDbStorage instance for agent mode with mocked components."""
-    mock_client, mock_collection = mock_mongo_client
+    _mock_client, mock_collection = mock_mongo_client
 
     storage = MongoDbStorage(collection_name="agent_sessions", db_name="test_db", mode="agent")
 
@@ -29,7 +29,7 @@ def agent_storage(mock_mongo_client):
 @pytest.fixture
 def workflow_storage(mock_mongo_client):
     """Create a MongoDbStorage instance for workflow mode with mocked components."""
-    mock_client, mock_collection = mock_mongo_client
+    _mock_client, mock_collection = mock_mongo_client
 
     storage = MongoDbStorage(collection_name="workflow_sessions", db_name="test_db", mode="workflow")
 
@@ -192,7 +192,7 @@ def test_workflow_storage_crud(workflow_storage):
 
 def test_get_all_sessions(agent_storage):
     """Test retrieving all sessions."""
-    storage, mock_collection = agent_storage
+    storage, _mock_collection = agent_storage
 
     # Create mock sessions
     sessions = [

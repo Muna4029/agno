@@ -1,7 +1,7 @@
 import pytest
 from pydantic import BaseModel, Field
 
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent, RunResponse
 from agno.models.groq.groq import Groq
 from agno.models.mistral import MistralChat
 from agno.storage.sqlite import SqliteStorage

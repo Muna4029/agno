@@ -1,4 +1,6 @@
-from typing import Any, Dict, Optional, Union, get_args, get_origin
+from __future__ import annotations
+
+from typing import Any, Union, get_args, get_origin, get_type_hints
 
 from pydantic import BaseModel
 
@@ -40,14 +42,14 @@ def get_json_type_for_py_type(arg: str) -> str:
     return "object"
 
 
-def inline_pydantic_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
+def inline_pydantic_schema(schema: dict[str, Any]) -> dict[str, Any]:
     """
     Recursively inline Pydantic model schemas by replacing $ref with actual schema.
     """
     if not isinstance(schema, dict):
         return schema
 
-    def resolve_ref(ref: str, defs: Dict[str, Any]) -> Dict[str, Any]:
+    def resolve_ref(ref: str, defs: dict[str, Any]) -> dict[str, Any]:
         """Resolve a $ref to its actual schema."""
         if not ref.startswith("#/$defs/"):
             return {"type": "object"}  # Fallback for external refs
@@ -57,7 +59,7 @@ def inline_pydantic_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
             return defs[def_name]
         return {"type": "object"}  # Fallback if definition not found
 
-    def process_schema(s: Dict[str, Any], defs: Dict[str, Any]) -> Dict[str, Any]:
+    def process_schema(s: dict[str, Any], defs: dict[str, Any]) -> dict[str, Any]:
         """Process a schema dictionary, resolving all references."""
         if not isinstance(s, dict):
             return s
@@ -114,7 +116,7 @@ def inline_pydantic_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
     return result
 
 
-def get_json_schema_for_arg(type_hint: Any) -> Optional[Dict[str, Any]]:
+def get_json_schema_for_arg(type_hint: Any) -> dict[str, Any] | None:
     # log_info(f"Getting JSON schema for arg: {t}")
     type_args = get_args(type_hint)
     # log_info(f"Type args: {type_args}")
@@ -140,17 +142,25 @@ def get_json_schema_for_arg(type_hint: Any) -> Optional[Dict[str, Any]]:
                     continue
             return {"anyOf": types} if types else None
 
-    elif issubclass(type_hint, BaseModel):
+    if isinstance(type_hint, type) and issubclass(type_hint, BaseModel):
         # Get the schema and inline it
         schema = type_hint.model_json_schema()
         return inline_pydantic_schema(schema)  # type: ignore
-    elif hasattr(type_hint, "__dataclass_fields__"):
+
+    if hasattr(type_hint, "__dataclass_fields__"):
         # Convert dataclass to JSON schema
         properties = {}
         required = []
 
+        # Use get_type_hints to resolve string annotations (from __future__ import annotations)
+        try:
+            type_hints_map = get_type_hints(type_hint)
+        except Exception:
+            type_hints_map = {}
+
         for field_name, field in type_hint.__dataclass_fields__.items():
-            field_type = field.type
+            # Prefer resolved type hints over field.type which might be a string
+            field_type = type_hints_map.get(field_name, field.type)
             field_schema = get_json_schema_for_arg(field_type)
 
             if (
@@ -174,7 +184,16 @@ def get_json_schema_for_arg(type_hint: Any) -> Optional[Dict[str, Any]]:
             arg_json_schema["required"] = required
         return arg_json_schema
 
-    json_schema: Dict[str, Any] = {"type": get_json_type_for_py_type(type_hint.__name__)}
+    # Handle string annotations (from __future__ import annotations)
+    json_schema: dict[str, Any]
+    if isinstance(type_hint, str):
+        json_schema = {"type": get_json_type_for_py_type(type_hint)}
+    elif hasattr(type_hint, "__name__"):
+        json_schema = {"type": get_json_type_for_py_type(type_hint.__name__)}
+    else:
+        # For unknown types, default to object
+        json_schema = {"type": "object"}
+
     if json_schema["type"] == "object":
         json_schema["properties"] = {}
         json_schema["additionalProperties"] = False
@@ -182,9 +201,9 @@ def get_json_schema_for_arg(type_hint: Any) -> Optional[Dict[str, Any]]:
 
 
 def get_json_schema(
-    type_hints: Dict[str, Any], param_descriptions: Optional[Dict[str, str]] = None, strict: bool = False
-) -> Dict[str, Any]:
-    json_schema: Dict[str, Any] = {
+    type_hints: dict[str, Any], param_descriptions: dict[str, str] | None = None, strict: bool = False
+) -> dict[str, Any]:
+    json_schema: dict[str, Any] = {
         "type": "object",
         "properties": {},
     }
@@ -222,7 +241,7 @@ def get_json_schema(
             else:
                 logger.warning(f"Could not parse argument {parameter_name} of type {type_hint}")
         except Exception as e:
-            logger.error(f"Error processing argument {parameter_name}: {str(e)}")
+            logger.error(f"Error processing argument {parameter_name}: {e!s}")
             continue
 
     return json_schema

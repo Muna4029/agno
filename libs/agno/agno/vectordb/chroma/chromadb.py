@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -24,11 +26,11 @@ class ChromaDb(VectorDb):
     def __init__(
         self,
         collection: str,
-        embedder: Optional[Embedder] = None,
+        embedder: Embedder | None = None,
         distance: Distance = Distance.cosine,
         path: str = "tmp/chromadb",
         persistent_client: bool = False,
-        reranker: Optional[Reranker] = None,
+        reranker: Reranker | None = None,
         **kwargs,
     ):
         # Collection attributes
@@ -45,17 +47,17 @@ class ChromaDb(VectorDb):
         self.distance: Distance = distance
 
         # Chroma client instance
-        self._client: Optional[ClientAPI] = None
+        self._client: ClientAPI | None = None
 
         # Chroma collection instance
-        self._collection: Optional[Collection] = None
+        self._collection: Collection | None = None
 
         # Persistent Chroma client instance
         self.persistent_client: bool = persistent_client
         self.path: str = path
 
         # Reranker instance
-        self.reranker: Optional[Reranker] = reranker
+        self.reranker: Reranker | None = reranker
 
         # Chroma client kwargs
         self.kwargs = kwargs
@@ -137,7 +139,7 @@ class ChromaDb(VectorDb):
         """Check if a document with given name exists asynchronously."""
         return await asyncio.to_thread(self.name_exists, name)
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents into the collection.
 
         Args:
@@ -145,10 +147,10 @@ class ChromaDb(VectorDb):
             filters (Optional[Dict[str, Any]]): Filters to merge with document metadata
         """
         log_debug(f"Inserting {len(documents)} documents")
-        ids: List = []
-        docs: List = []
-        docs_embeddings: List = []
-        docs_metadata: List = []
+        ids: list = []
+        docs: list = []
+        docs_embeddings: list = []
+        docs_metadata: list = []
 
         if not self._collection:
             self._collection = self.client.get_collection(name=self.collection_name)
@@ -176,7 +178,7 @@ class ChromaDb(VectorDb):
                 self._collection.add(ids=ids, embeddings=docs_embeddings, documents=docs, metadatas=docs_metadata)
                 log_debug(f"Committed {len(docs)} documents")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents asynchronously by running in a thread."""
         await asyncio.to_thread(self.insert, documents, filters)
 
@@ -184,7 +186,7 @@ class ChromaDb(VectorDb):
         """Check if upsert is available in ChromaDB."""
         return True
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Upsert documents into the collection.
 
         Args:
@@ -192,10 +194,10 @@ class ChromaDb(VectorDb):
             filters (Optional[Dict[str, Any]]): Filters to apply while upserting
         """
         log_debug(f"Upserting {len(documents)} documents")
-        ids: List = []
-        docs: List = []
-        docs_embeddings: List = []
-        docs_metadata: List = []
+        ids: list = []
+        docs: list = []
+        docs_embeddings: list = []
+        docs_metadata: list = []
 
         if not self._collection:
             self._collection = self.client.get_collection(name=self.collection_name)
@@ -217,11 +219,11 @@ class ChromaDb(VectorDb):
                 self._collection.upsert(ids=ids, embeddings=docs_embeddings, documents=docs, metadatas=docs_metadata)
                 log_debug(f"Committed {len(docs)} documents")
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Upsert documents asynchronously by running in a thread."""
         await asyncio.to_thread(self.upsert, documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """Search the collection for a query.
 
         Args:
@@ -255,7 +257,7 @@ class ChromaDb(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
 
         ids = result.get("ids", [[]])[0]
         metadata = result.get("metadatas", [{}])[0]
@@ -286,7 +288,7 @@ class ChromaDb(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def _convert_filters(self, filters: Dict[str, Any]) -> Dict[str, Any]:
+    def _convert_filters(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Convert simple filters to ChromaDB's filter format.
 
         Handles conversion of simple key-value filters to ChromaDB's operator format
@@ -296,7 +298,7 @@ class ChromaDb(VectorDb):
             return {}
 
         # If filters already use ChromaDB operators ($eq, $ne, etc.), return as is
-        if any(key.startswith("$") for key in filters.keys()):
+        if any(key.startswith("$") for key in filters):
             return filters
 
         # Convert simple key-value pairs to ChromaDB's format
@@ -311,9 +313,7 @@ class ChromaDb(VectorDb):
 
         return converted
 
-    async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+    async def async_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """Search asynchronously by running in a thread."""
         return await asyncio.to_thread(self.search, query, limit, filters)
 

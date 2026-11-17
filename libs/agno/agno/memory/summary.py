@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -10,9 +12,9 @@ class SessionSummary(BaseModel):
         ...,
         description="Summary of the session. Be concise and focus on only important information. Do not make anything up.",
     )
-    topics: Optional[List[str]] = Field(None, description="Topics discussed in the session.")
+    topics: list[str] | None = Field(None, description="Topics discussed in the session.")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return self.model_dump(exclude_none=True)
 
     def to_json(self) -> str:

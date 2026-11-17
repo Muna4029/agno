@@ -1,4 +1,5 @@
-from typing import List
+from __future__ import annotations
+
 from unittest.mock import Mock, patch
 
 import pytest
@@ -62,7 +63,7 @@ def milvus_db(mock_milvus_client, mock_embedder):
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Fixture to create sample documents"""
     return [
         Document(
@@ -91,7 +92,7 @@ def test_create_collection(milvus_db, mock_milvus_client):
         mock_milvus_client.create_collection.assert_called_once()
 
         # Verify parameters
-        args, kwargs = mock_milvus_client.create_collection.call_args
+        _args, kwargs = mock_milvus_client.create_collection.call_args
         assert kwargs["collection_name"] == "test_collection"
         assert kwargs["dimension"] == milvus_db.dimensions
 
@@ -124,7 +125,7 @@ def test_insert_documents(milvus_db, sample_documents, mock_milvus_client):
         assert mock_milvus_client.insert.call_count == 3
 
         # Check the first call's parameters
-        args, kwargs = mock_milvus_client.insert.call_args_list[0]
+        _args, kwargs = mock_milvus_client.insert.call_args_list[0]
         assert kwargs["collection_name"] == "test_collection"
         assert "vector" in kwargs["data"]
         assert "name" in kwargs["data"]
@@ -173,7 +174,7 @@ def test_upsert_documents(milvus_db, sample_documents, mock_milvus_client):
         assert mock_milvus_client.upsert.call_count == 3
 
         # Check the first call's parameters
-        args, kwargs = mock_milvus_client.upsert.call_args_list[0]
+        _args, kwargs = mock_milvus_client.upsert.call_args_list[0]
         assert kwargs["collection_name"] == "test_collection"
         assert "vector" in kwargs["data"]
         assert "name" in kwargs["data"]
@@ -222,7 +223,7 @@ def test_search(milvus_db, mock_milvus_client):
 
         # Verify search was called with correct parameters
         mock_milvus_client.search.assert_called_once()
-        args, kwargs = mock_milvus_client.search.call_args
+        _args, kwargs = mock_milvus_client.search.call_args
         assert kwargs["collection_name"] == "test_collection"
         assert kwargs["data"] == [[0.1] * 768]
         assert kwargs["limit"] == 2
@@ -265,7 +266,7 @@ def test_distance_setting(mock_embedder, mock_milvus_client):
         db3._client = mock_milvus_client
         with patch.object(db3, "exists", return_value=False):
             db3.create()
-            args, kwargs = mock_milvus_client.create_collection.call_args
+            _args, kwargs = mock_milvus_client.create_collection.call_args
             assert kwargs["metric_type"] == "IP"
 
 

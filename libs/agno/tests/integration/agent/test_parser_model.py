@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
@@ -10,7 +10,7 @@ from agno.models.openai import OpenAIChat
 
 class ParkGuide(BaseModel):
     park_name: str = Field(..., description="The official name of the national park.")
-    activities: List[str] = Field(
+    activities: list[str] = Field(
         ..., description="A list of popular activities to do in the park. Provide at least three."
     )
     best_season_to_visit: str = Field(

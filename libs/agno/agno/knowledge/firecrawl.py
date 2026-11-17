@@ -1,4 +1,6 @@
-from typing import AsyncIterator, Iterator, List
+from __future__ import annotations
+
+from typing import AsyncIterator, Iterator
 
 from agno.document import Document
 from agno.document.reader.firecrawl_reader import FirecrawlReader
@@ -6,11 +8,11 @@ from agno.knowledge.agent import AgentKnowledge
 
 
 class FireCrawlKnowledgeBase(AgentKnowledge):
-    urls: List[str] = []
+    urls: list[str] = []
     reader: FirecrawlReader = FirecrawlReader()
 
     @property
-    def document_lists(self) -> Iterator[List[Document]]:
+    def document_lists(self) -> Iterator[list[Document]]:
         """Scrape urls using FireCrawl and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
@@ -21,7 +23,7 @@ class FireCrawlKnowledgeBase(AgentKnowledge):
             yield self.reader.read(url=url)
 
     @property
-    async def async_document_lists(self) -> AsyncIterator[List[Document]]:
+    async def async_document_lists(self) -> AsyncIterator[list[Document]]:
         """Asynchronously scrape urls using FireCrawl and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 

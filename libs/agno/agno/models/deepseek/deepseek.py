@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Optional
+from typing import Any
 
 from agno.exceptions import ModelProviderError
 from agno.models.openai.like import OpenAILike
@@ -23,13 +25,13 @@ class DeepSeek(OpenAILike):
     name: str = "DeepSeek"
     provider: str = "DeepSeek"
 
-    api_key: Optional[str] = getenv("DEEPSEEK_API_KEY")
+    api_key: str | None = getenv("DEEPSEEK_API_KEY")
     base_url: str = "https://api.deepseek.com"
 
     # Their support for structured outputs is currently broken
     supports_native_structured_outputs: bool = False
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Fetch API key from env if not already set
         if not self.api_key:
             self.api_key = getenv("DEEPSEEK_API_KEY")

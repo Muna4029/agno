@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import hashlib
 import json
 import re
-from typing import Optional, Type
 
 from pydantic import BaseModel, ValidationError
 
@@ -62,7 +63,7 @@ def hash_string_sha256(input_string):
     return hex_digest
 
 
-def parse_response_model_str(content: str, response_model: Type[BaseModel]) -> Optional[BaseModel]:
+def parse_response_model_str(content: str, response_model: type[BaseModel]) -> BaseModel | None:
     structured_output = None
     try:
         # First attempt: direct JSON validation
