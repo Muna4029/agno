@@ -72,7 +72,6 @@ from agno.utils.events import (
 from agno.utils.log import (
     log_debug,
     log_error,
-    log_exception,
     log_info,
     log_warning,
     set_log_level_to_debug,
@@ -536,7 +535,7 @@ class Agent:
         self.team_response_separator = team_response_separator
 
         self.debug_mode = debug_mode
-        if debug_level not in [1, 2]:
+        if not isinstance(debug_level, int) or debug_level not in [1, 2]:
             log_warning(f"Invalid debug level: {debug_level}. Setting to 1.")
             debug_level = 1
         self.debug_level = debug_level
@@ -603,37 +602,35 @@ class Agent:
     def set_default_model(self) -> None:
         # Use the default Model (OpenAIChat) if no model is provided
         if self.model is None:
-            try:
-                from agno.models.openai import OpenAIChat
-            except ModuleNotFoundError as e:
-                log_exception(e)
+            if "openai" not in sys.modules:
                 log_error(
                     "Agno agents use `openai` as the default model provider. "
                     "Please provide a `model` or install `openai`."
                 )
                 exit(1)
+            from agno.models.openai import OpenAIChat
 
             log_info("Setting default model to OpenAI Chat")
             self.model = OpenAIChat(id="gpt-4o")
 
     def set_defaults(self) -> None:
-        if self.add_memory_references is None:
+        if not hasattr(self, "add_memory_references") or self.add_memory_references is None:
             self.add_memory_references = self.enable_user_memories or self.enable_agentic_memory
 
-        if self.add_session_summary_references is None:
+        if not hasattr(self, "add_session_summary_references") or self.add_session_summary_references is None:
             self.add_session_summary_references = self.enable_session_summaries
 
         if self.num_history_responses is not None:
             self.num_history_runs = self.num_history_responses
 
     def reset_session(self) -> None:
-        self.session_state = None
+        self.session_state = {}
         self.session_name = None
-        self.session_metrics = None
-        self.images = None
-        self.videos = None
-        self.audio = None
-        self.files = None
+        self.session_metrics = {}
+        self.images = []
+        self.videos = []
+        self.audio = []
+        self.files = []
         self.agent_session = None
 
     def reset_run_state(self) -> None:
@@ -651,7 +648,7 @@ class Agent:
 
         log_debug(f"Agent ID: {self.agent_id}", center=True)
 
-        if self.memory is None:
+        if not hasattr(self, "memory") or self.memory is None:
             self.memory = Memory()
         elif not self._memory_deepcopy_done:
             from copy import deepcopy
@@ -684,7 +681,7 @@ class Agent:
         return self.response_model is not None and self.parse_response and self.parser_model is None
 
     def add_tool(self, tool: Union[Toolkit, Callable, Function, Dict]):
-        if not self.tools:
+        if not hasattr(self, "tools") or self.tools is None:
             self.tools = []
         self.tools.append(tool)
         self._rebuild_tools = True
@@ -694,7 +691,8 @@ class Agent:
         self._rebuild_tools = True
 
     def _initialize_session_state(self, user_id: Optional[str] = None, session_id: Optional[str] = None) -> None:
-        self.session_state = self.session_state or {}
+        if not hasattr(self, "session_state") or self.session_state is None:
+            self.session_state = {}
         if user_id is not None:
             self.session_state["current_user_id"] = user_id
             if self.team_session_state is not None:
@@ -713,7 +711,7 @@ class Agent:
         if self.team_session_state is not None:
             self.team_session_state.pop("current_session_id", None)
             self.team_session_state.pop("current_user_id", None)
-        if self.session_state is not None:
+        if hasattr(self, "session_state") and self.session_state is not None:
             self.session_state.pop("current_session_id", None)
             self.session_state.pop("current_user_id", None)
 
@@ -5040,13 +5038,15 @@ class Agent:
 
     def get_session_summary(self, session_id: Optional[str] = None, user_id: Optional[str] = None):
         """Get the session summary for the given session ID and user ID."""
-        if self.memory is None:
+        if not hasattr(self, "memory") or self.memory is None:
             return None
 
         session_id = session_id if session_id is not None else self.session_id
         if session_id is None:
             raise ValueError("Session ID is required")
 
+        if self.memory is None:
+            raise ValueError("Memory is not set")
         if isinstance(self.memory, Memory):
             user_id = user_id if user_id is not None else self.user_id
             if user_id is None:
@@ -5059,12 +5059,14 @@ class Agent:
 
     def get_user_memories(self, user_id: Optional[str] = None) -> Optional[List[UserMemory]]:
         """Get the user memories for the given user ID."""
-        if self.memory is None:
+        if not hasattr(self, "memory") or self.memory is None:
             return None
         user_id = user_id if user_id is not None else self.user_id
         if user_id is None:
             user_id = "default"
 
+        if self.memory is None:
+            raise ValueError("Memory is not set")
         if isinstance(self.memory, Memory):
             return self.memory.get_user_memories(user_id=user_id)
         elif isinstance(self.memory, AgentMemory):
@@ -5894,7 +5896,7 @@ class Agent:
                 )
 
             # Validate reasoning agent
-            if reasoning_agent is None:
+            if not hasattr(self, "reasoning_agent") or reasoning_agent is None:
                 log_warning("Reasoning error. Reasoning agent is None, continuing regular session...")
                 return
             # Ensure the reasoning agent response model is ReasoningSteps
@@ -6748,9 +6750,10 @@ class Agent:
         run_response_format = "text"
         self.run_response = cast(RunResponse, self.run_response)
         if self.response_model is not None:
-            run_response_format = "json"
-        elif self.markdown:
-            run_response_format = "markdown"
+            if not hasattr(self, "run_response_format"):
+                run_response_format = "json"
+            elif self.markdown:
+                run_response_format = "markdown"
 
         functions = {}
         if self._functions_for_model is not None:
