@@ -321,7 +321,7 @@ class PerformanceEval:
         # 6. Print results if requested
         if self.print_results or print_results:
             self.result.print_results(console)
-        if self.print_summary or print_summary:
+        if self.print_summary or self.print_summary:
             self.result.print_summary(console)
 
         # 7. Log results to the Agno platform if requested

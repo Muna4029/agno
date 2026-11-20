@@ -1,8 +1,8 @@
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+from agno.tools.zep import ZepTools
 
 # Test data
 MOCK_API_KEY = "test_api_key"
