@@ -2,9 +2,9 @@ import json
 from os import getenv
 from typing import Any, Dict, List, Optional
 
-from agno.tools import Toolkit
 from agno.utils.log import logger
 
+try:
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:
