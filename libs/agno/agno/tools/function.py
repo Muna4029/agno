@@ -52,7 +52,7 @@ class UserInputField:
     def from_dict(cls, data: Dict[str, Any]) -> "UserInputField":
         return cls(
             name=data["name"],
-            field_type=eval(data["field_type"]),  # Convert string type name to actual type
+            field_type=globals().get(data["field_type"], None),  # Convert string type name to actual type safely
             description=data["description"],
             value=data["value"],
         )
@@ -125,7 +125,7 @@ class Function(BaseModel):
     _team: Optional[Any] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump(
+        return self.to_dict(
             exclude_none=True,
             include={"name", "description", "parameters", "strict", "requires_confirmation", "external_execution"},
         )
@@ -449,7 +449,7 @@ class FunctionCall(BaseModel):
                 # Check if the pre-hook has and agent argument
                 if "agent" in signature(self.function.pre_hook).parameters:
                     pre_hook_args["agent"] = self.function._agent
-                # Check if the pre-hook has an team argument
+                # Check if the pre-hook has a team argument
                 if "team" in signature(self.function.pre_hook).parameters:
                     pre_hook_args["team"] = self.function._team
                 # Check if the pre-hook has an fc argument
@@ -474,7 +474,7 @@ class FunctionCall(BaseModel):
                 # Check if the post-hook has and agent argument
                 if "agent" in signature(self.function.post_hook).parameters:
                     post_hook_args["agent"] = self.function._agent
-                # Check if the post-hook has an team argument
+                # Check if the post-hook has a team argument
                 if "team" in signature(self.function.post_hook).parameters:
                     post_hook_args["team"] = self.function._team
                 # Check if the post-hook has an fc argument
@@ -497,7 +497,7 @@ class FunctionCall(BaseModel):
         # Check if the entrypoint has an agent argument
         if "agent" in signature(self.function.entrypoint).parameters:  # type: ignore
             entrypoint_args["agent"] = self.function._agent
-        # Check if the entrypoint has an team argument
+        # Check if the entrypoint has a team argument
         if "team" in signature(self.function.entrypoint).parameters:  # type: ignore
             entrypoint_args["team"] = self.function._team
         # Check if the entrypoint has an fc argument

@@ -12,6 +12,8 @@ try:
     from apify_client import ApifyClient
 except ImportError:
     raise ImportError("`apify-client` not installed. Please install using `pip install apify-client`")
+except ImportError:
+    raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
 
 class ApifyTools(Toolkit):

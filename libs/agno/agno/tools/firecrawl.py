@@ -104,7 +104,7 @@ class FirecrawlTools(Toolkit):
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore[argument]
 
         params["poll_interval"] = self.poll_interval
 
@@ -132,7 +132,7 @@ class FirecrawlTools(Toolkit):
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore[argument]
         if self.search_params:
             params.update(self.search_params)
 

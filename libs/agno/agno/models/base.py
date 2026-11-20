@@ -747,13 +747,17 @@ class Model(ABC):
                 assistant_message.thinking = stream_data.response_thinking
             if stream_data.response_redacted_thinking:
                 assistant_message.redacted_thinking = stream_data.response_redacted_thinking
-            if stream_data.response_provider_data:
+            if stream_data.response_thinking:
+                assistant_message.thinking = stream_data.response_thinking
+            if stream_data.response_redacted_thinking:
+                assistant_message.redacted_thinking = stream_data.response_redacted_thinking
+            if stream_data.response_provider_data is not None:
                 assistant_message.provider_data = stream_data.response_provider_data
             if stream_data.response_citations:
                 assistant_message.citations = stream_data.response_citations
             if stream_data.response_audio:
                 assistant_message.audio_output = stream_data.response_audio
-            if stream_data.response_tool_calls and len(stream_data.response_tool_calls) > 0:
+            if stream_data.response_tool_calls is not None and len(stream_data.response_tool_calls) > 0:
                 assistant_message.tool_calls = self.parse_tool_calls(stream_data.response_tool_calls)
 
             # Add assistant message to messages
@@ -764,7 +768,7 @@ class Model(ABC):
             if assistant_message.tool_calls is not None:
                 # Prepare function calls
                 function_calls_to_run: List[FunctionCall] = self.get_function_calls_to_run(
-                    assistant_message, messages, functions
+                    assistant_message, messages, functions if functions is not None else []
                 )
                 function_call_results: List[Message] = []
 
@@ -785,7 +789,8 @@ class Model(ABC):
                     self.format_function_call_results(messages=messages, function_call_results=function_call_results)
 
                 for function_call_result in function_call_results:
-                    function_call_result.log(metrics=True)
+                    if function_call_result is not None:
+                        function_call_result.log(metrics=True)
 
                 # Check if we should stop after tool calls
                 if any(m.stop_after_tool_call for m in function_call_results):
@@ -892,7 +897,7 @@ class Model(ABC):
             if assistant_message.tool_calls is not None:
                 # Prepare function calls
                 function_calls_to_run: List[FunctionCall] = self.get_function_calls_to_run(
-                    assistant_message, messages, functions
+                    assistant_message, messages, functions if functions is not None else []
                 )
                 function_call_results: List[Message] = []
 

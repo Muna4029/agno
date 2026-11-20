@@ -221,7 +221,7 @@ class PostgresTools(Toolkit):
             log_info(f"Running: {formatted_sql}")
 
             cursor = self.connection.cursor()
-            cursor.execute(query)
+            cursor.execute(formatted_sql)
             query_result = cursor.fetchall()
 
             result_output = "No output"
@@ -236,7 +236,7 @@ class PostgresTools(Toolkit):
                             result_rows.append(",".join(str(x) for x in row))
 
                     result_data = "\n".join(result_rows)
-                    result_output = ",".join(query_result.columns) + "\n" + result_data
+                    result_output = ",".join([str(col) for col in cursor.description]) + "\n" + result_data
                 except AttributeError:
                     result_output = str(query_result)
 

@@ -409,7 +409,13 @@ class GmailTools(Toolkit):
         Returns:
             str: Stringified dictionary containing draft email details including id
         """
-        self._validate_email_params(to, subject, body)
+        try:
+            try:
+            self._validate_email_params(to, subject, body)
+        except ValueError as e:
+            raise ValueError(f"Invalid email parameters: {e}") from e
+        except ValueError as e:
+            raise ValueError(f"Invalid email parameters: {e}") from e
         message = self._create_message(to.split(","), subject, body, cc.split(",") if cc else None)
         draft = {"message": message}
         draft = self.service.users().drafts().create(userId="me", body=draft).execute()  # type: ignore

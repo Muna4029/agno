@@ -78,7 +78,7 @@ async def get_media_async(media_id: str) -> dict:
             response = await client.get(media_url, headers=headers)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
             data = response.content
-        return data
+        return data  # type: ignore
     except httpx.HTTPStatusError as e:
         return {"error": str(e)}
 
@@ -216,7 +216,7 @@ def send_image_message(
     """Send an image message to a WhatsApp user (synchronous version).
 
     Args:
-        image: The media id for the image to send
+        media_id: The media id for the image to send
         recipient: Recipient's WhatsApp ID or phone number (e.g., "+1234567890").
         text: Caption for the image
 

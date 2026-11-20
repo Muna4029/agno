@@ -10,6 +10,7 @@ from agno.utils.log import log_debug, log_info, logger
 @functools.lru_cache(maxsize=None)
 def warn() -> None:
     logger.warning("PythonTools can run arbitrary code, please provide human supervision.")
+    return None
 
 
 class PythonTools(Toolkit):

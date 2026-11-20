@@ -11,6 +11,13 @@ from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_info
 
 try:
+    import firecrawl
+except ImportError:
+    raise ImportError(
+        "The 'firecrawl' module could not be imported. Please ensure that the 'firecrawl-py' package is installed."
+    )
+
+try:
     import cartesia  # type: ignore
 except ImportError:
     raise ImportError("`cartesia` not installed. Please install using `pip install cartesia`")
@@ -36,7 +43,7 @@ class CartesiaTools(Toolkit):
         self.model_id = model_id
         self.default_voice_id = default_voice_id
 
-        tools: List[Any] = []
+        tools: List[callable] = []
         if voice_localize_enabled:
             tools.append(self.localize_voice)
         if text_to_speech_enabled:
@@ -46,23 +53,23 @@ class CartesiaTools(Toolkit):
 
         super().__init__(name="cartesia_tools", tools=tools, **kwargs)
 
-    def list_voices(self) -> str:
+    def list_voices(self) -> List[Dict[str, Union[str, None]]]:
         """List available voices from Cartesia (first page).
 
         Returns:
-            str: JSON string containing a list of voices, each with id, name, description, and language.
+            List[Dict[str, Union[str, None]]]: List of voices, each with id, name, description, and language.
         """
         try:
             voices = self.client.voices.list()
 
             voice_objects = voices.items if voices else None
 
-            filtered_result = []
+            filtered_result: List[Dict[str, Union[str, None]]] = []
             if voice_objects:
                 for voice in voice_objects:
                     try:
                         # Extract desired attributes from the Voice object
-                        voice_data = {
+                        voice_data: Dict[str, Union[str, None]] = {
                             "id": voice.id if hasattr(voice, "id") else None,
                             "name": voice.name if hasattr(voice, "name") else None,
                             "description": voice.description if hasattr(voice, "description") else None,
@@ -92,7 +99,7 @@ class CartesiaTools(Toolkit):
         language: str,
         original_speaker_gender: str,
         voice_id: Optional[str] = None,
-    ) -> str:
+    ) -> Dict[str, Union[str, None]]:
         """Create a new voice localized to a different language.
 
         Args:
@@ -103,7 +110,7 @@ class CartesiaTools(Toolkit):
             voice_id (optional): The ID of an existing voice to use as the base. If None, uses the default voice ID configured in the tool. Defaults to None.
 
         Returns:
-            str: JSON string containing the information of the newly created localized voice, including its 'id'.
+            Dict[str, Union[str, None]]: Information of the newly created localized voice, including its 'id'.
         """
         localize_voice_id = voice_id or self.default_voice_id
         log_debug(f"Using voice_id '{localize_voice_id}' for localization.")
@@ -118,28 +125,28 @@ class CartesiaTools(Toolkit):
             )
 
             if isinstance(result, dict):
-                return json.dumps(result, indent=4)
+                return result
             else:
-                return result.model_dump_json(indent=4)
+                return json.loads(result.model_dump_json())
 
         except Exception as e:
             log_error(f"Error localizing voice with Cartesia: {e}", exc_info=True)
-            return json.dumps({"error": str(e), "type": type(e).__name__})
+            return {"error": str(e), "type": type(e).__name__}
 
     def text_to_speech(
         self,
         agent: Union[Agent, Team],
         transcript: str,
         voice_id: Optional[str] = None,
-    ) -> str:
+    ) -> Dict[str, str]:
         """
-        Convert text to speechß.
+        Convert text to speech.
         Args:
             transcript: The text to convert to speech
             voice_id (optional): The ID of the voice to use for the text-to-speech. If None, uses the default voice ID configured in the tool. Defaults to None.
 
         Returns:
-            str: Success or error message.
+            Dict[str, str]: Success or error message.
         """
 
         try:
@@ -177,8 +184,8 @@ class CartesiaTools(Toolkit):
             )
             agent.add_audio(artifact)
 
-            return "Audio generated and attached successfully."
+            return {"message": "Audio generated and attached successfully."}
 
         except Exception as e:
             log_error(f"Error generating speech with Cartesia: {e}", exc_info=True)
-            return f"Error generating speech: {e}"
+            return {"error": f"Error generating speech: {e}"}

@@ -1,6 +1,8 @@
 import json
 import os
-from typing import Any, List, Optional
+from typing import List, Optional
+
+from firecrawl import Client
 
 from agno.tools import Toolkit
 
@@ -19,17 +21,18 @@ class ScrapeGraphTools(Toolkit):
         **kwargs,
     ):
         self.api_key: Optional[str] = api_key or os.getenv("SGAI_API_KEY")
-        self.client = Client(api_key=self.api_key)
+        self.client: Client = Client(api_key=self.api_key)
 
         # Start with smartscraper by default
         # Only enable markdownify if smartscraper is False
         if not smartscraper:
-            markdownify = True
+            markdownify: bool = True
 
-        tools: List[Any] = []
+        tools: List[callable] = []
         if smartscraper:
             tools.append(self.smartscraper)
         if markdownify:
+            tools.append(self.markdownify)
             tools.append(self.markdownify)
 
         super().__init__(name="scrapegraph_tools", tools=tools, **kwargs)

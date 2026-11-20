@@ -139,7 +139,7 @@ def get_mcp_agent(
     )
 
 
-def get_model_for_provider(model_str: str):
+def get_model_for_provider(model_str: str) -> Union[OpenAIChat, Gemini, Claude, Groq]:
     """
     Creates and returns the appropriate model for a model string.
 

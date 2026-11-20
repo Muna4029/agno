@@ -63,6 +63,8 @@ class WhatsAppTools(Toolkit):
 
     def _get_headers(self) -> Dict[str, str]:
         """Get headers for API requests."""
+        if not self.access_token:
+            raise ValueError("Access token is not set.")
         return {"Authorization": f"Bearer {self.access_token}", "Content-Type": "application/json"}
 
     def _get_messages_url(self) -> str:
@@ -87,7 +89,7 @@ class WhatsAppTools(Toolkit):
             response = await client.post(url, headers=headers, json=data)
 
             response.raise_for_status()
-            return response.json()
+            return response.json() if response.is_success else {}
 
     def _send_message_sync(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Send a message synchronously using the WhatsApp API.
@@ -105,7 +107,7 @@ class WhatsAppTools(Toolkit):
         response = httpx.post(url, headers=headers, json=data)
 
         response.raise_for_status()
-        return response.json()
+        return response.json() if response.is_success else {}
 
     def send_text_message_sync(
         self,
@@ -144,7 +146,7 @@ class WhatsAppTools(Toolkit):
 
         try:
             response = self._send_message_sync(data)
-            message_id = response.get("messages", [{}])[0].get("id", "unknown")
+            message_id = response.get("messages", [{}])[0].get("id", "unknown") if response else "unknown"
             return f"Message sent successfully! Message ID: {message_id}"
         except httpx.HTTPStatusError as e:
             logger.error(f"Failed to send WhatsApp message: {e}")
@@ -188,11 +190,13 @@ class WhatsAppTools(Toolkit):
         }
 
         if components:
+            if not all(isinstance(component, dict) for component in components):
+                raise ValueError("Components must be a list of dictionaries.")
             data["template"]["components"] = components  # type: ignore[index]
 
         try:
             response = self._send_message_sync(data)
-            message_id = response.get("messages", [{}])[0].get("id", "unknown")
+            message_id = response.get("messages", [{}])[0].get("id", "unknown") if response else "unknown"
             return f"Template message sent successfully! Message ID: {message_id}"
         except httpx.HTTPStatusError as e:
             logger.error(f"Failed to send WhatsApp template message: {e}")

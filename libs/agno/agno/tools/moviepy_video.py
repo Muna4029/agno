@@ -4,9 +4,10 @@ from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
 
 try:
-    from moviepy import ColorClip, CompositeVideoClip, TextClip, VideoFileClip  # type: ignore
-except ImportError:
-    raise ImportError("`moviepy` not installed. Please install using `pip install moviepy ffmpeg`")
+    try:
+        from moviepy import ColorClip, CompositeVideoClip, TextClip, VideoFileClip  # type: ignore
+    except ImportError:
+        raise ImportError("`moviepy` not installed. Please install using `pip install moviepy ffmpeg`")
 
 
 class MoviePyVideoTools(Toolkit):
@@ -29,7 +30,7 @@ class MoviePyVideoTools(Toolkit):
 
         super().__init__(name="video_tools", tools=tools, **kwargs)
 
-    def split_text_into_lines(self, words: List[Dict]) -> List[Dict]:
+    def split_text_into_lines(self, words: List[Dict[str, Union[str, float]]]) -> List[Dict[str, Union[str, float]]]:
         """Split transcribed words into lines based on duration and length constraints
         Args:
             words: List of dictionaries containing word data with 'word', 'start', and 'end' keys
@@ -79,7 +80,7 @@ class MoviePyVideoTools(Toolkit):
 
     def create_caption_clips(
         self,
-        text_json: Dict,
+        text_json: Dict[str, Union[str, float]],
         frame_size: tuple,
         font="Arial",
         color="white",
@@ -175,7 +176,7 @@ class MoviePyVideoTools(Toolkit):
 
         return word_clips
 
-    def parse_srt(self, srt_content: str) -> List[Dict]:
+    def parse_srt(self, srt_content: str) -> List[Dict[str, Union[str, float]]]:
         """Convert SRT formatted content into word-level timing data
         Args:
             srt_content: String containing SRT formatted subtitles
@@ -220,7 +221,7 @@ class MoviePyVideoTools(Toolkit):
 
         return words
 
-    def extract_audio(self, video_path: str, output_path: str) -> str:
+    def extract_audio(self, video_path: str, output_path: str) -> Union[str, None]:
         """Converts video to audio using MoviePy
         Args:
             video_path: Path to the video file
@@ -236,7 +237,7 @@ class MoviePyVideoTools(Toolkit):
             return output_path
         except Exception as e:
             logger.error(f"Failed to extract audio: {str(e)}")
-            return f"Failed to extract audio: {str(e)}"
+            return None
 
     def create_srt(self, transcription: str, output_path: str) -> str:
         """Save transcription text to SRT formatted file
