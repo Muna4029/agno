@@ -24,9 +24,9 @@ class TeamRun:
     response: Optional[TeamRunResponse] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        message = self.message.to_dict() if self.message else None
-        member_responses = [run.to_dict() for run in self.member_runs] if self.member_runs else None
-        response = self.response.to_dict() if self.response else None
+        message = self.message.to_dict() if self.message is not None else None
+        member_responses = [run.to_dict() for run in self.member_runs] if self.member_runs is not None else None
+        response = self.response.to_dict() if self.response is not None else None
         return {
             "message": message,
             "member_responses": member_responses,
@@ -35,11 +35,13 @@ class TeamRun:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "TeamRun":
-        message = Message.model_validate(data.get("message")) if data.get("message") else None
+        message = Message.model_validate(data.get("message")) if data.get("message") is not None else None
         member_runs = (
-            [AgentRun.model_validate(run) for run in data.get("member_runs", [])] if data.get("member_runs") else None
+            [AgentRun.model_validate(run) for run in data.get("member_runs", [])]
+            if data.get("member_runs") is not None
+            else None
         )
-        response = TeamRunResponse.from_dict(data.get("response", {})) if data.get("response") else None
+        response = TeamRunResponse.from_dict(data.get("response", {})) if data.get("response") is not None else None
         return cls(message=message, member_runs=member_runs, response=response)
 
 
@@ -335,7 +337,7 @@ class TeamMemory:
 
         if input is None or not isinstance(input, str):
             return "Invalid message content"
-
+        return response
         if self.db is None:
             log_warning("MemoryDb not provided.")
             return "Please provide a db to store memories"
@@ -366,7 +368,7 @@ class TeamMemory:
         """Creates a memory from a message and adds it to the memory db."""
         if input is None or not isinstance(input, str):
             return "Invalid message content"
-
+        return response
         if self.db is None:
             log_warning("MemoryDb not provided.")
             return "Please provide a db to store memories"

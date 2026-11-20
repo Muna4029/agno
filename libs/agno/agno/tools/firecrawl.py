@@ -48,7 +48,7 @@ class FirecrawlTools(Toolkit):
         api_url: Optional[str] = "https://api.firecrawl.dev",
         **kwargs,
     ):
-        self.api_key: Optional[str] = api_key or getenv("FIRECRAWL_API_KEY")
+        self.api_key: str = (api_key or getenv("FIRECRAWL_API_KEY")) or ""
         if not self.api_key:
             logger.error("FIRECRAWL_API_KEY not set. Please set the FIRECRAWL_API_KEY environment variable.")
 
@@ -103,8 +103,10 @@ class FirecrawlTools(Toolkit):
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
+        from firecrawl import ScrapeOptions
+
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            params["scrape_options"] = ScrapeOptions(formats=self.formats)
 
         params["poll_interval"] = self.poll_interval
 
