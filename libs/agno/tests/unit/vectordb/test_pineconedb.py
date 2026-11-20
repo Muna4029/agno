@@ -248,7 +248,7 @@ def test_search(mock_pinecone_db, mock_embedder):
     mock_embedder.get_embedding.return_value = [0.1] * 1024
 
     # Test search
-    results = mock_pinecone_db.search(query, limit=2)
+    results = await mock_pinecone_db.search(query, limit=2)
 
     # Check that embedder.get_embedding was called
     mock_embedder.get_embedding.assert_called_with(query)
