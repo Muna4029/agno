@@ -145,7 +145,7 @@ def _create_events_from_chunk(
 
     # Handle starting a new tool call
     elif chunk.event == RunEvent.tool_call_started:
-        if chunk.tools is not None and len(chunk.tools) != 0:
+        if hasattr(chunk, "tools") and chunk.tools is not None and len(chunk.tools) != 0:
             tool_call = chunk.tools[0]
             start_event = ToolCallStartEvent(
                 type=EventType.TOOL_CALL_START,
@@ -164,7 +164,7 @@ def _create_events_from_chunk(
 
     # Handle tool call completion
     elif chunk.event == RunEvent.tool_call_completed:
-        if chunk.tools is not None and len(chunk.tools) != 0:
+        if hasattr(chunk, "tools") and chunk.tools is not None and len(chunk.tools) != 0:
             tool_call = chunk.tools[0]
             if tool_call.tool_call_id not in event_buffer.ended_tool_call_ids:
                 end_event = ToolCallEndEvent(
@@ -278,19 +278,22 @@ def stream_agno_response_as_agui_events(
                     yield emit_event
         else:
             # Process regular chunk
-            events_from_chunk, message_started = _create_events_from_chunk(
-                chunk, message_id, message_started, event_buffer
-            )
+            if hasattr(chunk, "tools"):
+                events_from_chunk, message_started = _create_events_from_chunk(
+                    chunk, message_id, message_started, event_buffer
+                )
 
-            for event in events_from_chunk:
-                events_to_emit = _emit_event_logic(event_buffer=event_buffer, event=event)
-                for emit_event in events_to_emit:
-                    yield emit_event
+                for event in events_from_chunk:
+                    events_to_emit = _emit_event_logic(event_buffer=event_buffer, event=event)
+                    for emit_event in events_to_emit:
+                        yield emit_event
 
 
 # Async version - thin wrapper
 async def async_stream_agno_response_as_agui_events(
-    response_stream: Union[AsyncIterator[RunResponseEvent], AsyncIterator[TeamRunResponseEvent]], thread_id: str, run_id: str
+    response_stream: Union[AsyncIterator[RunResponseEvent], AsyncIterator[TeamRunResponseEvent]],
+    thread_id: str,
+    run_id: str,
 ) -> AsyncIterator[BaseEvent]:
     """Map the Agno response stream to AG-UI format, handling event ordering constraints."""
     message_id = str(uuid.uuid4())
@@ -307,11 +310,12 @@ async def async_stream_agno_response_as_agui_events(
                     yield emit_event
         else:
             # Process regular chunk
-            events_from_chunk, message_started = _create_events_from_chunk(
-                chunk, message_id, message_started, event_buffer
-            )
+            if hasattr(chunk, "tools"):
+                events_from_chunk, message_started = _create_events_from_chunk(
+                    chunk, message_id, message_started, event_buffer
+                )
 
-            for event in events_from_chunk:
-                events_to_emit = _emit_event_logic(event_buffer=event_buffer, event=event)
-                for emit_event in events_to_emit:
-                    yield emit_event
+                for event in events_from_chunk:
+                    events_to_emit = _emit_event_logic(event_buffer=event_buffer, event=event)
+                    for emit_event in events_to_emit:
+                        yield emit_event
