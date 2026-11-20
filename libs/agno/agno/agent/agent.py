@@ -567,7 +567,7 @@ class Agent:
         files: Optional[Sequence[File]] = None,
         messages: Optional[Sequence[Union[Dict, Message]]] = None,
         stream_intermediate_steps: bool = False,
-        run_response: Optional[RunResponse] = None,
+        run_response_param: Optional[RunResponse] = None,
         **kwargs: Any,
     ) -> Iterator[RunResponse]:
         """Run the Agent and yield the RunResponse.
@@ -1113,7 +1113,7 @@ class Agent:
                     if self.stream and self.stream is True:
                         log_debug("Setting stream=False as response_model is set")
                         self.stream = False
-                    run_response: RunResponse = next(
+                    run_response_param: RunResponse = next(
                         self._run(
                             message=message,
                             stream=False,
@@ -1232,7 +1232,7 @@ class Agent:
         files: Optional[Sequence[File]] = None,
         messages: Optional[Sequence[Union[Dict, Message]]] = None,
         stream_intermediate_steps: bool = False,
-        run_response: Optional[RunResponse] = None,
+        run_response_param: Optional[RunResponse] = None,
         **kwargs: Any,
     ) -> AsyncIterator[RunResponse]:
         """Run the Agent and yield the RunResponse.
@@ -1851,7 +1851,7 @@ class Agent:
         content_type: Optional[str] = None,
         created_at: Optional[int] = None,
         citations: Optional[Citations] = None,
-        run_response: Optional[RunResponse] = None,
+        run_response_param: Optional[RunResponse] = None,
     ) -> RunResponse:
         thinking_combined = (thinking or "") + (redacted_thinking or "")
 
