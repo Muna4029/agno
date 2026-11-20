@@ -37,7 +37,7 @@ try:
         File as GeminiFile,
     )
 except ImportError:
-    raise ImportError("`google-genai` not installed. Please install it using `pip install google-genai`")
+    raise ImportError("`firecrawl-py` not installed. Please install it using `pip install firecrawl-py`")
 
 
 @dataclass

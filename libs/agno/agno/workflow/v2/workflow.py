@@ -621,7 +621,7 @@ class Workflow:
                         previous_step_outputs=previous_step_outputs,
                         shared_images=shared_images,
                         shared_videos=shared_videos,
-                        shared_audio=shared_audio,
+                        shared_audio=shared_audio or {},
                     )
 
                     # Execute step with streaming and yield all events
@@ -1225,6 +1225,11 @@ class Workflow:
         audio: Optional[List[Audio]] = None,
         images: Optional[List[Image]] = None,
         videos: Optional[List[Video]] = None,
+        stream: bool = False,
+        stream_intermediate_steps: Optional[bool] = None,
+        background: Optional[bool] = False,
+        **kwargs: Any,
+    ) -> Union[WorkflowRunResponse, Iterator[WorkflowRunResponseEvent]]:
         stream: Literal[False] = False,
         stream_intermediate_steps: Optional[bool] = None,
         background: Optional[bool] = False,
@@ -3217,7 +3222,7 @@ class Workflow:
                 executor = step.active_executor
                 if hasattr(executor, "workflow_session_state") and executor.workflow_session_state:
                     # Merge the agent's session state back into workflow session state
-                    merge_dictionaries(self.workflow_session_state, executor.workflow_session_state)
+                    merge_dictionaries(self.workflow_session_state, executor.workflow_session_state or {})
 
                 # If it's a team, collect from all members
                 if hasattr(executor, "members"):

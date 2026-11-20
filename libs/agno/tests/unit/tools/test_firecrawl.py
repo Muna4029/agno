@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 from firecrawl import FirecrawlApp
 
+# Ensure the 'firecrawl-py' package is installed to avoid import errors
 from agno.tools.firecrawl import FirecrawlTools
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
