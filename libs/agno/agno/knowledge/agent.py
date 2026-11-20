@@ -31,7 +31,7 @@ class AgentKnowledge(BaseModel):
     valid_metadata_filters: Set[str] = None  # type: ignore
 
     @model_validator(mode="after")
-    def update_reader(self) -> "AgentKnowledge":
+    async def update_reader(self) -> "AgentKnowledge":
         if self.reader is not None and self.reader.chunking_strategy is None:
             self.reader.chunking_strategy = self.chunking_strategy
         return self
@@ -41,14 +41,14 @@ class AgentKnowledge(BaseModel):
         """Iterator that yields lists of documents in the knowledge base
         Each object yielded by the iterator is a list of documents.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @property
     async def async_document_lists(self) -> AsyncIterator[List[Document]]:
         """Iterator that yields lists of documents in the knowledge base
         Each object yielded by the iterator is a list of documents.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def _upsert_warning(self, upsert) -> None:
         """Log a warning if upsert is not available"""
@@ -108,7 +108,7 @@ class AgentKnowledge(BaseModel):
 
             _num_documents = num_documents or self.num_documents
             log_debug(f"Getting {_num_documents} relevant documents for query: {query}")
-            return self.vector_db.search(query=query, limit=_num_documents, filters=filters)
+            return await self.vector_db.search(query=query, limit=_num_documents, filters=filters)
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
             return []
@@ -128,12 +128,12 @@ class AgentKnowledge(BaseModel):
                 return await self.vector_db.async_search(query=query, limit=_num_documents, filters=filters)
             except NotImplementedError:
                 log_info("Vector db does not support async search")
-                return self.search(query=query, num_documents=_num_documents, filters=filters)
+                return await self.search(query=query, num_documents=_num_documents, filters=filters)
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
             return []
 
-    def load(
+    async def load(
         self,
         recreate: bool = False,
         upsert: bool = False,
@@ -146,13 +146,13 @@ class AgentKnowledge(BaseModel):
             upsert (bool): If True, upserts documents to the vector db. Defaults to False.
             skip_existing (bool): If True, skips documents which already exist in the vector db when inserting. Defaults to True.
         """
-        self._load_init(recreate, upsert)
+        await self._load_init(recreate, upsert)
         if self.vector_db is None:
             return
 
         log_info("Loading knowledge base")
         num_documents = 0
-        for document_list in self.document_lists:
+        for document_list in await self.document_lists:
             documents_to_load = document_list
 
             # Track metadata for filtering capabilities
@@ -162,16 +162,16 @@ class AgentKnowledge(BaseModel):
 
             # Upsert documents if upsert is True and vector db supports upsert
             if upsert and self.vector_db.upsert_available():
-                self.vector_db.upsert(documents=documents_to_load, filters=doc.meta_data)
+                await self.vector_db.upsert(documents=documents_to_load, filters=doc.meta_data)
             # Insert documents
             else:
                 # Filter out documents which already exist in the vector db
                 if skip_existing:
                     log_debug("Filtering out existing documents before insertion.")
-                    documents_to_load = self.filter_existing_documents(document_list)
+                    documents_to_load = await self.filter_existing_documents(document_list)
 
                 if documents_to_load:
-                    self.vector_db.insert(documents=documents_to_load, filters=doc.meta_data)
+                    await self.vector_db.insert(documents=documents_to_load, filters=doc.meta_data)
 
             num_documents += len(documents_to_load)
         log_info(f"Added {num_documents} documents to knowledge base")
@@ -189,13 +189,13 @@ class AgentKnowledge(BaseModel):
             upsert (bool): If True, upserts documents to the vector db. Defaults to False.
             skip_existing (bool): If True, skips documents which already exist in the vector db when inserting. Defaults to True.
         """
-        self._aload_init(recreate, upsert)
+        await self._aload_init(recreate, upsert)
         if self.vector_db is None:
             return
 
         log_info("Loading knowledge base")
         num_documents = 0
-        document_iterator = self.async_document_lists
+        document_iterator = await self.async_document_lists
         async for document_list in document_iterator:  # type: ignore
             documents_to_load = document_list
             # Track metadata for filtering capabilities
@@ -273,7 +273,7 @@ class AgentKnowledge(BaseModel):
             skip_existing (bool): If True, skips documents which already exist in the vector db when inserting. Defaults to True.
             filters (Optional[Dict[str, Any]]): Filters to add to each row that can be used to limit results during querying. Defaults to None.
         """
-        self._aload_init(recreate=False, upsert=upsert)
+        await self._aload_init(recreate=False, upsert=upsert)
         if self.vector_db is None:
             return
 
@@ -293,7 +293,7 @@ class AgentKnowledge(BaseModel):
                 try:
                     # Parallelize existence checks using asyncio.gather
                     existence_checks = await asyncio.gather(
-                        *[self.vector_db.async_doc_exists(document) for document in documents], return_exceptions=True
+                        *[await self.vector_db.async_doc_exists(document) for document in documents], return_exceptions=True
                     )
 
                     documents_to_load = [
@@ -607,12 +607,12 @@ class AgentKnowledge(BaseModel):
             self._track_metadata_structure(metadata)
 
         # 3. Prepare vector DB
-        self._aload_init(recreate, upsert=False)
+        await self._aload_init(recreate, upsert=False)
         if self.vector_db is None:
             return False
         return True
 
-    def process_documents(
+    async def process_documents(
         self,
         documents: List[Document],
         metadata: Optional[Dict[str, Any]] = None,
@@ -639,17 +639,16 @@ class AgentKnowledge(BaseModel):
         # Decide loading strategy: upsert or insert (with optional skip)
         if upsert and self.vector_db.upsert_available():  # type: ignore
             log_debug(f"Upserting {len(documents)} documents.")  # type: ignore
-            self.vector_db.upsert(documents=documents, filters=metadata)  # type: ignore
+            await self.vector_db.upsert(documents=documents, filters=metadata)  # type: ignore
         else:
             documents_to_insert = documents
             if skip_existing:
                 log_debug("Filtering out existing documents before insertion.")
-                documents_to_insert = self.filter_existing_documents(documents)
+                documents_to_insert = await self.filter_existing_documents(documents)
 
             if documents_to_insert:  # type: ignore
-                # type: ignore
                 log_debug(f"Inserting {len(documents_to_insert)} new documents.")
-                self.vector_db.insert(documents=documents_to_insert, filters=metadata)  # type: ignore
+                await self.vector_db.insert(documents=documents_to_insert, filters=metadata)  # type: ignore
             else:
                 log_info("No new documents to insert after filtering.")
 
