@@ -191,7 +191,7 @@ class BaseAPIApp(ABC):
             ]
             if self.team
             else None,
-            "type": self.type,
+            "type": self.__class__.__name__,
             "description": self.description,
         }
         payload = {k: v for k, v in payload.items() if v is not None}
