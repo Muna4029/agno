@@ -6,7 +6,7 @@ from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
+    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore
 except ImportError:
     raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
@@ -109,7 +109,7 @@ class FirecrawlTools(Toolkit):
         params["poll_interval"] = self.poll_interval
 
         crawl_result = self.app.crawl_url(url, **params)
-        return json.dumps(crawl_result.model_dump(), cls=CustomJSONEncoder)
+        return json.dumps(crawl_result.model_dump(), cls=CustomJSONEncoder)  # type: ignore
 
     def map_website(self, url: str) -> str:
         """Use this function to Map a website using Firecrawl.
@@ -137,7 +137,7 @@ class FirecrawlTools(Toolkit):
             params.update(self.search_params)
 
         search_result = self.app.search(query, **params)
-        if search_result.success:
+        if search_result.success:  # type: ignore
             return json.dumps(search_result.data, cls=CustomJSONEncoder)
         else:
             return "Error searching with the Firecrawl tool: " + search_result.error
