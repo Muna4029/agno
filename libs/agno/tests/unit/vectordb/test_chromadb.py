@@ -187,7 +187,7 @@ def test_multiple_document_operations(chroma_db, sample_documents):
 async def test_async_create_collection(chroma_db):
     """Test creating a collection asynchronously"""
     # First delete the collection created by the fixture
-    chroma_db.delete()
+    await chroma_db.delete()
 
     # Test async create
     await chroma_db.async_create()

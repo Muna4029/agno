@@ -6,9 +6,10 @@ from agno.reranker.base import Reranker
 from agno.utils.log import logger
 
 try:
-    from infinity_client import AuthenticatedClient, Client
     from infinity_client.api.default import rerank
     from infinity_client.models import RerankInput
+
+    from agno.libs.infinity_client import AuthenticatedClient, Client
 except ImportError:
     raise ImportError("infinity_client not installed, please run `pip install infinity_client`")
 

@@ -29,7 +29,6 @@ from agno.app.playground.schemas import (
     WorkflowGetResponse,
     WorkflowRenameRequest,
     WorkflowRunRequest,
-    WorkflowSessionResponse,
     WorkflowsGetResponse,
 )
 from agno.app.playground.utils import process_audio, process_document, process_image, process_video
@@ -558,7 +557,7 @@ def get_async_playground_router(
             raise HTTPException(status_code=500, detail=f"Error retrieving sessions: {str(e)}")
 
         # Return the sessions
-        workflow_sessions: List[WorkflowSessionResponse] = []
+        workflow_sessions: List[Dict[str, Any]] = []
         for session in all_workflow_sessions:
             title = get_session_title_from_workflow_session(session)
             workflow_sessions.append(

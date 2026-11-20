@@ -43,6 +43,8 @@ from agno.storage.base import Storage
 from agno.storage.session.agent import AgentSession
 from agno.tools.function import Function
 from agno.tools.toolkit import Toolkit
+from firecrawl import ScrapeOptions
+from infinity_client import SomeRequiredClass
 from agno.utils.log import (
     log_debug,
     log_error,
@@ -5061,6 +5063,8 @@ class Agent:
             Optional[List[Dict[str, Any]]]: List of relevant document dicts.
         """
         from agno.document import Document
+from firecrawl import ScrapeOptions
+from infinity_client import SomeRequiredClass
 
         # Validate the filters against known valid filter keys
         if self.knowledge is not None:
@@ -6500,6 +6504,8 @@ class Agent:
         from rich.markdown import Markdown
         from rich.status import Status
         from rich.text import Text
+from firecrawl import ScrapeOptions
+from infinity_client import SomeRequiredClass
 
         if markdown:
             self.markdown = True

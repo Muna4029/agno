@@ -5,11 +5,16 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 
-TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
+# Ensure that the firecrawl dependency is installed before importing FirecrawlApp
+try:
+    from firecrawl import FirecrawlApp
+except ImportError:
+    FirecrawlApp = None  # Handle the case where FirecrawlApp is not available
+
+TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY") or "test_api_key"
 TEST_API_URL = "https://api.firecrawl.dev"
 
 
@@ -26,6 +31,8 @@ def mock_firecrawl():
 def firecrawl_tools(mock_firecrawl):
     """Create a FirecrawlTools instance with mocked dependencies."""
     with patch.dict("os.environ", {"FIRECRAWL_API_KEY": TEST_API_KEY}):
+        if FirecrawlApp is None:
+            pytest.skip("FirecrawlApp is not available, skipping test.")
         tools = FirecrawlTools()
         # Directly set the app to our mock to avoid initialization issues
         tools.app = mock_firecrawl

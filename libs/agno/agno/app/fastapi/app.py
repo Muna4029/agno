@@ -15,6 +15,16 @@ from agno.team.team import Team
 from agno.utils.log import log_info
 from agno.workflow.workflow import Workflow
 
+try:
+    from firecrawl import ScrapeOptions
+except ImportError:
+    logger.error("Missing package 'firecrawl'.")
+
+try:
+    import infinity_client
+except ImportError:
+    logger.error("Missing package 'infinity_client'.")
+
 logger = logging.getLogger(__name__)
 
 
