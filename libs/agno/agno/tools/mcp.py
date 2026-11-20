@@ -178,11 +178,14 @@ class MCPTools(Toolkit):
             self._context = stdio_client(self.server_params)  # type: ignore
             client_timeout = self.timeout_seconds
 
-        session_params = await self._context.__aenter__()  # type: ignore
-        read, write = session_params[0:2]
+        if self._context is not None:
+            session_params = await self._context.__aenter__()  # type: ignore
+            read, write = session_params[0:2]
 
-        self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))
-        self.session = await self._session_context.__aenter__()
+            self._session_context = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=client_timeout))
+            self.session = await self._session_context.__aenter__()
+        else:
+            raise ValueError("_context cannot be None")
 
         # Initialize with the new session
         await self.initialize()
@@ -245,9 +248,12 @@ class MCPTools(Toolkit):
                         skip_entrypoint_processing=True,
                     )
 
-                    # Register the Function with the toolkit
-                    self.functions[f.name] = f
-                    log_debug(f"Function: {f.name} registered with {self.name}")
+                    if f is not None:
+                        # Register the Function with the toolkit
+                        self.functions[f.name] = f
+                        log_debug(f"Function: {f.name} registered with {self.name}")
+                    else:
+                        logger.error(f"Function is None, cannot register with {self.name}")
                 except Exception as e:
                     logger.error(f"Failed to register tool {tool.name}: {e}")
 
