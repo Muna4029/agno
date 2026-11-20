@@ -263,7 +263,7 @@ class BitbucketTools(Toolkit):
             diff = self._make_request(
                 "GET", f"/repositories/{self.workspace}/{self.repo_slug}/pullrequests/{pull_request_id}/diff"
             )
-            return diff
+            return json.dumps(diff) if isinstance(diff, dict) else diff
         except Exception as e:
             logger.error(f"Error retrieving changes for pull request {pull_request_id} in {self.repo_slug}: {str(e)}")
             return json.dumps({"error": str(e)})
