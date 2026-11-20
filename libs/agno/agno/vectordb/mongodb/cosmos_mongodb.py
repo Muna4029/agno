@@ -84,7 +84,8 @@ class CosmosMongoDb(MongoDb):
             if self._client is None:
                 self._get_client()
 
-            self._collection = self._db.get_collection(self.collection_name)
+            if self._db is not None:
+                self._collection = self._db.get_collection(self.collection_name)
             log_info(f"Using collection: {self.collection_name}")
         return self._collection
 
@@ -274,7 +275,8 @@ class CosmosMongoDb(MongoDb):
         """Drop the collection and clean up indexes."""
         if self.exists():
             try:
-                collection = self._get_collection()
+                if self._get_collection() is not None:
+                    collection = self._get_collection()
                 index_name = self.search_index_name or "vector_index_1"
 
                 # Drop the index if it exists
