@@ -7,9 +7,10 @@ from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_warning
 
 try:
-    from zep_cloud import BadRequestError, NotFoundError
-    from zep_cloud.client import AsyncZep, Zep
-    from zep_cloud.types import MemorySearchResult
+    # from zep_cloud import BadRequestError, NotFoundError
+    # from zep_cloud.client import AsyncZep, Zep
+    # from zep_cloud.types import MemorySearchResult
+    raise ImportError("`zep-cloud` package not found. Please install it with `pip install zep-cloud`')
     from zep_cloud.types import Message as ZepMessage
 except ImportError:
     raise ImportError("`zep-cloud` package not found. Please install it with `pip install zep-cloud`")
@@ -40,7 +41,7 @@ class ZepTools(Toolkit):
         get_zep_memory: bool = True,
         search_zep_memory: bool = True,
         instructions: Optional[str] = None,
-        add_instructions: bool = False,
+        add_instructions = False,
         **kwargs,
     ):
         super().__init__(name="zep_tools", instructions=instructions, add_instructions=add_instructions, **kwargs)

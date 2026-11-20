@@ -278,7 +278,8 @@ def create_apify_client(token: str) -> ApifyClient:
         raise ValueError("API token is required to create an Apify client.")
 
     client = ApifyClient(token)
-    if http_client := getattr(client.http_client, "httpx_client", None):
+    http_client = getattr(client.http_client, "httpx_client", None)
+    if http_client:
         http_client.headers["user-agent"] += "; Origin/agno"
     return client
 
