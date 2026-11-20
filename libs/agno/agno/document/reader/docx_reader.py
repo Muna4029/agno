@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from typing import IO, Any, List, Union
+from typing import IO, List, Union
 from uuid import uuid4
 
 from agno.document.base import Document
@@ -51,7 +51,7 @@ class DocxReader(Reader):
             logger.error(f"Error reading file: {e}")
             return []
 
-    async def async_read(self, file: Union[Path, IO[Any]]) -> List[Document]:
+    async def async_read(self, file: Union[Path, IO[str]]) -> List[Document]:
         """Asynchronously read a docx file and return a list of documents"""
         try:
             return await asyncio.to_thread(self.read, file)

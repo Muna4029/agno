@@ -3,7 +3,7 @@ import csv
 import io
 import os
 from pathlib import Path
-from typing import IO, Any, List, Optional, Union
+from typing import IO, Any, List, Union
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -58,7 +58,7 @@ class CSVReader(Reader):
             logger.error(f"Error reading: {file.name if isinstance(file, IO) else file}: {e}")
             return []
 
-    async def async_read(
+    async def async_read(self, file: Union[str, IO], **kwargs):
         self, file: Union[Path, IO[Any]], delimiter: str = ",", quotechar: str = '"', page_size: int = 1000
     ) -> List[Document]:
         """

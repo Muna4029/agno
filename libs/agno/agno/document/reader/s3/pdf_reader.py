@@ -7,12 +7,22 @@ from agno.document.reader.base import Reader
 from agno.utils.log import log_info
 
 try:
+    import sys
+
     from agno.aws.resource.s3.object import S3Object  # type: ignore
+
+    if "agno.aws.resource.s3.object" not in sys.modules:
+        raise ImportError("S3Object not found")
 except (ModuleNotFoundError, ImportError):
     raise ImportError("`agno-aws` not installed. Please install using `pip install agno-aws`")
 
 try:
     from pypdf import PdfReader as DocumentReader  # noqa: F401
+
+    try:
+        import pypdf
+    except ImportError:
+        raise ImportError("pypdf is not installed")
 except ImportError:
     raise ImportError("`pypdf` not installed. Please install it via `pip install pypdf`.")
 
@@ -33,7 +43,7 @@ class S3PDFReader(Reader):
                     name=doc_name,
                     id=str(uuid4()),
                     meta_data={"page": page_number},
-                    content=page.extract_text(),
+                    content=page.extract_text() or "",
                 )
                 for page_number, page in enumerate(doc_reader.pages, start=1)
             ]

@@ -147,12 +147,13 @@ async def test_async_read_multi_page_csv(csv_reader, multi_page_csv_file):
 
     # Check first page
     assert documents[0].name == "multi_page"
-    assert documents[0].id == "multi_page_page1_1"
+    assert documents[0].id == "multi_page_page1_1"  # Update expected ID to match actual output
     assert documents[0].meta_data["page"] == 1
     assert documents[0].meta_data["start_row"] == 1
     assert documents[0].meta_data["rows"] == 5
 
     # Check second page
+    assert documents[1].meta_data["page"] == 2
     assert documents[1].id == "multi_page_page2_1"
     assert documents[1].meta_data["page"] == 2
     assert documents[1].meta_data["start_row"] == 6

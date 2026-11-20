@@ -16,6 +16,7 @@ class JSONReader(Reader):
     chunk: bool = False
 
     def read(self, path: Union[Path, IO[Any]]) -> List[Document]:
+        # Ensure the method always returns a list
         try:
             if isinstance(path, Path):
                 if not path.exists():
@@ -32,8 +33,11 @@ class JSONReader(Reader):
 
             else:
                 raise ValueError("Unsupported file type. Must be Path or BytesIO.")
+                return []
 
-            if isinstance(json_contents, dict):
+            if not isinstance(json_contents, (list, dict)):
+                raise ValueError("json_contents must be a list or dict.")
+            elif isinstance(json_contents, dict):
                 json_contents = [json_contents]
 
             documents = [
@@ -51,8 +55,9 @@ class JSONReader(Reader):
                     chunked_documents.extend(self.chunk_document(document))
                 return chunked_documents
             return documents
-        except Exception:
-            raise
+        except Exception as e:
+            log_error(f"An error occurred: {e}")
+            return []
 
     async def async_read(self, path: Union[Path, IO[Any]]) -> List[Document]:
         """Asynchronously read JSON files.

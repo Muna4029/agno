@@ -181,6 +181,9 @@ class PDFUrlReader(BasePDFReader):
         # Retry the request up to 3 times with exponential backoff
         response = fetch_with_retry(url, proxy=self.proxy)
 
+        if response.status_code != 200:
+            raise ValueError(f"Failed to fetch the document: {response.status_code}")
+
         doc_name = url.split("/")[-1].split(".")[0].replace("/", "_").replace(" ", "_")
         doc_reader = DocumentReader(BytesIO(response.content))
 
@@ -271,6 +274,7 @@ class PDFImageReader(BasePDFReader):
             if isinstance(pdf, str):
                 doc_name = pdf.split("/")[-1].split(".")[0].replace(" ", "_")
             else:
+                raise ValueError("Invalid pdf type provided")
                 doc_name = pdf.name.split(".")[0]
         except Exception:
             doc_name = "pdf"
@@ -308,6 +312,7 @@ class PDFUrlImageReader(BasePDFReader):
         # Read the PDF from the URL
         log_info(f"Reading: {url}")
         response = httpx.get(url, proxy=self.proxy) if self.proxy else httpx.get(url)
+        response.raise_for_status()
 
         doc_name = url.split("/")[-1].split(".")[0].replace(" ", "_")
         doc_reader = DocumentReader(BytesIO(response.content))
