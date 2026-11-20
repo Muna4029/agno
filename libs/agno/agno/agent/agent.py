@@ -735,7 +735,7 @@ class Agent:
                     else:
                         log_warning("Unable to add message to memory")
             # Add AgentRun to memory
-            self.memory.add_run(agent_run)
+            self.memory.add_run(agent_run)  # type: ignore
             # Update the session summary if needed
             if self.memory.create_session_summary and self.memory.update_session_summary_after_run:
                 self.memory.update_summary()
@@ -2837,7 +2837,7 @@ class Agent:
                                 ],
                             )
                         )
-                    )
+                    )  # type: ignore
 
     def load_session(self, force: bool = False) -> Optional[str]:
         """Load an existing session from the database and return the session_id.
@@ -3205,7 +3205,7 @@ class Agent:
         """
         # Get references from the knowledge base to use in the user message
         references = None
-        self.run_response = cast(RunResponse, self.run_response)
+        self.run_response: Optional[RunResponse] = cast(Optional[RunResponse], self.run_response)
         if self.add_references and message:
             message_str: str
             if isinstance(message, str):
@@ -5275,7 +5275,7 @@ class Agent:
                     live_log.update(Group(*panels))
 
                 # Run the agent
-                run_response = self.run(
+                run_response: RunResponse = self.run(
                     message=message,
                     messages=messages,
                     session_id=session_id,
