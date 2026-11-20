@@ -74,7 +74,7 @@ class CSVUrlKnowledgeBase(AgentKnowledge):
         """Load documents from a single CSV URL with specific metadata into the vector DB."""
 
         # Validate URL and prepare collection in one step
-        if not self.prepare_load(url, self.formats, metadata, recreate, is_url=True):
+        if not self.prepare_load(Path(url), self.formats, metadata, recreate, is_url=True):
             return
 
         # Read documents
@@ -104,7 +104,7 @@ class CSVUrlKnowledgeBase(AgentKnowledge):
         """Load documents from a single CSV URL with specific metadata into the vector DB."""
 
         # Validate URL and prepare collection in one step
-        if not await self.aprepare_load(url, self.formats, metadata, recreate, is_url=True):
+        if not await self.prepare_load(url, self.formats, metadata, recreate, is_url=True):
             return
 
         # Read documents
@@ -115,7 +115,7 @@ class CSVUrlKnowledgeBase(AgentKnowledge):
             return
 
         # Process documents
-        await self.aprocess_documents(
+        await self.process_documents(
             documents=documents,
             metadata=metadata,
             upsert=upsert,
