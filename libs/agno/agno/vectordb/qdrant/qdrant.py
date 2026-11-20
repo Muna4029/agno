@@ -270,6 +270,8 @@ class Qdrant(VectorDb):
         Returns:
             bool: True if a document with the given name exists, False otherwise.
         """
+        from agno import models
+
         if self.client:
             scroll_result = self.client.scroll(
                 collection_name=self.collection,
@@ -291,6 +293,8 @@ class Qdrant(VectorDb):
         Returns:
             bool: True if a document with the given name exists, False otherwise.
         """
+        from agno import models
+
         if self.async_client:
             scroll_result = await self.async_client.scroll(
                 collection_name=self.collection,
@@ -311,6 +315,8 @@ class Qdrant(VectorDb):
             filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
             batch_size (int): Batch size for inserting documents
         """
+        from agno import models
+
         log_debug(f"Inserting {len(documents)} documents")
         points = []
         for document in documents:
@@ -541,6 +547,8 @@ class Qdrant(VectorDb):
         limit: int,
         filters: Optional[Dict[str, Any]],
     ) -> List[models.ScoredPoint]:
+        from agno import models
+
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
         call = self.client.query_points(
             collection_name=self.collection,
@@ -590,6 +598,8 @@ class Qdrant(VectorDb):
         limit: int,
         filters: Optional[Dict[str, Any]],
     ) -> List[models.ScoredPoint]:
+        from agno import models
+
         sparse_embedding = next(self.sparse_encoder.embed([query])).as_object()
         call = await self.async_client.query_points(
             collection_name=self.collection,
@@ -652,6 +662,8 @@ class Qdrant(VectorDb):
         return search_results
 
     def _format_filters(self, filters: Optional[Dict[str, Any]]) -> Optional[models.Filter]:
+        from agno import models
+
         if filters:
             filter_conditions = []
             for key, value in filters.items():
@@ -677,6 +689,8 @@ class Qdrant(VectorDb):
         return None
 
     def drop(self) -> None:
+        from agno import log_debug
+
         if self.exists():
             log_debug(f"Deleting collection: {self.collection}")
             self.client.delete_collection(self.collection)
