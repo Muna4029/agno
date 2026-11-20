@@ -6,7 +6,10 @@ from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
+    from firecrawl import (
+        FirecrawlApp,  # type: ignore[attr-defined]
+        ScrapeOptions,  # type: ignore[attr-defined]
+    )
 except ImportError:
     raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
