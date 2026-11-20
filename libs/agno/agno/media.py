@@ -287,9 +287,9 @@ class File(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def check_at_least_one_source(cls, data):
-        """Ensure at least one of url, filepath, or content is provided."""
+        """Ensure at least one of url, filepath, content, or external is provided."""
         if isinstance(data, dict) and not any(data.get(field) for field in ["url", "filepath", "content", "external"]):
-            raise ValueError("At least one of url, filepath, content or external must be provided")
+            raise ValueError("At least one of url, filepath, content, or external must be provided")
         return data
 
     @field_validator("mime_type")

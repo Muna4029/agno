@@ -43,7 +43,7 @@ def test_pdf_reader_read_file(sample_pdf_path):
     documents = reader.read(sample_pdf_path)
 
     assert len(documents) > 0
-    assert all(doc.name == "ThaiRecipes" for doc in documents)
+    assert all(doc.name == "ThaiRecipes" for doc in documents) if documents else False if documents else False
     assert all(doc.content for doc in documents)
     assert all(isinstance(doc.meta_data.get("page"), int) for doc in documents)
 
@@ -145,7 +145,7 @@ async def test_async_pdf_processing(sample_pdf_path):
 
     assert len(results) == 3
     assert all(len(docs) > 0 for docs in results)
-    assert all(all(doc.name == "ThaiRecipes" for doc in docs) for docs in results)
+    assert all(all(doc.name == "ThaiRecipes" for doc in docs) for docs in results) if results else False
 
 
 def test_pdf_reader_empty_pdf():

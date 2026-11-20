@@ -258,13 +258,17 @@ class Function(BaseModel):
         try:
             # Don't wrap async generator with validate_call
             if not isasyncgenfunction(self.entrypoint):
-                self.entrypoint = validate_call(self.entrypoint, config=dict(arbitrary_types_allowed=True))  # type: ignore
+                if self.entrypoint is not None:
+                    self.entrypoint = validate_call(self.entrypoint, config=dict(arbitrary_types_allowed=True))  # type: ignore
         except Exception as e:
             log_warning(f"Failed to add validate decorator to entrypoint: {e}")
 
     def process_schema_for_strict(self):
-        self.parameters["additionalProperties"] = False
-        self.parameters["required"] = [name for name in self.parameters["properties"] if name not in ["agent", "team"]]
+        if "properties" in self.parameters:
+            self.parameters["additionalProperties"] = False
+            self.parameters["required"] = [
+                name for name in self.parameters["properties"] if name not in ["agent", "team"]
+            ]
 
     def get_type_name(self, t: Type[T]):
         name = str(t)
@@ -277,7 +281,7 @@ class Function(BaseModel):
         """Returns a function definition that can be used in a prompt."""
 
         if self.entrypoint is None:
-            return None
+            return {}
 
         type_hints = get_type_hints(self.entrypoint)
         return_type = type_hints.get("return", None)
