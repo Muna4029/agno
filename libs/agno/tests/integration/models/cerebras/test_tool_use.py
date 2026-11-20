@@ -1,10 +1,8 @@
-from typing import Optional
 
 import pytest
 
 from agno.agent import Agent, RunResponse  # noqa
 from agno.models.cerebras import Cerebras
-from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.googlesearch import GoogleSearchTools
 
 
