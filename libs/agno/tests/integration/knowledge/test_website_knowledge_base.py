@@ -36,7 +36,7 @@ def test_website_knowledge_base_directory(setup_vector_db):
             tool_calls.extend(msg.tool_calls)
 
     function_calls = [call for call in tool_calls if call.get("type") == "function"]
-    assert any(call["function"]["name"] == "search_knowledge_base" for call in function_calls)
+    assert any(call["function"]["name"] == "search_knowledge_base" for call in function_calls)  # noqa: E701
 
 
 def test_website_knowledge_base_single_url(setup_vector_db):
@@ -84,7 +84,9 @@ async def test_website_knowledge_base_async_directory(setup_vector_db):
             tool_calls.extend(msg.tool_calls)
 
     assert "asearch_knowledge_base" in [
-        call["function"]["name"] for call in tool_calls if call.get("type") == "function"
+        call["function"]["name"]
+        for call in tool_calls
+        if call.get("type") == "function"  # noqa: E701
     ]
 
 

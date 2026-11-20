@@ -87,7 +87,8 @@ class WebsiteKnowledgeBase(AgentKnowledge):
 
         num_documents = 0
         for url in urls_to_read:
-            if document_list := self.reader.read(url=url):
+            document_list = self.reader.read(url=url)
+            if document_list:
                 # Filter out documents which already exist in the vector db
                 if not recreate:
                     document_list = [document for document in document_list if not self.vector_db.doc_exists(document)]
