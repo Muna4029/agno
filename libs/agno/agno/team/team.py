@@ -5088,7 +5088,7 @@ class Team:
                             and member_agent_run_response_chunk.tools is not None
                             and len(member_agent_run_response_chunk.tools) > 0
                         ):
-                            yield ",".join([tool.result for tool in member_agent_run_response_chunk.tools if tool.result])  # type: ignore
+                            yield ",".join([t.result for t in member_agent_run_response_chunk.tools if t.result])  # type: ignore
                 else:
                     member_agent_run_response = member_agent.run(
                         member_agent_task, images=images, videos=videos, audio=audio, files=files, stream=False
@@ -5104,7 +5104,7 @@ class Team:
                         if len(member_agent_run_response.content.strip()) > 0:
                             yield f"Agent {member_agent.name}: {member_agent_run_response.content}"
                         elif member_agent_run_response.tools is not None and len(member_agent_run_response.tools) > 0:
-                            yield f"Agent {member_agent.name}: {','.join([tool.result for tool in member_agent_run_response.tools])}"  # type: ignore
+                            yield f"Agent {member_agent.name}: {','.join([t.result for t in member_agent_run_response.tools])}"  # type: ignore
                     elif issubclass(type(member_agent_run_response.content), BaseModel):
                         try:
                             yield f"Agent {member_agent.name}: {member_agent_run_response.content.model_dump_json(indent=2)}"  # type: ignore
@@ -5447,9 +5447,9 @@ class Team:
                     # If the content is empty but we have tool calls
                     elif member_agent_run_response.tools is not None and len(member_agent_run_response.tools) > 0:
                         tool_str = ""
-                        for tool in member_agent_run_response.tools:
-                            if tool.result:
-                                tool_str += f"{tool.result},"
+                        for t in member_agent_run_response.tools:
+                            if t.result:
+                                tool_str += f"{t.result},"
                         yield tool_str.rstrip(",")
 
                 elif issubclass(type(member_agent_run_response.content), BaseModel):
@@ -5627,8 +5627,12 @@ class Team:
                         yield member_agent_run_response.content
 
                     # If the content is empty but we have tool calls
-                    elif member_agent_run_response.event == RunEvent.tool_call_completed and member_agent_run_response.tools is not None and len(member_agent_run_response.tools) > 0:
-                        yield ",".join([tool.result for tool in member_agent_run_response.tools and tool.result])  # type: ignore
+                    elif (
+                        member_agent_run_response.event == RunEvent.tool_call_completed
+                        and member_agent_run_response.tools is not None
+                        and len(member_agent_run_response.tools) > 0
+                    ):
+                        yield ",".join([t.result for t in member_agent_run_response.tools if t.result])  # type: ignore
                 elif issubclass(type(member_agent_run_response.content), BaseModel):
                     try:
                         yield member_agent_run_response.content.model_dump_json(indent=2)  # type: ignore
@@ -5971,7 +5975,11 @@ class Team:
                         yield member_agent_run_response.content
 
                     # If the content is empty but we have tool calls
-                    elif member_agent_run_response.event == RunEvent.tool_call_completed and member_agent_run_response.tools is not None and len(member_agent_run_response.tools) > 0:
+                    elif (
+                        member_agent_run_response.event == RunEvent.tool_call_completed
+                        and member_agent_run_response.tools is not None
+                        and len(member_agent_run_response.tools) > 0
+                    ):
                         yield ",".join([tool.result for tool in member_agent_run_response.tools if tool.result])  # type: ignore
                 elif issubclass(type(member_agent_run_response.content), BaseModel):
                     try:
