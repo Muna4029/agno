@@ -3,10 +3,8 @@ from functools import partial
 from typing import Any, Callable, Dict, List, Literal, Optional, Type, TypeVar, get_type_hints
 
 from docstring_parser import parse
-from pydantic import BaseModel, Field, validate_call
 
 from agno.exceptions import AgentRunException
-from agno.utils.log import log_debug, log_error, log_exception, log_warning
 
 T = TypeVar("T")
 
@@ -50,9 +48,20 @@ class UserInputField:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "UserInputField":
+        field_type = data["field_type"]
+        if field_type == 'int':
+            field_type = int
+        elif field_type == 'float':
+            field_type = float
+        elif field_type == 'str':
+            field_type = str
+        elif field_type == 'bool':
+            field_type = bool
+        else:
+            raise ValueError(f"Unsupported field type: {field_type}")
         return cls(
             name=data["name"],
-            field_type=eval(data["field_type"]),  # Convert string type name to actual type
+            field_type=field_type,
             description=data["description"],
             value=data["value"],
         )
@@ -171,7 +180,7 @@ class Function(BaseModel):
 
             # Get JSON schema for parameters only
             parameters = get_json_schema(
-                type_hints=param_type_hints, param_descriptions=param_descriptions, strict=strict
+                type_hints=type_hints, param_descriptions=param_descriptions, strict=strict
             )
 
             # If strict=True mark all fields as required
@@ -272,6 +281,9 @@ class Function(BaseModel):
                     )
                     for name in sig.parameters
                 ]
+                    )
+                    for name in sig.parameters
+                ]
 
             # Get JSON schema for parameters only
             parameters = get_json_schema(
@@ -281,7 +293,7 @@ class Function(BaseModel):
             # If strict=True mark all fields as required
             # See: https://platform.openai.com/docs/guides/structured-outputs/supported-schemas#all-fields-must-be-required
             if strict:
-                parameters["required"] = [name for name in parameters["properties"] if name not in excluded_params]
+                parameters["required"] = [name for name in parameters["properties"] if name not in (excluded_params if 'excluded_params' in locals() else [])]
             else:
                 # Mark a field as required if it has no default value
                 parameters["required"] = [
@@ -294,7 +306,7 @@ class Function(BaseModel):
                 self.parameters["additionalProperties"] = False
                 if strict:
                     self.parameters["required"] = [
-                        name for name in self.parameters["properties"] if name not in excluded_params
+                        name for name in self.parameters["properties"] if name not in (excluded_params if 'excluded_params' in locals() else [])
                     ]
                 else:
                     # Mark a field as required if it has no default value
@@ -304,7 +316,7 @@ class Function(BaseModel):
                         if param.default == param.empty and name != "self" and name not in excluded_params
                     ]
 
-            self.description = self.description or get_entrypoint_docstring(self.entrypoint)
+            self.description = self.description or (get_entrypoint_docstring(self.entrypoint) if 'get_entrypoint_docstring' in locals() else '')
 
             # log_debug(f"JSON schema for {self.name}: {parameters}")
         except Exception as e:
@@ -360,7 +372,7 @@ class Function(BaseModel):
         from pathlib import Path
         from tempfile import gettempdir
 
-        base_cache_dir = self.cache_dir or Path(gettempdir()) / "agno_cache"
+        base_cache_dir = self.cache_dir if hasattr(self, 'cache_dir') else Path(gettempdir()) / "agno_cache"
         func_cache_dir = Path(base_cache_dir) / "functions" / self.name
         func_cache_dir.mkdir(parents=True, exist_ok=True)
         return str(func_cache_dir / f"{cache_key}.json")
@@ -388,7 +400,7 @@ class Function(BaseModel):
             # Remove expired entry
             cache_path.unlink()
         except Exception as e:
-            log_error(f"Error reading cache: {e}")
+            log_error(f"Error reading cache: {e}") if 'log_error' in locals() else None
 
         return None
 
@@ -401,7 +413,7 @@ class Function(BaseModel):
             with open(cache_file, "w") as f:
                 json.dump({"timestamp": time(), "result": result}, f)
         except Exception as e:
-            log_error(f"Error writing cache: {e}")
+            log_error(f"Error writing cache: {e}") if 'log_error' in locals() else None
 
 
 class FunctionExecutionResult(BaseModel):
@@ -456,6 +468,7 @@ class FunctionCall(BaseModel):
         if self.function.pre_hook is not None:
             try:
                 from inspect import signature
+        from agno.tools.function import UserInputField
 
                 pre_hook_args = {}
                 # Check if the pre-hook has and agent argument

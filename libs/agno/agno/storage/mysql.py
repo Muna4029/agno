@@ -249,7 +249,7 @@ class MySQLStorage(Storage):
 
                     except Exception as e:
                         # Log the error but continue with other indexes
-                        logger.warning(f"Error creating index {idx.name}: {e}")
+                        log_debug(f"Error creating index {idx.name}: {e}")
 
             except Exception as e:
                 logger.error(f"Could not create table: '{self.table.fullname}': {e}")
@@ -267,6 +267,11 @@ class MySQLStorage(Storage):
             Optional[Session]: Session object if found, None otherwise.
         """
         try:
+            if not self.table_exists():
+                log_debug(f"Table does not exist: {self.table.name}")
+                log_debug("Creating table for future transactions")
+                self.create()
+                return None
             with self.Session() as sess:
                 stmt = select(self.table).where(self.table.c.session_id == session_id)
                 if user_id:
@@ -279,12 +284,7 @@ class MySQLStorage(Storage):
                 elif self.mode == "workflow":
                     return WorkflowSession.from_dict(result._mapping) if result is not None else None
         except Exception as e:
-            if "doesn't exist" in str(e) or "doesn't exist" in str(e):
-                log_debug(f"Table does not exist: {self.table.name}")
-                log_debug("Creating table for future transactions")
-                self.create()
-            else:
-                log_debug(f"Exception reading from table: {e}")
+            log_debug(f"Exception reading from table: {e}")
         return None
 
     def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
@@ -299,6 +299,11 @@ class MySQLStorage(Storage):
             List[str]: List of session IDs matching the criteria.
         """
         try:
+            if not self.table_exists():
+                log_debug(f"Table does not exist: {self.table.name}")
+                log_debug("Creating table for future transactions")
+                self.create()
+                return []
             with self.Session() as sess, sess.begin():
                 # get all session_ids
                 stmt = select(self.table.c.session_id)
@@ -319,9 +324,6 @@ class MySQLStorage(Storage):
                 return [row[0] for row in rows] if rows is not None else []
         except Exception as e:
             log_debug(f"Exception reading from table: {e}")
-            log_debug(f"Table does not exist: {self.table.name}")
-            log_debug("Creating table for future transactions")
-            self.create()
         return []
 
     def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
@@ -336,6 +338,11 @@ class MySQLStorage(Storage):
             List[Session]: List of Session objects matching the criteria.
         """
         try:
+            if not self.table_exists():
+                log_debug(f"Table does not exist: {self.table.name}")
+                log_debug("Creating table for future transactions")
+                self.create()
+                return []
             with self.Session() as sess, sess.begin():
                 # get all sessions
                 stmt = select(self.table)
@@ -363,9 +370,6 @@ class MySQLStorage(Storage):
                     return []
         except Exception as e:
             log_debug(f"Exception reading from table: {e}")
-            log_debug(f"Table does not exist: {self.table.name}")
-            log_debug("Creating table for future transactions")
-            self.create()
         return []
 
     def get_recent_sessions(
@@ -385,6 +389,11 @@ class MySQLStorage(Storage):
             List[Session]: List of most recent sessions
         """
         try:
+            if not self.table_exists():
+                log_debug(f"Table does not exist: {self.table.name}")
+                log_debug("Creating table for future transactions")
+                self.create()
+                return []
             with self.Session() as sess, sess.begin():
                 # Build the base query
                 stmt = select(self.table)
@@ -424,13 +433,8 @@ class MySQLStorage(Storage):
                 return []
 
         except Exception as e:
-            if "doesn't exist" in str(e) or "doesn't exist" in str(e):
-                log_debug(f"Table does not exist: {self.table.name}")
-                log_debug("Creating table for future transactions")
-                self.create()
-            else:
-                log_debug(f"Exception reading from table: {e}")
-            return []
+            log_debug(f"Exception reading from table: {e}")
+        return []
 
     def upgrade_schema(self) -> None:
         """
@@ -442,7 +446,12 @@ class MySQLStorage(Storage):
             return
 
         try:
-            if self.mode == "agent" and self.table_exists():
+            if not self.table_exists():
+                log_debug(f"Table does not exist: {self.table.name}")
+                log_debug("Creating table for future transactions")
+                self.create()
+                return
+            if self.mode == "agent":
                 with self.Session() as sess:
                     # Check if team_session_id column exists
                     column_exists_query = text(
@@ -467,7 +476,7 @@ class MySQLStorage(Storage):
                         self._schema_up_to_date = True
                         log_info("Schema upgrade completed successfully")
         except Exception as e:
-            logger.error(f"Error during schema upgrade: {e}")
+            log_debug(f"Error during schema upgrade: {e}")
             raise
 
     def upsert(self, session: Session, create_and_retry: bool = True) -> Optional[Session]:
