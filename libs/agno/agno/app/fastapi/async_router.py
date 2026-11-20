@@ -348,11 +348,18 @@ def get_async_router(
                     media_type="text/event-stream",
                 )
             elif workflow:
-                workflow_instance = workflow.deep_copy(update={"workflow_id": workflow_id})
+                workflow_instance = (
+                    workflow.deep_copy(update={"workflow_id": workflow_id}) if isinstance(workflow_input, dict) else {}
+                )
                 workflow_instance.user_id = user_id
                 workflow_instance.session_name = None
                 return StreamingResponse(
-                    (json.dumps(asdict(result)) for result in await workflow_instance.arun(**(workflow_input or {}))),
+                    (
+                        json.dumps(asdict(result))
+                        for result in await workflow_instance.arun(
+                            **(workflow_input if isinstance(workflow_input, dict) else {})
+                        )
+                    ),
                     media_type="text/event-stream",
                 )
         else:
