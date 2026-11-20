@@ -28,7 +28,7 @@ def get_workspace_dir_path(ws_root_path: Path) -> Path:
     logger.debug(f"Searching for a workspace directory in {ws_root_path}")
 
     # Case 1: Look for a subdirectory with name: workspace
-    ws_workspace_dir = ws_root_path.joinpath("workspace")
+    ws_workspace_dir = ws_root_path.joinpath("workspace") if ws_root_path else None
     logger.debug(f"Searching {ws_workspace_dir}")
     if ws_workspace_dir.exists() and ws_workspace_dir.is_dir():
         return ws_workspace_dir
@@ -39,7 +39,9 @@ def get_workspace_dir_path(ws_root_path: Path) -> Path:
         agno_conf = read_pyproject_agno(ws_pyproject_toml)
         if agno_conf is not None:
             agno_conf_workspace_dir_str = agno_conf.get("workspace", None)
-            agno_conf_workspace_dir_path = ws_root_path.joinpath(agno_conf_workspace_dir_str)
+            agno_conf_workspace_dir_path = (
+                ws_root_path.joinpath(agno_conf_workspace_dir_str) if agno_conf_workspace_dir_str else None
+            )
             logger.debug(f"Searching {agno_conf_workspace_dir_path}")
             if agno_conf_workspace_dir_path.exists() and agno_conf_workspace_dir_path.is_dir():
                 return agno_conf_workspace_dir_path

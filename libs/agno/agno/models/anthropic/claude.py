@@ -108,8 +108,9 @@ class Claude(Model):
             _request_params["thinking"] = self.thinking
         if self.temperature:
             _request_params["temperature"] = self.temperature
-        if self.stop_sequences:
-            _request_params["stop_sequences"] = self.stop_sequences
+        if self.stop_sequences is not None:
+            if self.stop_sequences is not None:
+                _request_params["stop_sequences"] = self.stop_sequences
         if self.top_p:
             _request_params["top_p"] = self.top_p
         if self.top_k:
@@ -365,6 +366,10 @@ class Claude(Model):
                         "content": str(_fc_message.content),
                     }
                 )
+            if messages is None:
+                messages = []
+            if messages is None:
+                messages = []
             messages.append(Message(role="user", content=fc_responses))
 
     def get_system_message_for_model(self) -> Optional[str]:
@@ -400,8 +405,12 @@ class Claude(Model):
                     if block.citations is not None:
                         if model_response.citations is None:
                             model_response.citations = Citations(raw=[], urls=[], documents=[])
+                        if model_response.citations.raw is None:
+                            model_response.citations.raw = []
                         for citation in block.citations:
-                            model_response.citations.raw.append(citation.model_dump())  # type: ignore
+                        if model_response.citations.raw is None:
+                            model_response.citations.raw = []
+                        model_response.citations.raw.append(citation.model_dump())  # type: ignore
                             # Web search citations
                             if isinstance(citation, CitationsWebSearchResultLocation):
                                 model_response.citations.urls.append(  # type: ignore
@@ -409,6 +418,10 @@ class Claude(Model):
                                 )
                             # Document citations
                             elif isinstance(citation, CitationPageLocation):
+                                if model_response.citations.documents is None:
+                                    model_response.citations.documents = []
+                            if model_response.citations.documents is None:
+                                model_response.citations.documents = []
                                 model_response.citations.documents.append(  # type: ignore
                                     DocumentCitation(
                                         document_title=citation.document_title,
@@ -505,6 +518,8 @@ class Claude(Model):
         # Capture citations from the final response
         elif isinstance(response, MessageStopEvent):
             model_response.citations = Citations(raw=[], urls=[], documents=[])
+            if model_response.citations.raw is None:
+                model_response.citations.raw = []
             for block in response.message.content:
                 citations = getattr(block, "citations", None)
                 if not citations:
