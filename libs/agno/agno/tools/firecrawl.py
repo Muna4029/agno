@@ -92,6 +92,8 @@ class FirecrawlTools(Toolkit):
         Returns:
             The results of the crawling.
         """
+        from typing import Any, Dict
+
         params: Dict[str, Any] = {}
         if self.limit or limit:
             params["limit"] = self.limit or limit
