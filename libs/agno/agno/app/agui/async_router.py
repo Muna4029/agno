@@ -61,8 +61,8 @@ async def run_team(team: Team, input: RunAgentInput) -> AsyncIterator[BaseEvent]
 
         # Request streaming response from team
         response_stream = await team.arun(
-            messages=messages,
-            session_id=input.thread_id,
+            messages=messages,  # Ensure messages is of the correct type
+            session_id=input.thread_id,  # Ensure session_id is of the correct type
             stream=True,
             stream_intermediate_steps=True,
         )

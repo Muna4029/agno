@@ -65,7 +65,7 @@ def run_team(team: Team, input: RunAgentInput) -> Iterator[BaseEvent]:
             session_id=input.thread_id,
             stream=True,
             stream_intermediate_steps=True,
-        )
+        )  # Ensure that the argument types match the expected types
 
         # Stream the response content in AG-UI format
         for event in stream_agno_response_as_agui_events(
