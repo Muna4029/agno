@@ -1236,6 +1236,7 @@ class Workflow:
         try:
             loop = asyncio.get_running_loop()
             task = loop.create_task(execute_workflow_background())
+            task.add_done_callback(lambda t: self.update_background_status(self.run_id or "", RunStatus.success))
         except RuntimeError:
             # No event loop, use threading fallback
             import threading
@@ -1337,6 +1338,7 @@ class Workflow:
         try:
             loop = asyncio.get_running_loop()
             task = loop.create_task(execute_workflow_background())
+            task.add_done_callback(lambda t: self.update_background_status(self.run_id or "", RunStatus.success))
         except RuntimeError:
             # No event loop, use threading fallback
             import threading
