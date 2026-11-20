@@ -9,8 +9,8 @@ from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 
-TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
-TEST_API_URL = "https://api.firecrawl.dev"
+TEST_API_KEY: str = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
+TEST_API_URL: str = "https://api.firecrawl.dev"
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def test_init_with_env_vars():
     """Test initialization with environment variables."""
     with patch("agno.tools.firecrawl.FirecrawlApp"):
         with patch.dict("os.environ", {"FIRECRAWL_API_KEY": TEST_API_KEY}, clear=True):
-            tools = FirecrawlTools()
+            tools = FirecrawlTools(api_key=TEST_API_KEY)
             assert tools.api_key == TEST_API_KEY
             assert tools.formats is None
             assert tools.limit == 10
