@@ -941,7 +941,7 @@ class Agent:
         else:
             self.session_id = session_id
 
-        session_id = cast(str, session_id)
+        session_id = cast(Union[str, JSON, Markdown], session_id)
 
         self._initialize_session_state(user_id=user_id, session_id=session_id)
 
@@ -1004,6 +1004,8 @@ class Agent:
         )
 
         # Create a run_id for this specific run
+        run_id = str(uuid4())
+
         run_id = str(uuid4())
 
         # Create a new run_response for this attempt
@@ -5757,6 +5759,10 @@ class Agent:
             ):
                 log_warning("Reasoning agent response model should be `ReasoningSteps`, continuing regular session...")
                 return
+
+            ):
+                log_warning("Reasoning agent response model should be `ReasoningSteps`, continuing regular session...")
+                return
             # Ensure the reasoning model and agent do not show tool calls
             reasoning_agent.show_tool_calls = False
 
@@ -6003,6 +6009,8 @@ class Agent:
 
                     if reasoning_agent_response.content.reasoning_steps is None:
                         log_warning("Reasoning error. Reasoning steps are empty, continuing regular session...")
+                        break
+
                         break
 
                     reasoning_steps: List[ReasoningStep] = reasoning_agent_response.content.reasoning_steps
@@ -7753,6 +7761,8 @@ class Agent:
                 )
 
                 # Add the metrics message to the reasoning_messages
+                if self.run_response.extra_data.reasoning_messages is None:
+                    self.run_response.extra_data.reasoning_messages = []
                 self.run_response.extra_data.reasoning_messages.append(metrics_message)
 
         except Exception as e:
