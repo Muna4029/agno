@@ -163,7 +163,7 @@ class AccuracyEval:
     # If set, results will be saved in the given file path
     file_path_to_save_results: Optional[str] = None
     # Enable debug logs
-    debug_mode: bool = getenv("AGNO_DEBUG", "false").lower() == "true"
+    debug_mode: bool = getenv("AGNO_DEBUG", "false").lower() == "true" if getenv("AGNO_DEBUG") is not None else False
     # Log the results to the Agno platform. On by default.
     monitoring: bool = getenv("AGNO_MONITOR", "true").lower() == "true"
 
@@ -212,7 +212,7 @@ class AccuracyEval:
                 logger.warning(
                     "The evaluator agent is not using the AccuracyAgentResponse response model. This means a complete Accuracy result won't be available, stored or monitored."
                 )
-            return self.evaluator_agent
+            return self.evaluator_agent if self.evaluator_agent.response_model is AccuracyAgentResponse else None
 
         model = self.model
         if model is None:
@@ -271,7 +271,7 @@ Remember: You must only compare the agent_output to the expected_output. The exp
         if callable(self.expected_output):
             _output = self.expected_output()
             if isinstance(_output, str):
-                return _output
+                return result _output
             else:
                 raise EvalError(f"The expected output needs to be or return a string, but it returned: {type(_output)}")
         return self.expected_output

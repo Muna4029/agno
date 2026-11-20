@@ -5,7 +5,7 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+from firecrawl import FirecrawlApp, ScrapeOptions
 
 from agno.tools.firecrawl import FirecrawlTools
 
@@ -36,7 +36,7 @@ def test_init_with_env_vars():
     """Test initialization with environment variables."""
     with patch("agno.tools.firecrawl.FirecrawlApp"):
         with patch.dict("os.environ", {"FIRECRAWL_API_KEY": TEST_API_KEY}, clear=True):
-            tools = FirecrawlTools()
+            tools = FirecrawlTools(api_key=TEST_API_KEY)
             assert tools.api_key == TEST_API_KEY
             assert tools.formats is None
             assert tools.limit == 10
@@ -46,7 +46,13 @@ def test_init_with_env_vars():
 def test_init_with_params():
     """Test initialization with parameters."""
     with patch("agno.tools.firecrawl.FirecrawlApp"):
-        tools = FirecrawlTools(api_key="param_api_key", formats=["html", "text"], limit=5, api_url=TEST_API_URL)
+        tools = FirecrawlTools(
+            api_key="param_api_key",
+            formats=["html", "text"],
+            limit=5,
+            api_url=TEST_API_URL,
+            scrape_options=ScrapeOptions(),
+        )
         assert tools.api_key == "param_api_key"
         assert tools.formats == ["html", "text"]
         assert tools.limit == 5
@@ -87,7 +93,7 @@ def test_scrape_website_with_formats(firecrawl_tools, mock_firecrawl):
     mock_firecrawl.scrape_url.return_value = mock_response
 
     # Set formats
-    firecrawl_tools.formats = ["html", "text"]
+    firecrawl_tools.set_formats(["html", "text"])
 
     # Call the method
     result = firecrawl_tools.scrape_website("https://example.com")
@@ -212,7 +218,7 @@ def test_search_with_custom_params(firecrawl_tools, mock_firecrawl):
     mock_firecrawl.search.return_value = mock_response
 
     # Set custom search parameters
-    firecrawl_tools.search_params = {"language": "en", "region": "us"}
+    firecrawl_tools.set_search_params({"language": "en", "region": "us"})
 
     # Call the method
     result = firecrawl_tools.search("test query")
