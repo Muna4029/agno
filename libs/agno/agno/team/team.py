@@ -585,7 +585,11 @@ class Team:
 
         self.initialize_team(session_id=session_id)
 
-        effective_filters = knowledge_filters
+        if isinstance(knowledge_filters, dict):
+            effective_filters = knowledge_filters
+        else:
+            log_warning("knowledge_filters is not of expected type")
+            effective_filters = {}
 
         # When filters are passed manually
         if self.knowledge_filters or knowledge_filters:
@@ -4243,26 +4247,23 @@ class Team:
         if self.context is not None:
             if isinstance(self.context, dict):
                 for ctx_key, ctx_value in self.context.items():
-                    if callable(ctx_value):
-                        try:
-                            sig = signature(ctx_value)
-                            if "agent" in sig.parameters:
-                                resolved_ctx_value = ctx_value(agent=self)
+                    if isinstance(ctx_value, dict):
+                        for ctx_key, ctx_value in ctx_value.items():
+                            if callable(ctx_value):
+                                try:
+                                    sig = signature(ctx_value)
+                                    if "agent" in sig.parameters:
+                                        resolved_ctx_value = ctx_value(agent=self)
+                                    else:
+                                        resolved_ctx_value = ctx_value()
+                                    if resolved_ctx_value is not None:
+                                        self.context[ctx_key] = resolved_ctx_value
+                                except Exception as e:
+                                    log_warning(f"Failed to resolve context for {ctx_key}: {e}")
                             else:
-                                resolved_ctx_value = ctx_value()
-                            if resolved_ctx_value is not None:
-                                self.context[ctx_key] = resolved_ctx_value
-                        except Exception as e:
-                            log_warning(f"Failed to resolve context for {ctx_key}: {e}")
-                    else:
-                        self.context[ctx_key] = ctx_value
+                                self.context[ctx_key] = ctx_value
             else:
                 log_warning("Context is not a dict")
-
-    def determine_tools_for_model(self, model: Model, tools: List[Union[Function, Callable, Toolkit, Dict]]) -> None:
-        if self._tools_for_model is None:
-            self._functions_for_model = {}
-            self._tools_for_model = []
 
             # Get Agent tools
             if len(tools) > 0:
@@ -4342,6 +4343,9 @@ class Team:
                             log_warning(f"Could not add tool {tool}: {e}")
 
     def get_members_system_message_content(self, indent: int = 0) -> str:
+        if self.members is None:
+            log_warning("Members list is None")
+            return ""
         system_message_content = ""
         for idx, member in enumerate(self.members):
             url_safe_member_id = self._get_member_id(member)
@@ -4384,6 +4388,9 @@ class Team:
         """Get the system message for the team."""
         # 1. Build and return the default system message for the Team.
         # 1.1 Build the list of instructions for the system message
+        if self.model is None:
+            log_warning("Model is not initialized")
+            return None
         self.model = cast(Model, self.model)
         instructions: List[str] = []
         if self.instructions is not None:
@@ -4410,7 +4417,8 @@ class Team:
         if self.add_datetime_to_instructions:
             from datetime import datetime
 
-            additional_information.append(f"The current time is {datetime.now()}")
+            from datetime import datetime
+            additional_information.append(f"The current time is {datetime.now().isoformat()}")
 
         if self.knowledge is not None and self.enable_agentic_knowledge_filters:
             valid_filters = getattr(self.knowledge, "valid_metadata_filters", None)
@@ -4499,7 +4507,7 @@ class Team:
             system_message_content += "Stop the team run when the success_criteria is met.\n\n"
 
         # Attached media
-        if audio is not None or images is not None or videos is not None or files is not None:
+        if audio is not None or images is not None or videos is not None or (files is not None and len(files) > 0):
             system_message_content += "<attached_media>\n"
             system_message_content += "You have the following media attached to your message:\n"
             if audio is not None and len(audio) > 0:
@@ -4515,8 +4523,7 @@ class Team:
         # Then add memories to the system prompt
         if self.memory:
             if isinstance(self.memory, Memory) and (self.add_memory_references):
-                if not user_id:
-                    user_id = "default"
+                user_id = user_id or "default"
                 user_memories = self.memory.memories.get(user_id, {})  # type: ignore
                 if user_memories and len(user_memories) > 0:
                     system_message_content += (
@@ -4550,7 +4557,7 @@ class Team:
             if isinstance(self.memory, Memory) and self.add_session_summary_references:
                 if not user_id:
                     user_id = "default"
-                session_summary: SessionSummary = self.memory.summaries.get(user_id, {}).get(session_id, None)  # type: ignore
+                session_summary: SessionSummary = self.memory.summaries.get(user_id, {}).get(session_id or "default", None)  # type: ignore
                 if session_summary is not None:
                     system_message_content += "Here is a brief summary of your previous interactions:\n\n"
                     system_message_content += "<summary_of_previous_interactions>\n"
@@ -5862,7 +5869,7 @@ class Team:
             else:
                 self.memory = cast(Memory, self.memory)
                 self.memory.add_interaction_to_team_context(
-                    session_id=session_id,  # type: ignore
+                    session_id=session_id or "default",  # type: ignore
                     member_name=member_name,
                     task=message.get_content_string(),
                     run_response=member_agent.run_response,  # type: ignore
@@ -6037,7 +6044,7 @@ class Team:
         Returns:
             Optional[TeamSession]: The loaded TeamSession or None if not found.
         """
-        if self.storage is not None and session_id is not None:
+        if self.storage is not None and (session_id is not None and session_id != ""):
             self.team_session = cast(TeamSession, self.storage.read(session_id=session_id))
             if self.team_session is not None:
                 self.load_team_session(session=self.team_session)
@@ -6066,11 +6073,11 @@ class Team:
         session_id = session_id or self.session_id
 
         # -*- Read from storage
-        self.read_from_storage(session_id=session_id)  # type: ignore
+        self.read_from_storage(session_id=session_id or "default")  # type: ignore
         # -*- Rename session
         self.session_name = session_name
         # -*- Save to storage
-        self.write_to_storage(session_id=session_id, user_id=self.user_id)  # type: ignore
+        self.write_to_storage(session_id=session_id or "default", user_id=self.user_id)  # type: ignore
         # -*- Log Agent session
         self._log_team_session(session_id=session_id, user_id=self.user_id)  # type: ignore
 
@@ -6502,10 +6509,14 @@ class Team:
                 from agno.run.response import RunResponseExtraData
 
                 run_response.extra_data = RunResponseExtraData()
+            if not isinstance(run_response.extra_data, RunResponseExtraData):
+                log_warning("run_response.extra_data is not of expected type")
 
             # Initialize reasoning_messages if it doesn't exist
             if run_response.extra_data.reasoning_messages is None:
                 run_response.extra_data.reasoning_messages = []
+            if not isinstance(run_response.extra_data.reasoning_messages, list):
+                log_warning("run_response.extra_data.reasoning_messages is not of expected type")
 
             metrics_message = Message(
                 role="assistant",
@@ -6529,8 +6540,11 @@ class Team:
         from agno.document import Document
 
         # Validate the filters against known valid filter keys
-        if self.knowledge is not None:
-            valid_filters, invalid_keys = self.knowledge.validate_filters(filters)  # type: ignore
+        if self.knowledge is not None and isinstance(filters, dict):
+            if isinstance(filters, dict):
+                valid_filters, invalid_keys = self.knowledge.validate_filters(filters)  # type: ignore
+            else:
+                log_warning("filters is not of expected type")
 
             # Warn about invalid filter keys
             if invalid_keys:
@@ -6551,7 +6565,7 @@ class Team:
                 retriever_kwargs: Dict[str, Any] = {}
                 if "team" in sig.parameters:
                     retriever_kwargs = {"team": self}
-                if "filters" in sig.parameters:
+                if "filters" in sig.parameters and isinstance(filters, dict):
                     retriever_kwargs["filters"] = filters
                 retriever_kwargs.update({"query": query, "num_documents": num_documents, **kwargs})
                 return self.retriever(**retriever_kwargs)
@@ -6566,9 +6580,13 @@ class Team:
                 num_documents = self.knowledge.num_documents
 
             log_debug(f"Searching knowledge base with filters: {filters}")
-            relevant_docs: List[Document] = self.knowledge.search(
-                query=query, num_documents=num_documents, filters=filters
-            )
+            if isinstance(filters, dict):
+                relevant_docs: List[Document] = self.knowledge.search(
+                    query=query, num_documents=num_documents, filters=filters
+                )
+            else:
+                log_warning("filters is not of expected type")
+                return None
 
             if not relevant_docs or len(relevant_docs) == 0:
                 log_debug("No relevant documents found for query")
@@ -6606,16 +6624,17 @@ class Team:
 
             try:
                 sig = signature(self.retriever)
-                retriever_kwargs: Dict[str, Any] = {}
-                if "team" in sig.parameters:
-                    retriever_kwargs = {"team": self}
-                if "filters" in sig.parameters:
-                    retriever_kwargs["filters"] = filters
-                retriever_kwargs.update({"query": query, "num_documents": num_documents, **kwargs})
-                return self.retriever(**retriever_kwargs)
-            except Exception as e:
-                log_warning(f"Retriever failed: {e}")
-                return None
+                if isinstance(filters, dict):
+                    retriever_kwargs: Dict[str, Any] = {}
+                    if "team" in sig.parameters:
+                        retriever_kwargs = {"team": self}
+                    if "filters" in sig.parameters:
+                        retriever_kwargs["filters"] = filters
+                    retriever_kwargs.update({"query": query, "num_documents": num_documents, **kwargs})
+                    return self.retriever(**retriever_kwargs)
+                else:
+                    log_warning("filters is not of expected type")
+                    return None
 
         try:
             if self.knowledge is None or self.knowledge.vector_db is None:

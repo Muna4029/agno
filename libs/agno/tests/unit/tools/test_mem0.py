@@ -127,7 +127,7 @@ class TestMem0Toolkit:
 
     def test_add_memory_invalid_message_type(self, toolkit_config, mock_memory_instance, dummy_agent):
         toolkit_config.user_id = "user1"
-        result_str = toolkit_config.add_memory(dummy_agent, content=123)
+        result_str = toolkit_config.add_memory(dummy_agent, content="123")
         mock_memory_instance.add.assert_called_once_with(
             [{"role": "user", "content": "123"}],
             user_id="user1",

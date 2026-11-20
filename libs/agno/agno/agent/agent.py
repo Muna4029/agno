@@ -500,6 +500,7 @@ class Agent:
         if self.storage is not None:
             if self.storage.mode in ["workflow", "team"]:
                 log_warning(f"You shouldn't use storage in multiple modes. Current mode is {self.storage.mode}.")
+                return  # Prevent setting to agent mode if in multiple modes
 
             self.storage.mode = "agent"
 
@@ -526,7 +527,7 @@ class Agent:
                     "Agno agents use `openai` as the default model provider. "
                     "Please provide a `model` or install `openai`."
                 )
-                exit(1)
+                raise RuntimeError("OpenAI model not available. Please install `openai`.")
 
             log_info("Setting default model to OpenAI Chat")
             self.model = OpenAIChat(id="gpt-4o")
@@ -540,7 +541,8 @@ class Agent:
 
         if self.num_history_responses is not None:
             self.num_history_runs = self.num_history_responses
-
+        else:
+            self.num_history_runs = 0  # Default value to avoid potential issues
     def initialize_agent(self) -> None:
         self.set_defaults()
         self.set_default_model()
@@ -555,8 +557,11 @@ class Agent:
 
         # Default to the agent's model if no model is provided
         if isinstance(self.memory, Memory):
-            if self.memory.model is None and self.model is not None:
-                self.memory.set_model(self.model)
+            if self.memory.model is None:
+                if self.model is not None:
+                    self.memory.set_model(self.model)
+                else:
+                    log_warning("No model set for memory, defaulting to None.")
 
         if self._formatter is None:
             self._formatter = SafeFormatter()
@@ -615,7 +620,10 @@ class Agent:
             tool_call_limit=self.tool_call_limit,
         )
 
-        self._update_run_response(model_response=model_response, run_response=run_response, run_messages=run_messages)
+        if model_response is None or run_response is None:
+            log_warning("Model response or run response is None, skipping update.")
+        else:
+            self._update_run_response(model_response=model_response, run_response=run_response, run_messages=run_messages)
 
         # We should break out of the run function
         if any(
@@ -637,10 +645,16 @@ class Agent:
         )
 
         # 5. Save session to storage
-        self.write_to_storage(user_id=user_id, session_id=session_id)
+        if user_id is None or session_id is None:
+            log_warning("User ID or Session ID is None, skipping write to storage.")
+        else:
+            self.write_to_storage(user_id=user_id, session_id=session_id)
 
         # 6. Save output to file if save_response_to_file is set
-        self.save_run_response_to_file(message=message, session_id=session_id)
+        if message is None or session_id is None:
+            log_warning("Message or Session ID is None, skipping save to file.")
+        else:
+            self.save_run_response_to_file(message=message, session_id=session_id)
 
         # Log Agent Run
         self._log_agent_run(user_id=user_id, session_id=session_id)
@@ -901,7 +915,9 @@ class Agent:
                     else:
                         self.run_input = message
                 elif messages is not None:
-                    self.run_input = [m.to_dict() if isinstance(m, Message) else m for m in messages]
+                    if not all(isinstance(m, (Message, dict)) for m in messages):
+                    raise TypeError("All items in messages must be of type Message or dict")
+                self.run_input = [m.to_dict() if isinstance(m, Message) else m for m in messages]
 
                 # Prepare run messages
                 run_messages: RunMessages = self.get_run_messages(
@@ -1243,6 +1259,9 @@ class Agent:
 
         # Prepare arguments for the model
         self.set_default_model()
+        if session_id is None:
+            raise ValueError("Session ID cannot be None")
+
         response_format = self._get_response_format()
         self.model = cast(Model, self.model)
 
@@ -1480,7 +1499,13 @@ class Agent:
             self.run_response = run_response
             self.run_id = run_response.run_id
         else:
-            self.run_response = cast(RunResponse, self.run_response)
+            if not isinstance(self.run_response, RunResponse):
+                log_warning("self.run_response is not of type RunResponse, cannot cast.")
+            else:
+                if not isinstance(self.run_response, RunResponse):
+                log_warning("self.run_response is not of type RunResponse, cannot cast.")
+            else:
+                self.run_response = cast(RunResponse, self.run_response)
             # We are continuing from a previous run
             run_response = self.run_response
             messages = self.run_response.messages or []
@@ -2498,7 +2523,13 @@ class Agent:
                 self.memory.update_summary()
 
             # 4. Calculate session metrics
-            self.session_metrics = self.calculate_metrics(self.memory.messages)
+            if not isinstance(self.memory.messages, list):
+                log_warning("self.memory.messages is not a list, cannot calculate metrics.")
+            else:
+                if not isinstance(self.memory.messages, list):
+                log_warning("self.memory.messages is not a list, cannot calculate metrics.")
+            else:
+                self.session_metrics = self.calculate_metrics(self.memory.messages)
         elif isinstance(self.memory, Memory):
             # Add AgentRun to memory
             self.memory.add_run(session_id=session_id, run=run_response)
@@ -2507,7 +2538,14 @@ class Agent:
 
             # 4. Calculate session metrics
             if self.session_metrics is None:
-                self.session_metrics = self.calculate_metrics(run_messages.messages)  # Calculate metrics for the run
+                if not isinstance(run_messages.messages, list):
+                log_warning("run_messages.messages is not a list, cannot calculate metrics.")
+            else:
+                if not isinstance(run_messages.messages, list):
+                log_warning("run_messages.messages is not a list, cannot calculate metrics.")
+            else:
+                self.session_metrics = self.calculate_metrics(run_messages.messages)
+  # Calculate metrics for the run
             else:
                 self.session_metrics += self.calculate_metrics(
                     run_messages.messages
@@ -3494,6 +3532,8 @@ class Agent:
 
         # If we haven't instantiated the memory yet, set it to the memory from the database
         if self.memory is None:
+            if not isinstance(session.memory, (AgentMemory, Memory)):
+                raise TypeError("session.memory must be of type AgentMemory or Memory")
             self.memory = session.memory  # type: ignore
 
         if not (isinstance(self.memory, AgentMemory) or isinstance(self.memory, Memory)):
@@ -3553,14 +3593,20 @@ class Agent:
                 if "runs" in session.memory:
                     try:
                         if self.memory.runs is None:
-                            self.memory.runs = {}
+                            if not isinstance(self.memory.runs, dict):
+                    raise TypeError("self.memory.runs must be a dictionary")
+                self.memory.runs = {}
                         self.memory.runs[session.session_id] = []
                         for run in session.memory["runs"]:
                             run_session_id = run["session_id"]
                             if "team_id" in run:
-                                self.memory.runs[run_session_id].append(TeamRunResponse.from_dict(run))
+                                if run_session_id not in self.memory.runs:
+                                self.memory.runs[run_session_id] = []
+                            self.memory.runs[run_session_id].append(TeamRunResponse.from_dict(run))
                             else:
-                                self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
+                                if run_session_id not in self.memory.runs:
+                                self.memory.runs[run_session_id] = []
+                            self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
                     except Exception as e:
                         log_warning(f"Failed to load runs from memory: {e}")
                 if "memories" in session.memory:
@@ -3572,6 +3618,8 @@ class Agent:
                             pass
                         # If memories do not exist, we load them from the session memory for the current user
                         else:
+                            if not isinstance(session.memory["memories"], dict):
+                                raise TypeError("session.memory['memories'] must be a dictionary")
                             self.memory.memories = {
                                 user_id: {
                                     memory_id: UserMemoryV2.from_dict(memory)
@@ -3585,6 +3633,8 @@ class Agent:
                     from agno.memory.v2.memory import SessionSummary as SessionSummaryV2
 
                     try:
+                        if not isinstance(session.memory["summaries"], dict):
+                            raise TypeError("session.memory['summaries'] must be a dictionary")
                         self.memory.summaries = {
                             user_id: {
                                 session_id: SessionSummaryV2.from_dict(summary)
@@ -3681,7 +3731,8 @@ class Agent:
                 # and populate self.agent_session with the new session
                 self.write_to_storage(user_id=self.user_id, session_id=self.session_id)  # type: ignore
                 if self.agent_session is None:
-                    raise Exception("Failed to create new AgentSession in storage")
+                    log_warning("Failed to create new AgentSession in storage")
+                    raise RuntimeError("Failed to create new AgentSession in storage")
                 log_debug(f"-*- Created AgentSession: {self.agent_session.session_id}")
                 self._log_agent_session(user_id=self.user_id, session_id=self.session_id)  # type: ignore
         return self.session_id
@@ -4777,6 +4828,10 @@ class Agent:
 
         import json
 
+        if not isinstance(context, dict):
+            log_warning("Context must be a dictionary for JSON serialization")
+            return "{}"
+
         try:
             return json.dumps(context, indent=2, default=str)
         except (TypeError, ValueError, OverflowError) as e:
@@ -4824,9 +4879,12 @@ class Agent:
                 if isinstance(self.run_response.content, str):
                     fn_path.write_text(self.run_response.content)
                 else:
-                    import json
+                    if self.run_response.content is None:
+                        log_warning("Run response content is None, cannot save to file.")
+                    else:
+                        import json
 
-                    fn_path.write_text(json.dumps(self.run_response.content, indent=2))
+                        fn_path.write_text(json.dumps(self.run_response.content, indent=2))
             except Exception as e:
                 log_warning(f"Failed to save output to file: {e}")
 
@@ -4896,7 +4954,8 @@ class Agent:
         """Rename the Agent and save to storage"""
 
         if self.session_id is None and session_id is None:
-            raise Exception("Session ID is not set")
+            log_warning("Session ID is not set")
+            raise RuntimeError("Session ID is not set")
 
         session_id = session_id or self.session_id
 
@@ -4913,7 +4972,8 @@ class Agent:
         """Rename the current session and save to storage"""
 
         if self.session_id is None and session_id is None:
-            raise Exception("Session ID is not set")
+            log_warning("Session ID is not set")
+            raise RuntimeError("Session ID is not set")
 
         session_id = session_id or self.session_id
 
@@ -4930,7 +4990,8 @@ class Agent:
         """Generate a name for the session using the first 6 messages from the memory"""
 
         if self.model is None:
-            raise Exception("Model not set")
+            log_warning("Model not set")
+            raise RuntimeError("Model not set")
 
         gen_session_name_prompt = "Conversation\n"
         messages_for_generating_session_name = []
@@ -4971,7 +5032,8 @@ class Agent:
         """Automatically rename the session and save to storage"""
 
         if self.session_id is None:
-            raise Exception("Session ID is not set")
+            log_warning("Session ID is not set")
+            raise RuntimeError("Session ID is not set")
 
         # -*- Read from storage
         self.read_from_storage(session_id=self.session_id, user_id=self.user_id)  # type: ignore
@@ -5465,9 +5527,12 @@ class Agent:
                 step_count += 1
                 try:
                     # Run the reasoning agent
-                    reasoning_agent_response: RunResponse = await reasoning_agent.arun(
+                    reasoning_agent_response = await reasoning_agent.arun(
                         messages=run_messages.get_input_messages()
                     )
+                    if not isinstance(reasoning_agent_response, RunResponse):
+                        log_warning("Reasoning agent did not return a valid RunResponse.")
+                        break
                     if reasoning_agent_response.content is None or reasoning_agent_response.messages is None:
                         log_warning("Reasoning error. Reasoning response is empty, continuing regular session...")
                         break
@@ -5748,6 +5813,7 @@ class Agent:
 
             # Get the relevant documents from the knowledge base, passing filters
             self.run_response = cast(RunResponse, self.run_response)
+            from agno.utils.timer import Timer  # Ensure Timer is imported
             retrieval_timer = Timer()
             retrieval_timer.start()
             docs_from_knowledge = self.get_relevant_docs_from_knowledge(query=query, filters=search_filters)
