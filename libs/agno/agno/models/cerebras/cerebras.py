@@ -160,7 +160,12 @@ class Cerebras(Model):
             request_params["parallel_tool_calls"] = False
 
         # Handle response format for structured outputs
-        if self.response_format["type"] == "json_schema" and "json_schema" in self.response_format:
+        if (
+            isinstance(self.response_format, dict)
+            and "type" in self.response_format
+            and self.response_format["type"] == "json_schema"
+            and "json_schema" in self.response_format
+        ):
             # Ensure json_schema has strict=True as required by Cerebras API-- Reference: https://arc.net/l/quote/tkifovqh
             schema = self.response_format["json_schema"]
             if isinstance(schema, dict) and "schema" in schema:
@@ -326,8 +331,8 @@ class Cerebras(Model):
                         "id": tool_call.id,
                         "type": tool_call.type,
                         "function": {
-                            "name": tool_call.function.name,  # type: ignore
-                            "arguments": tool_call.function.arguments,  # type: ignore
+                            "name": getattr(tool_call.function, "name", None),  # type: ignore
+                            "arguments": getattr(tool_call.function, "arguments", None),  # type: ignore
                         },
                     }
                     for tool_call in message.tool_calls
@@ -372,8 +377,8 @@ class Cerebras(Model):
                     "id": tool_call.id,
                     "type": tool_call.type,
                     "function": {
-                        "name": tool_call.function.name,  # type: ignore
-                        "arguments": tool_call.function.arguments,  # type: ignore
+                        "name": getattr(tool_call.function, "name", None),  # type: ignore
+                        "arguments": getattr(tool_call.function, "arguments", None),  # type: ignore
                     },
                 }
                 for tool_call in delta.tool_calls
