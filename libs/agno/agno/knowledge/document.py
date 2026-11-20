@@ -18,7 +18,7 @@ class DocumentKnowledgeBase(AgentKnowledge):
         """
         if self.documents is None:
             # Return empty iterator when no documents are set
-            return
+            return iter([])
 
         for item in self.documents:
             if isinstance(item, dict) and "document" in item:
@@ -57,7 +57,7 @@ class DocumentKnowledgeBase(AgentKnowledge):
         """
         if self.documents is None:
             # Return empty iterator when no documents are set
-            return
+            return async iter([])
 
         for item in self.documents:
             if isinstance(item, dict) and "document" in item:
@@ -160,6 +160,10 @@ class DocumentKnowledgeBase(AgentKnowledge):
 
         # Use our document-specific preparation method
         if not self._prepare_document_load(metadata, recreate):
+            return
+        if document is None:
+            return
+        if document is None:
             return
 
         # Apply metadata if provided
