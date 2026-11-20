@@ -154,7 +154,7 @@ def test_edit_file_no_response_content(mock_morph_tools, mock_failed_response):
     mock_morph_tools._morph_client.chat.completions.create.return_value = mock_failed_response
 
     with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=original_content)):
+        with patch("builtins.open", mock_open(read_data=original_content)) as mock_file:
             result = mock_morph_tools.edit_file(
                 target_file=target_file, instructions="test instruction", code_edit="test edit"
             )

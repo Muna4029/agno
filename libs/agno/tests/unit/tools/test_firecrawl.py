@@ -7,6 +7,9 @@ from unittest.mock import Mock, patch
 import pytest
 from firecrawl import FirecrawlApp
 
+# mock_file is defined but never used
+, ScrapeOptions
+
 from agno.tools.firecrawl import FirecrawlTools
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
