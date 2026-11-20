@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from agno.tools.function import Function
 from agno.utils.log import log_debug, log_warning, logger
@@ -135,9 +135,8 @@ class Toolkit:
             )
             self.functions[f.name] = f
             log_debug(f"Function: {f.name} registered with {self.name}")
-        except Exception as e:
+        except Exception:
             logger.warning(f"Failed to create Function for: {function.__name__}")
-            raise e
 
     def __repr__(self):
         return f"<{self.__class__.__name__} name={self.name} functions={list(self.functions.keys())}>"

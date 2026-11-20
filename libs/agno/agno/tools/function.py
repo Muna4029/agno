@@ -53,7 +53,7 @@ class UserInputField:
     def from_dict(cls, data: Dict[str, Any]) -> "UserInputField":
         return cls(
             name=data["name"],
-            field_type=eval(data["field_type"]),  # Convert string type name to actual type
+            field_type=globals().get(data["field_type"], str),  # Convert string type name to actual type safely
             description=data["description"],
             value=data["value"],
         )
