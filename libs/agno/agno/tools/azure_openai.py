@@ -41,8 +41,10 @@ class AzureOpenAITools(Toolkit):
         # Log warnings for missing credentials
         if not self.api_key:
             logger.error("AZURE_OPENAI_API_KEY not set")
+            raise ValueError("Missing Azure OpenAI API Key")
         if not self.azure_endpoint:
             logger.error("AZURE_OPENAI_ENDPOINT not set")
+            raise ValueError("Missing Azure OpenAI Endpoint")
 
         # Initialize DALL-E parameters
         self.dalle_deployment = dalle_deployment or getenv("AZURE_OPENAI_IMAGE_DEPLOYMENT")
