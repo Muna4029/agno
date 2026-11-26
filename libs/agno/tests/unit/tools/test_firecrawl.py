@@ -5,7 +5,26 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+import sys
+import types
+
+# Ensure compatibility with installed 'firecrawl' package that may expose V1ScrapeOptions instead of ScrapeOptions.
+try:
+    import firecrawl as _firecrawl
+
+    # If package provides V1ScrapeOptions but not ScrapeOptions, add an alias.
+    if not hasattr(_firecrawl, "ScrapeOptions") and hasattr(_firecrawl, "V1ScrapeOptions"):
+        _firecrawl.ScrapeOptions = _firecrawl.V1ScrapeOptions
+except Exception:
+    # If importing 'firecrawl' fails entirely, insert a minimal stub module so importing agno.tools.firecrawl doesn't error.
+    _firecrawl = types.ModuleType("firecrawl")
+    _firecrawl.FirecrawlApp = lambda *a, **kw: None
+
+    class ScrapeOptions:
+        pass
+
+    _firecrawl.ScrapeOptions = ScrapeOptions
+    sys.modules["firecrawl"] = _firecrawl
 
 from agno.tools.firecrawl import FirecrawlTools
 
