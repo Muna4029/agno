@@ -273,7 +273,9 @@ class AgentMemory(BaseModel):
 
         self.classifier.existing_memories = self.memories
         classifier_response = self.classifier.run(input)
-        if classifier_response.lower() == "yes":
+
+        # Protect against None or non-string responses from the classifier
+        if isinstance(classifier_response, str) and classifier_response.lower() == "yes":
             return True
         return False
 
@@ -286,7 +288,9 @@ class AgentMemory(BaseModel):
 
         self.classifier.existing_memories = self.memories
         classifier_response = await self.classifier.arun(input)
-        if classifier_response.lower() == "yes":
+
+        # Protect against None or non-string responses from the classifier
+        if isinstance(classifier_response, str) and classifier_response.lower() == "yes":
             return True
         return False
 

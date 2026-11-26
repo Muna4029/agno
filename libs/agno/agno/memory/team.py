@@ -326,7 +326,8 @@ class TeamMemory:
 
         self.classifier.existing_memories = self.memories
         classifier_response = await self.classifier.arun(input)
-        if classifier_response.lower() == "yes":
+        # Guard against None responses from the classifier before calling .lower()
+        if classifier_response is not None and classifier_response.lower().strip() == "yes":
             return True
         return False
 

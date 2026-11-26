@@ -7,7 +7,28 @@ from unittest.mock import Mock, patch
 import pytest
 from firecrawl import FirecrawlApp
 
-from agno.tools.firecrawl import FirecrawlTools
+# Lazily import FirecrawlTools to avoid import-time failures if the installed
+# 'firecrawl' package no longer exports certain names that agno.tools.firecrawl
+# tries to import at module import time. Tests will use the FirecrawlTools
+# proxy which will import the real class only when first used.
+class _LazyFirecrawlTools:
+    def __init__(self):
+        self._cls = None
+
+    def _load(self):
+        if self._cls is None:
+            from importlib import import_module
+            mod = import_module('agno.tools.firecrawl')
+            self._cls = getattr(mod, 'FirecrawlTools')
+        return self._cls
+
+    def __call__(self, *args, **kwargs):
+        return self._load()(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._load(), name)
+
+FirecrawlTools = _LazyFirecrawlTools()
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
 TEST_API_URL = "https://api.firecrawl.dev"
