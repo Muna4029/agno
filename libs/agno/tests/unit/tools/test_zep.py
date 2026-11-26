@@ -2,6 +2,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+# Ensure tests are skipped if the optional external dependency is not installed
+pytest.importorskip("zep-cloud")
 from agno.tools.zep import ZepAsyncTools, ZepTools
 
 # Test data
