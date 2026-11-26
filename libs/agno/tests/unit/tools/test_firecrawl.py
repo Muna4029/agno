@@ -7,6 +7,12 @@ from unittest.mock import Mock, patch
 import pytest
 from firecrawl import FirecrawlApp
 
+try:
+    from firecrawl import ScrapeOptions
+except ImportError:
+    # Compatibility: newer versions of firecrawl renamed ScrapeOptions to V1ScrapeOptions
+    pass
+
 from agno.tools.firecrawl import FirecrawlTools
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
