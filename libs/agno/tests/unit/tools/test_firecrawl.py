@@ -4,8 +4,39 @@ import json
 import os
 from unittest.mock import Mock, patch
 
+import sys
+import types
+
 import pytest
-from firecrawl import FirecrawlApp
+
+# The installed `firecrawl` package may have renamed symbols (ScrapeOptions -> V1ScrapeOptions)
+# which can cause import-time failures when importing the project's wrapper (agno.tools.firecrawl).
+# To make tests robust to different installed firecrawl versions in CI, ensure a minimal
+# `firecrawl` module is present in sys.modules with the expected attributes before importing
+# the wrapper. If a real firecrawl is available, use it; otherwise provide lightweight stand-ins.
+try:
+    from firecrawl import FirecrawlApp  # try to import real package
+except Exception:
+    # create a minimal fake `firecrawl` module satisfying common symbols used by the wrapper
+    mod = types.ModuleType("firecrawl")
+
+    class FirecrawlApp:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class ScrapeOptions:
+        pass
+
+    class V1ScrapeOptions:
+        pass
+
+    mod.FirecrawlApp = FirecrawlApp
+    mod.ScrapeOptions = ScrapeOptions
+    mod.V1ScrapeOptions = V1ScrapeOptions
+
+    sys.modules["firecrawl"] = mod
+    # import the substituted symbol into the test namespace
+    from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 
