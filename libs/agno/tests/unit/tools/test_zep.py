@@ -2,7 +2,14 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+try:
+    from agno.tools.zep import ZepAsyncTools, ZepTools
+except ImportError:
+    # Allow tests to be collected even if the optional `zep-cloud` dependency
+    # (used by agno.tools.zep) is not installed. Tests that require the real
+    # implementation should mock or skip accordingly.
+    ZepAsyncTools = None
+    ZepTools = None
 
 # Test data
 MOCK_API_KEY = "test_api_key"

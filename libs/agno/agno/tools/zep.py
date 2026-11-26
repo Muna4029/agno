@@ -3,6 +3,14 @@ from os import getenv
 from textwrap import dedent
 from typing import List, Optional
 
+# The zep-cloud library is an optional runtime dependency. Import it if available
+# but do not raise at import time so test collection and other consumers that
+# don't need Zep functionality won't fail.
+try:
+    import zep  # type: ignore
+except Exception:
+    zep = None
+
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_warning
 
