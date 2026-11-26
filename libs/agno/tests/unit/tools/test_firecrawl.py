@@ -7,7 +7,21 @@ from unittest.mock import Mock, patch
 import pytest
 from firecrawl import FirecrawlApp
 
-from agno.tools.firecrawl import FirecrawlTools
+# agno.tools.firecrawl historically imported `ScrapeOptions` from the
+# third-party `firecrawl` package. Newer versions renamed it to
+# `V1ScrapeOptions`, which causes an ImportError during test collection.
+# To preserve compatibility at import time, if the direct import fails,
+# detect the renamed symbol on the already-imported `firecrawl` module
+# and alias it back to `ScrapeOptions`, then retry the import.
+try:
+    from agno.tools.firecrawl import FirecrawlTools
+except ImportError:
+    import firecrawl as _firecrawl
+    # If the package exposes V1ScrapeOptions but not ScrapeOptions, create the alias
+    if hasattr(_firecrawl, "V1ScrapeOptions") and not hasattr(_firecrawl, "ScrapeOptions"):
+        setattr(_firecrawl, "ScrapeOptions", getattr(_firecrawl, "V1ScrapeOptions"))
+    # Retry the import after fixing compatibility
+    from agno.tools.firecrawl import FirecrawlTools
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
 TEST_API_URL = "https://api.firecrawl.dev"
