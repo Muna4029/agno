@@ -2,7 +2,27 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+# Import the real Zep classes if available, but avoid importing at module
+# collection time to prevent pytest from failing when optional dependencies
+# (like zep-cloud) are not installed. If the import fails, provide a
+# lightweight lazy loader that defers the actual import until the class
+# is instantiated or an attribute is accessed inside a test.
+try:
+    from agno.tools.zep import ZepAsyncTools, ZepTools
+except Exception:
+    class _LazyLoader:
+        def __init__(self, name):
+            self._name = name
+        def __call__(self, *args, **kwargs):
+            module = __import__("agno.tools.zep", fromlist=[self._name])
+            cls = getattr(module, self._name)
+            return cls(*args, **kwargs)
+        def __getattr__(self, item):
+            module = __import__("agno.tools.zep", fromlist=[self._name])
+            cls = getattr(module, self._name)
+            return getattr(cls, item)
+    ZepAsyncTools = _LazyLoader("ZepAsyncTools")
+    ZepTools = _LazyLoader("ZepTools")
 
 # Test data
 MOCK_API_KEY = "test_api_key"
