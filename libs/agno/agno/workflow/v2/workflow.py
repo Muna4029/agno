@@ -3212,6 +3212,10 @@ class Workflow:
         from agno.workflow.v2.router import Router
         from agno.workflow.v2.steps import Steps
 
+        # Ensure workflow_session_state is a dict (narrow Optional for type checkers)
+        if self.workflow_session_state is None:
+            self.workflow_session_state = {}
+
         for step in steps_list:
             if isinstance(step, Step):
                 executor = step.active_executor

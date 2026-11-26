@@ -1,5 +1,3 @@
-from typing import Any
-
 import requests
 
 from agno.agent.agent import Agent
@@ -8,7 +6,7 @@ from agno.models.litellm import LiteLLMOpenAI
 from agno.tools.duckduckgo import DuckDuckGoTools
 
 
-def _get_audio_input() -> bytes | Any:
+def _get_audio_input() -> bytes:
     """Fetch an example audio file and return it as base64 encoded string"""
     url = "https://openaiassets.blob.core.windows.net/$web/API/docs/audio/alloy.wav"
     response = requests.get(url)
