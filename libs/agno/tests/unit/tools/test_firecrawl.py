@@ -7,7 +7,22 @@ from unittest.mock import Mock, patch
 import pytest
 from firecrawl import FirecrawlApp
 
-from agno.tools.firecrawl import FirecrawlTools
+# Import FirecrawlTools if available; if importing agno.tools.firecrawl fails
+# (e.g., due to third-party changes in firecrawl), provide a proxy stub that
+# defers error until the tests actually try to instantiate/use it.
+try:
+    from agno.tools.firecrawl import FirecrawlTools as _RealFirecrawlTools
+except Exception:
+    _RealFirecrawlTools = None
+
+    class FirecrawlTools:
+        def __init__(self, *args, **kwargs):
+            if _RealFirecrawlTools is None:
+                raise RuntimeError("agno.tools.firecrawl.FirecrawlTools is unavailable in this test environment")
+            self._impl = _RealFirecrawlTools(*args, **kwargs)
+
+        def __getattr__(self, name):
+            return getattr(self._impl, name)
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
 TEST_API_URL = "https://api.firecrawl.dev"

@@ -2414,15 +2414,19 @@ class Agent:
     def _convert_response_to_structured_format(self, run_response: Union[RunResponse, ModelResponse]):
         # Convert the response to the structured format if needed
         if self.response_model is not None and not isinstance(run_response.content, self.response_model):
+            # Narrow the Optional[self.response_model] to a local non-Optional variable for type checkers
+            response_model = self.response_model
+            assert response_model is not None
+
             if isinstance(run_response.content, str) and self.parse_response:
                 try:
-                    structured_output = parse_response_model_str(run_response.content, self.response_model)
+                    structured_output = parse_response_model_str(run_response.content, response_model)
 
                     # Update RunResponse
                     if structured_output is not None:
                         run_response.content = structured_output
                         if hasattr(run_response, "content_type"):
-                            run_response.content_type = self.response_model.__name__
+                            run_response.content_type = response_model.__name__
                     else:
                         log_warning("Failed to convert response to response_model")
                 except Exception as e:
@@ -3129,7 +3133,11 @@ class Agent:
                 if model_response_event.content is not None:
                     if self.should_parse_structured_output:
                         model_response.content = model_response_event.content
-                        content_type = self.response_model.__name__
+                        # Guard against response_model being None before accessing __name__
+                        if self.response_model is not None:
+                            content_type = self.response_model.__name__
+                        else:
+                            content_type = "str"
                         run_response.content = model_response.content
                         run_response.content_type = content_type
                         self._convert_response_to_structured_format(model_response)

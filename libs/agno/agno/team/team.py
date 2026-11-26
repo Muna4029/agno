@@ -4143,13 +4143,13 @@ class Team:
                 log_warning("Reasoning error. Reasoning agent is None, continuing regular session...")
                 return
             # Ensure the reasoning agent response model is ReasoningSteps
-            if (
-                reasoning_agent.response_model is not None
-                and not isinstance(reasoning_agent.response_model, type)
-                and not issubclass(reasoning_agent.response_model, ReasoningSteps)
-            ):
-                log_warning("Reasoning agent response model should be `ReasoningSteps`, continuing regular session...")
-                return
+            # Ensure the reasoning agent response model is a type and is ReasoningSteps
+            resp_model = reasoning_agent.response_model
+            if resp_model is not None:
+                # If it's not a type OR it's not a subclass of ReasoningSteps, bail out
+                if (not isinstance(resp_model, type)) or (not issubclass(resp_model, ReasoningSteps)):
+                    log_warning("Reasoning agent response model should be `ReasoningSteps`, continuing regular session...")
+                    return
             # Ensure the reasoning model and agent do not show tool calls
             reasoning_agent.show_tool_calls = False
 
@@ -4198,7 +4198,8 @@ class Team:
                         len(reasoning_agent_response.messages),
                     )
                     # Extract reasoning messages starting from the message after the first assistant message
-                    reasoning_messages = reasoning_agent_response.messages[first_assistant_index:]
+                    start_idx = min(first_assistant_index + 1, len(reasoning_agent_response.messages))
+                    reasoning_messages = reasoning_agent_response.messages[start_idx:]
 
                     # Add reasoning step to the Agent's run_response
                     update_run_response_with_reasoning(
@@ -5320,7 +5321,7 @@ class Team:
                 json_output_prompt += "\n<json_fields>"
                 json_output_prompt += f"\n{json.dumps(self.response_model)}"
                 json_output_prompt += "\n</json_fields>"
-            elif issubclass(self.response_model, BaseModel):
+            elif isinstance(self.response_model, type) and issubclass(self.response_model, BaseModel):
                 json_schema = self.response_model.model_json_schema()
                 if json_schema is not None:
                     response_model_properties = {}
@@ -6147,40 +6148,39 @@ class Team:
         """
         Get the ID of a member
         """
+        url_safe_member_id: str = ""
         if isinstance(member, Agent) and member.agent_id is not None and (not is_valid_uuid(member.agent_id)):
             url_safe_member_id = url_safe_string(member.agent_id)
         elif isinstance(member, Team) and member.team_id is not None and (not is_valid_uuid(member.team_id)):
             url_safe_member_id = url_safe_string(member.team_id)
-        elif member.name is not None:
+        elif getattr(member, "name", None) is not None:
             url_safe_member_id = url_safe_string(member.name)
-        else:
-            url_safe_member_id = None
+        # If nothing else is available, return an empty string to satisfy the return type
         return url_safe_member_id
 
     def _find_member_by_id(self, member_id: str) -> Optional[Tuple[int, Union[Agent, "Team"]]]:
         """
-        Recursively search through team members and subteams to find an agent by name.
+        Recursively search through team members and subteams to find an agent by id.
 
         Args:
             member_id (str): ID of the agent to find
 
         Returns:
-            Optional[Tuple[int, Union[Agent, "Team"], Optional[str]]]: Tuple containing:
+            Optional[Tuple[int, Union[Agent, "Team"]]]: Tuple containing:
                 - Index of the member in its immediate parent team
-                - The top-level leader agent
+                - The member (Agent or Team)
         """
         # First check direct members
         for i, member in enumerate(self.members):
-            if member.name is not None:
-                url_safe_member_id = self._get_member_id(member)
-                if url_safe_member_id == member_id:
-                    return i, member
+            url_safe_member_id = self._get_member_id(member)
+            if url_safe_member_id == member_id:
+                return i, member
 
             # If this member is a team, search its members recursively
             if isinstance(member, Team):
                 result = member._find_member_by_id(member_id)
                 if result is not None:
-                    # Found in subteam, return with the top-level team member's name
+                    # Found in subteam, return with the top-level team member
                     return i, member
 
         return None
