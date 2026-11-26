@@ -6,6 +6,19 @@ from typing import List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_warning
 
+# Optional import of zep-cloud. Do not raise at module import time if the
+# third-party package is missing; instead, disable Zep integration and log
+# a warning. This prevents test collection from failing when zep-cloud is
+# not installed while still allowing functionality when it is present.
+try:
+    from zep import ZepClient  # type: ignore
+    ZEP_AVAILABLE = True
+except Exception:
+    ZepClient = None  # type: ignore
+    ZEP_AVAILABLE = False
+    log_warning("`zep-cloud` package not found. Zep integration will be disabled. "
+                "Install it with `pip install zep-cloud` to enable Zep features.")
+
 try:
     from zep_cloud import BadRequestError, NotFoundError
     from zep_cloud.client import AsyncZep, Zep

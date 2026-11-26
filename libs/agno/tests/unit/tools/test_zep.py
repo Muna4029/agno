@@ -2,7 +2,10 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+try:
+    from agno.tools.zep import ZepAsyncTools, ZepTools
+except Exception:
+    pytest.skip("Skipping tests requiring zep-cloud package (missing dependency).", allow_module_level=True)
 
 # Test data
 MOCK_API_KEY = "test_api_key"
