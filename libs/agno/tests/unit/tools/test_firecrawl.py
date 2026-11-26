@@ -5,6 +5,12 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
+import firecrawl
+
+# Provide compatibility alias if the installed firecrawl renamed ScrapeOptions -> V1ScrapeOptions
+if not hasattr(firecrawl, "ScrapeOptions") and hasattr(firecrawl, "V1ScrapeOptions"):
+    setattr(firecrawl, "ScrapeOptions", getattr(firecrawl, "V1ScrapeOptions"))
+
 from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
