@@ -6,6 +6,24 @@ from typing import Any, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_warning
 
+# Attempt to import a Zep client from any known package without failing import time
+# If none are available, set ZepClient to None and allow runtime checks to raise
+# more informative errors when functionality is actually used.
+ZepClient = None
+try:
+    # common package name
+    from zep import ZepClient  # type: ignore
+except Exception:
+    try:
+        # alternative package name seen in some distributions
+        from zep_cloud import ZepClient  # type: ignore
+    except Exception:
+        try:
+            # another possible package name
+            from zep_python import ZepClient  # type: ignore
+        except Exception:
+            ZepClient = None
+
 try:
     from zep_cloud import BadRequestError, NotFoundError
     from zep_cloud.client import AsyncZep, Zep

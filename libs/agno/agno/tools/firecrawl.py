@@ -5,6 +5,13 @@ from typing import Any, Dict, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
+# Import firecrawl as an optional dependency to avoid failing import at test collection time.
+# If firecrawl is not installed, set to None and allow runtime code to handle absence.
+try:
+    import firecrawl  # type: ignore
+except Exception:
+    firecrawl = None
+
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:

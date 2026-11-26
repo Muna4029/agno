@@ -1,6 +1,6 @@
 import json
 import pytest
-from typing import Dict, Optional
+from typing import Dict
 
 from agno.tools.function import Function, FunctionCall
 from agno.utils.functions import get_function_call
@@ -94,12 +94,14 @@ def test_get_function_call_non_dict_arguments(sample_functions):
 
 def test_get_function_call_argument(sample_functions):
     """Test argument sanitization for boolean and null values."""
-    arguments = json.dumps({
-        "param1": "None",
-        "param2": "True",
-        "param3": "False",
-        "param4": "  test  ",
-    })
+    arguments = json.dumps(
+        {
+            "param1": "None",
+            "param2": "True",
+            "param3": "False",
+            "param4": "  test  ",
+        }
+    )
 
     result = get_function_call(
         name="test_function",

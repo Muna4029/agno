@@ -2,7 +2,11 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+try:
+    from agno.tools.zep import ZepAsyncTools, ZepTools
+except Exception:
+    # If the optional third-party package is not installed, skip these tests at collection time
+    pytest.skip("`zep-cloud` package not found. Please install it with `pip install zep-cloud`", allow_module_level=True)
 
 # Test data
 MOCK_API_KEY = "test_api_key"
