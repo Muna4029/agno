@@ -9,6 +9,46 @@ from agno.storage.session.team import TeamSession
 from agno.storage.session.workflow import WorkflowSession
 from agno.utils.log import log_debug, log_info, log_warning, logger
 
+# Attempt to import optional SQLAlchemy dependency. Do not raise at import time
+# so test collection / other importers are not disrupted when SQLAlchemy is absent.
+try:
+    import sqlalchemy as sa  # type: ignore
+    from sqlalchemy import (
+        create_engine,
+        MetaData,
+        Table,
+        Column,
+        Integer,
+        String,
+        Text,
+        DateTime,
+        select,
+        and_,
+        func,
+    )
+    SQLALCHEMY_INSTALLED = True
+except Exception:
+    sa = None  # type: ignore
+    create_engine = None
+    MetaData = None
+    Table = None
+    Column = None
+    Integer = None
+    String = None
+    Text = None
+    DateTime = None
+    select = None
+    and_ = None
+    func = None
+    SQLALCHEMY_INSTALLED = False
+    # Log a warning but do not raise an ImportError here; missing SQLAlchemy
+    # will be handled at runtime when storage operations are invoked.
+    try:
+        log_warning("Optional dependency 'sqlalchemy' not installed. SQLite storage functionality will be disabled. Install it with `pip install sqlalchemy` to enable it.")
+    except Exception:
+        # If logging isn't available at import time for some reason, silently ignore.
+        pass
+
 try:
     from sqlalchemy.dialects import sqlite
     from sqlalchemy.engine import Engine, create_engine

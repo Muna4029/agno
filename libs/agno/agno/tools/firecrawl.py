@@ -5,6 +5,17 @@ from typing import Any, Dict, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
+# Optional dependency: firecrawl-py. Import lazily and allow module import
+# to succeed even if the package is not installed. Specific functionality
+# that requires firecrawl will check these symbols at runtime and raise
+# a clearer error if used without the dependency.
+try:
+    from firecrawl import FirecrawlApp, ScrapeOptions
+except Exception:
+    FirecrawlApp = None
+    ScrapeOptions = None
+    logger.warning("Optional dependency 'firecrawl-py' is not installed; FirecrawlTools functionality will be unavailable. Install with 'pip install firecrawl-py'.")
+
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:

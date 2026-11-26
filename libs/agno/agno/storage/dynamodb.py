@@ -86,7 +86,8 @@ class DynamoDbStorage(Storage):
     @mode.setter
     def mode(self, value: Optional[Literal["agent", "team", "workflow"]]) -> None:
         """Set the mode and refresh the table if mode changes."""
-        super(DynamoDbStorage, type(self)).mode.fset(self, value)  # type: ignore
+        # Call the base class setter in a standard, reliable way
+        super().mode = value  # type: ignore
         if value is not None:
             if self.create_table_if_not_exists:
                 self.create()
@@ -214,15 +215,19 @@ class DynamoDbStorage(Storage):
             Optional[Session]: Session object if found, None otherwise.
         """
         try:
+            # Only the primary key (session_id) should be provided to get_item
             key = {"session_id": session_id}
-            if user_id is not None:
-                key["user_id"] = user_id
 
             response = self.table.get_item(Key=key)
             item = response.get("Item", None)
             if item is not None:
                 # Convert Decimal to int or float
                 item = self._deserialize_item(item)
+
+                # If a user_id filter was provided, ensure the returned item matches
+                if user_id is not None and item.get("user_id") != user_id:
+                    return None
+
                 if self.mode == "agent":
                     return AgentSession.from_dict(item)
                 elif self.mode == "team":
@@ -330,6 +335,8 @@ class DynamoDbStorage(Storage):
                     _session: Optional[Session] = None
                     if self.mode == "agent":
                         _session = AgentSession.from_dict(item)
+                    elif self.mode == "team":
+                        _session = TeamSession.from_dict(item)  # type: ignore
                     else:
                         _session = WorkflowSession.from_dict(item)  # type: ignore
                     if _session is not None:
@@ -359,8 +366,11 @@ class DynamoDbStorage(Storage):
                 items = response.get("Items", [])  # type: ignore
                 for item in items:
                     item = self._deserialize_item(item)
+                    _session: Optional[Session] = None
                     if self.mode == "agent":
                         _session = AgentSession.from_dict(item)  # type: ignore
+                    elif self.mode == "team":
+                        _session = TeamSession.from_dict(item)  # type: ignore
                     else:
                         _session = WorkflowSession.from_dict(item)  # type: ignore
                     if _session is not None:
