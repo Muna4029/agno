@@ -1,4 +1,4 @@
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent  # noqa
 from agno.models.meta import LlamaOpenAI
 
 agent = Agent(
