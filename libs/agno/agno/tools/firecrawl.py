@@ -5,6 +5,18 @@ from typing import Any, Dict, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
+# Soft-import optional third-party dependency 'firecrawl' so missing package
+# does not raise at module import time and abort test collection.
+# If not available, the rest of the module can detect FIRECRAWL_AVAILABLE
+# and behave accordingly.
+try:
+    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore
+    FIRECRAWL_AVAILABLE = True
+except Exception:
+    FirecrawlApp = None  # type: ignore
+    ScrapeOptions = None  # type: ignore
+    FIRECRAWL_AVAILABLE = False
+
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:

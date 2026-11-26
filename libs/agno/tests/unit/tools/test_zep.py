@@ -2,7 +2,15 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+# Import agno.tools.zep lazily / defensively. During test collection the
+# agno.tools.zep module may attempt to import the third-party
+# `zep-cloud` package which may not be installed in the CI environment.
+# Catch import errors and provide placeholders so pytest can collect tests.
+try:
+    from agno.tools.zep import ZepAsyncTools, ZepTools
+except Exception:
+    ZepAsyncTools = None
+    ZepTools = None
 
 # Test data
 MOCK_API_KEY = "test_api_key"

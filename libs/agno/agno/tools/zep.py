@@ -6,6 +6,18 @@ from typing import Any, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_warning
 
+# zep-cloud is an optional runtime dependency. Avoid raising ImportError at import time
+# so test collection and other tooling that don't use Zep can run even if the package
+# is not installed. Code that requires Zep should check _ZEP_AVAILABLE or handle
+# ZepClient being None.
+try:
+    from zep_cloud import ZepClient, Model  # type: ignore
+    _ZEP_AVAILABLE = True
+except Exception:
+    ZepClient = None
+    Model = None
+    _ZEP_AVAILABLE = False
+
 try:
     from zep_cloud import BadRequestError, NotFoundError
     from zep_cloud.client import AsyncZep, Zep

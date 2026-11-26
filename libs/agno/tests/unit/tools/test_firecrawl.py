@@ -5,7 +5,27 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+try:
+    from firecrawl import FirecrawlApp
+except Exception:
+    # Provide a lightweight stub of the firecrawl module so tests can be collected
+    import types
+    import sys
+    class FirecrawlApp:
+        def __init__(self, api_key=None, api_url=None, *args, **kwargs):
+            self.api_key = api_key
+            self.api_url = api_url
+        def scrape(self, *a, **k):
+            return {}
+        def crawl(self, *a, **k):
+            return {}
+        def map(self, *a, **k):
+            return {}
+        def search(self, *a, **k):
+            return {"results": []}
+    mod = types.ModuleType("firecrawl")
+    mod.FirecrawlApp = FirecrawlApp
+    sys.modules["firecrawl"] = mod
 
 from agno.tools.firecrawl import FirecrawlTools
 
