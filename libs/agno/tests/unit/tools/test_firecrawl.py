@@ -2,10 +2,26 @@
 
 import json
 import os
+import sys
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+
+# Provide a lightweight mock of the third-party `firecrawl` module so that
+# importing agno.tools.firecrawl during test collection does not fail when
+# the installed `firecrawl` package uses a different public API (e.g. no
+# ScrapeOptions symbol). The mock supplies commonly expected names.
+_mock_firecrawl = Mock()
+_mock_firecrawl.FirecrawlApp = Mock()
+
+
+class _V1ScrapeOptions:
+    pass
+
+
+_mock_firecrawl.V1ScrapeOptions = _V1ScrapeOptions
+_mock_firecrawl.ScrapeOptions = _V1ScrapeOptions
+sys.modules.setdefault("firecrawl", _mock_firecrawl)
 
 from agno.tools.firecrawl import FirecrawlTools
 

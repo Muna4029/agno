@@ -6166,7 +6166,10 @@ class Team:
         """
         # First check direct members
         for i, member in enumerate(self.members):
-            if member.name or member.agent_id is not None:
+            # Safely access attributes that may not exist on Team objects
+            member_name = getattr(member, "name", None)
+            member_agent_id = getattr(member, "agent_id", None)
+            if member_name or member_agent_id is not None:
                 url_safe_member_id = self._get_member_id(member)
                 if url_safe_member_id == member_id:
                     return i, member
