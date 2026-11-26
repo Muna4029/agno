@@ -5,9 +5,13 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
 
-from agno.tools.firecrawl import FirecrawlTools
+# Avoid importing symbols from the installed 'firecrawl' package or
+# agno.tools.firecrawl at module import time because installed versions
+# may be incompatible (e.g. missing ScrapeOptions). Import these lazily
+# inside fixtures/tests where we can control or mock them.
+FirecrawlApp = None
+FirecrawlTools = None
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
 TEST_API_URL = "https://api.firecrawl.dev"
