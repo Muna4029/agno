@@ -43,7 +43,6 @@ class AgentKnowledge(BaseModel):
         """
         raise NotImplementedError
 
-    @property
     async def async_document_lists(self) -> AsyncIterator[List[Document]]:
         """Iterator that yields lists of documents in the knowledge base
         Each object yielded by the iterator is a list of documents.
@@ -189,13 +188,13 @@ class AgentKnowledge(BaseModel):
             upsert (bool): If True, upserts documents to the vector db. Defaults to False.
             skip_existing (bool): If True, skips documents which already exist in the vector db when inserting. Defaults to True.
         """
-        self._aload_init(recreate, upsert)
+        await self._aload_init(recreate, upsert)
         if self.vector_db is None:
             return
 
         log_info("Loading knowledge base")
         num_documents = 0
-        document_iterator = self.async_document_lists
+        document_iterator = self.async_document_lists()
         async for document_list in document_iterator:  # type: ignore
             documents_to_load = document_list
             # Track metadata for filtering capabilities
@@ -273,7 +272,7 @@ class AgentKnowledge(BaseModel):
             skip_existing (bool): If True, skips documents which already exist in the vector db when inserting. Defaults to True.
             filters (Optional[Dict[str, Any]]): Filters to add to each row that can be used to limit results during querying. Defaults to None.
         """
-        self._aload_init(recreate=False, upsert=upsert)
+        await self._aload_init(recreate=False, upsert=upsert)
         if self.vector_db is None:
             return
 
@@ -607,7 +606,7 @@ class AgentKnowledge(BaseModel):
             self._track_metadata_structure(metadata)
 
         # 3. Prepare vector DB
-        self._aload_init(recreate, upsert=False)
+        await self._aload_init(recreate, upsert=False)
         if self.vector_db is None:
             return False
         return True
