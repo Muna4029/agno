@@ -5,7 +5,25 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+
+# The installed 'firecrawl' package may be missing ScrapeOptions (different version).
+# Provide a minimal fallback module with the symbols agno.tools.firecrawl expects,
+# so importing agno.tools.firecrawl during tests does not raise ImportError.
+import sys
+import types
+try:
+    from firecrawl import FirecrawlApp  # try to import real package
+except Exception:
+    dummy = types.ModuleType("firecrawl")
+    class V1ScrapeOptions:  # minimal placeholder
+        pass
+    def FirecrawlApp(*args, **kwargs):
+        raise RuntimeError("Stub FirecrawlApp in tests")
+    dummy.FirecrawlApp = FirecrawlApp
+    dummy.ScrapeOptions = V1ScrapeOptions
+    dummy.V1ScrapeOptions = V1ScrapeOptions
+    sys.modules["firecrawl"] = dummy
+    from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 
