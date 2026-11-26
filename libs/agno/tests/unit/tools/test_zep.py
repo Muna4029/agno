@@ -2,7 +2,20 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+# Importing agno.tools.zep can trigger an ImportError at import time when the
+# external `zep-cloud` package is not installed. Guard the import so test
+# collection doesn't fail; provide lightweight placeholders that raise a clear
+# error if used at runtime.
+try:
+    from agno.tools.zep import ZepAsyncTools, ZepTools
+except Exception:
+    class ZepTools:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("ZepTools cannot be used because the optional 'zep-cloud' dependency is missing.")
+
+    class ZepAsyncTools:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("ZepAsyncTools cannot be used because the optional 'zep-cloud' dependency is missing.")
 
 # Test data
 MOCK_API_KEY = "test_api_key"
