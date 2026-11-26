@@ -26,13 +26,18 @@ from textwrap import dedent
 
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from agno.tools.firecrawl import FirecrawlTools
+try:
+    from agno.tools.firecrawl import FirecrawlTools
+except ImportError:
+    # firecrawl-py is an optional dependency for this example. Defer failure until runtime
+    # so test collection and environments without firecrawl-py don't fail on import.
+    FirecrawlTools = None
 from agno.tools.reasoning import ReasoningTools
 
 competitor_analysis_agent = Agent(
     model=OpenAIChat(id="gpt-4.1"),
     tools=[
-        FirecrawlTools(
+        *([FirecrawlTools(
             search=True,
             crawl=True,
             mapping=True,
@@ -41,7 +46,7 @@ competitor_analysis_agent = Agent(
                 "limit": 2,
             },
             limit=5,
-        ),
+        )] if FirecrawlTools is not None else []),
         ReasoningTools(
             add_instructions=True,
         ),
@@ -194,11 +199,12 @@ competitor_analysis_agent = Agent(
     stream_intermediate_steps=True,
 )
 
-competitor_analysis_agent.print_response(
-    """\
-    Analyze the competitive landscape for Stripe in the payments industry.
-    Focus on their products, pricing models, and market positioning.\
-    """,
-    stream=True,
-    show_full_reasoning=True,
-)
+if __name__ == "__main__":
+    competitor_analysis_agent.print_response(
+        """\
+        Analyze the competitive landscape for Stripe in the payments industry.
+        Focus on their products, pricing models, and market positioning.\
+        """,
+        stream=True,
+        show_full_reasoning=True,
+    )

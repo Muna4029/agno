@@ -24,7 +24,11 @@ from agno.agent import Agent
 from agno.models.openai import OpenAIChat
 from agno.playground import Playground
 from agno.storage.sqlite import SqliteStorage
-from agno.tools.firecrawl import FirecrawlTools
+try:
+    from agno.tools.firecrawl import FirecrawlTools
+except ImportError:
+    # firecrawl-py is optional; avoid import-time failure during test collection
+    FirecrawlTools = None
 from agno.tools.reasoning import ReasoningTools
 
 competitor_analysis_agent = Agent(

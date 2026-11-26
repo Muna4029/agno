@@ -4,7 +4,35 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from agno.tools.crawl4ai import Crawl4aiTools
+# Defer importing the real Crawl4aiTools at module import time to avoid
+# triggering heavy external dependencies during pytest collection.
+# If the real class can be imported, use it; otherwise provide a lazy
+# proxy that imports the real implementation when the class is first
+# instantiated or used in a test.
+try:
+    from agno.tools.crawl4ai import Crawl4aiTools
+except Exception:
+    class Crawl4aiTools:
+        """Lazy proxy for the real Crawl4aiTools to avoid import-time side effects.
+
+        The real implementation will be imported when an instance is created
+        or an attribute is accessed during test execution (not during collection).
+        """
+        def __init__(self, *args, **kwargs):
+            module = __import__("agno.tools.crawl4ai", fromlist=["Crawl4aiTools"])
+            Real = getattr(module, "Crawl4aiTools")
+            # instantiate the real implementation and forward to it
+            object.__setattr__(self, "_real", Real(*args, **kwargs))
+
+        def __getattr__(self, name):
+            return getattr(object.__getattribute__(self, "_real"), name)
+
+        def __setattr__(self, name, value):
+            if name == "_real":
+                object.__setattr__(self, name, value)
+            else:
+                setattr(object.__getattribute__(self, "_real"), name, value)
+
 
 
 @pytest.fixture

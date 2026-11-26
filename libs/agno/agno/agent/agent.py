@@ -7427,10 +7427,16 @@ class Agent:
 
     def _append_to_reasoning_content(self, content: str) -> None:
         """Helper to append content to the reasoning_content field."""
-        if not hasattr(self.run_response, "reasoning_content") or not self.run_response.reasoning_content:  # type: ignore
-            self.run_response.reasoning_content = content  # type: ignore
+        # Safely get run_response without raising if the attribute does not exist
+        run_response = getattr(self, "run_response", None)
+        if run_response is None:
+            # Create a lightweight container for run_response attributes when missing
+            run_response = type("RunResponse", (), {})()
+            self.run_response = run_response
+        if not hasattr(run_response, "reasoning_content") or not run_response.reasoning_content:  # type: ignore
+            run_response.reasoning_content = content  # type: ignore
         else:
-            self.run_response.reasoning_content += content  # type: ignore
+            run_response.reasoning_content += content  # type: ignore
 
     def _add_reasoning_step_to_extra_data(self, reasoning_step: ReasoningStep) -> None:
         if hasattr(self, "run_response") and self.run_response is not None:

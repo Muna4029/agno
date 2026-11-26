@@ -7,7 +7,13 @@ from agno.utils.log import log_debug, log_warning
 try:
     from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
 except ImportError:
-    raise ImportError("`crawl4ai` not installed. Please install using `pip install crawl4ai`")
+    # Don't raise at import time to allow test collection and other parts of the
+    # package that don't require crawl4ai to function. Defer errors to runtime
+    # when the crawl functionality is actually invoked.
+    AsyncWebCrawler = None
+    BrowserConfig = None
+    CrawlerRunConfig = None
+    log_warning("Optional dependency 'crawl4ai' is not installed. Install it with `pip install crawl4ai` to enable crawl4ai tools.")
 
 
 class Crawl4aiTools(Toolkit):

@@ -8,7 +8,11 @@ from unittest.mock import MagicMock, Mock, mock_open, patch
 import pytest
 from google.oauth2.credentials import Credentials
 
-from agno.tools.gmail import GmailTools
+# Import the gmail tools module via pytest.importorskip so that missing
+# optional external dependencies cause the test module to be skipped
+# rather than causing pytest collection to fail with ImportError.
+_gmail_module = pytest.importorskip("agno.tools.gmail", reason="requires agno.tools.gmail and its dependencies")
+GmailTools = _gmail_module.GmailTools
 
 
 @pytest.fixture
