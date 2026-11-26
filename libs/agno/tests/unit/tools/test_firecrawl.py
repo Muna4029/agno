@@ -5,6 +5,10 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
+
+# avoid raising ImportError at module import time when the optional dependency is missing;
+# if 'firecrawl' is not installed, pytest.importorskip will skip the whole test module
+firecrawl = pytest.importorskip("firecrawl")
 from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
