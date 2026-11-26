@@ -1,10 +1,27 @@
 import uuid
 from os import getenv
 from textwrap import dedent
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error, log_warning
+
+# Make the optional third-party "zep-cloud" dependency non-fatal at import time.
+# If the package is not installed we set Client and Message to None and allow
+# the rest of the module (and test collection) to proceed. Code that needs
+# zep should check for None and handle accordingly.
+if TYPE_CHECKING:
+    # For type checkers, attempt to import the real types if available.
+    try:
+        from zep import Client, Message  # type: ignore
+    except Exception:
+        Client = Message = None  # type: ignore
+else:
+    try:
+        from zep import Client, Message  # zep-cloud is optional
+    except Exception:
+        Client = None
+        Message = None
 
 try:
     from zep_cloud import BadRequestError, NotFoundError
