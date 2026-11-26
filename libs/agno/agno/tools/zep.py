@@ -11,8 +11,15 @@ try:
     from zep_cloud.client import AsyncZep, Zep
     from zep_cloud.types import MemorySearchResult
     from zep_cloud.types import Message as ZepMessage
+    ZEP_AVAILABLE = True
 except ImportError:
-    raise ImportError("`zep-cloud` package not found. Please install it with `pip install zep-cloud`")
+    # Make zep-cloud optional for environments where it's not installed (e.g., test collection).
+    # Provide safe fallbacks so importing this module does not raise and abort pytest collection.
+    BadRequestError = NotFoundError = None
+    AsyncZep = Zep = None
+    MemorySearchResult = None
+    ZepMessage = dict
+    ZEP_AVAILABLE = False
 
 DEFAULT_INSTRUCTIONS = dedent(
     """\

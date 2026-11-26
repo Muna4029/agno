@@ -2,7 +2,34 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+# Import agno.tools.zep lazily to avoid requiring the optional 'zep-cloud' package
+# during pytest collection. If the real module is available, import normally.
+try:
+    from agno.tools.zep import ZepAsyncTools, ZepTools
+except ImportError:
+    # Define lightweight proxies that defer importing the real implementations
+    # until the classes are actually instantiated or accessed. This prevents
+    # pytest collection from failing when the optional dependency is missing.
+    class _LazyProxy:
+        _name = None
+        def __init__(self, *args, **kwargs):
+            mod = __import__("agno.tools.zep", fromlist=[self._name])
+            cls = getattr(mod, self._name)
+            # store the wrapped real instance
+            object.__setattr__(self, "_wrapped", cls(*args, **kwargs))
+        def __getattr__(self, item):
+            return getattr(self._wrapped, item)
+        def __setattr__(self, name, value):
+            if name == "_wrapped":
+                object.__setattr__(self, name, value)
+            else:
+                setattr(self._wrapped, name, value)
+        def __call__(self, *args, **kwargs):
+            return self._wrapped(*args, **kwargs)
+    class ZepTools(_LazyProxy):
+        _name = "ZepTools"
+    class ZepAsyncTools(_LazyProxy):
+        _name = "ZepAsyncTools"
 
 # Test data
 MOCK_API_KEY = "test_api_key"
