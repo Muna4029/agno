@@ -8,7 +8,6 @@ from typing import Any, Dict
 
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from agno.tools import tool
 from agno.tools.toolkit import Toolkit
 from agno.tools.user_control_flow import UserControlFlowTools
 from agno.utils import pprint
@@ -24,7 +23,7 @@ class EmailTools(Toolkit):
         """Send an email to the given address with the given subject and body."""
         return f"Sent email to {to_address} with subject {subject} and body {body}"
 
-    def get_emails(self, date_from: str, date_to: str) -> str:
+    def get_emails(self, date_from: str, date_to: str) -> list[Dict[str, Any]]:
         return [
             {
                 "subject": "Hello",

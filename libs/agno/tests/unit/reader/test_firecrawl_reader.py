@@ -4,6 +4,10 @@ import pytest
 
 from agno.document.base import Document
 from agno.document.chunking.fixed import FixedSizeChunking
+
+# Ensure tests are skipped at collection time if the optional external
+# dependency is not installed to avoid ImportError during pytest collection.
+pytest.importorskip("firecrawl", reason="requires firecrawl-py")
 from agno.document.reader.firecrawl_reader import FirecrawlReader
 
 

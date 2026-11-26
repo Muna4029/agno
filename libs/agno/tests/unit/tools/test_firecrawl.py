@@ -5,7 +5,12 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+try:
+    from firecrawl import FirecrawlApp
+except ImportError:
+    # Allow tests to run even if the external `firecrawl` package is not installed.
+    # Use the Mock class so tests can instantiate/patch FirecrawlApp as needed.
+    FirecrawlApp = Mock
 
 from agno.tools.firecrawl import FirecrawlTools
 
