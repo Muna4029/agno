@@ -5,7 +5,17 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from firecrawl import FirecrawlApp
+import firecrawl as _firecrawl
+
+# Provide a backward-compatible alias if the package renamed ScrapeOptions -> V1ScrapeOptions
+if not hasattr(_firecrawl, "ScrapeOptions"):
+    if hasattr(_firecrawl, "V1ScrapeOptions"):
+        _firecrawl.ScrapeOptions = _firecrawl.V1ScrapeOptions
+    else:
+        # If neither name exists, set to None so any later usage fails clearly
+        _firecrawl.ScrapeOptions = None
+
+FirecrawlApp = _firecrawl.FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
 

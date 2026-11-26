@@ -7846,7 +7846,8 @@ class Agent:
                                     log_warning(f"Error processing message pair: {e}")
                                     continue
 
-            return json.dumps([msg.to_dict() for msg in all_messages]) if all_messages else "No history found"
+            # Use Pydantic v2 model_dump to convert model instances to dicts before JSON serialization
+            return json.dumps([msg.model_dump() for msg in all_messages]) if all_messages else "No history found"
 
         return get_previous_session_messages
 
