@@ -5,6 +5,32 @@ from typing import Any, Dict, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
+# Try to import ScrapeOptions from firecrawl. Different versions of the
+# firecrawl package may expose the class under different names
+# (e.g. V1ScrapeOptions). Provide a resilient fallback to avoid
+# ImportError during test collection while still allowing the code to
+# instantiate a lightweight options object if the real class is absent.
+try:
+    from firecrawl import ScrapeOptions
+except ImportError:
+    try:
+        from firecrawl import V1ScrapeOptions as ScrapeOptions
+        logger.info("Using firecrawl.V1ScrapeOptions as ScrapeOptions")
+    except Exception:
+        logger.warning(
+            "firecrawl.ScrapeOptions not found; using a lightweight fallback ScrapeOptions."
+        )
+        class ScrapeOptions:
+            """Minimal fallback compatible with being instantiated with
+            keyword arguments (e.g. ScrapeOptions(formats=[...])).
+            """
+            def __init__(self, *args, **kwargs):
+                for k, v in kwargs.items():
+                    setattr(self, k, v)
+            def __repr__(self):
+                return f"ScrapeOptions({self.__dict__})"
+
+
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:

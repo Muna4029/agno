@@ -249,7 +249,7 @@ class BitbucketTools(Toolkit):
             logger.error(f"Error retrieving pull requests for {self.repo_slug}: {str(e)}")
             return json.dumps({"error": str(e)})
 
-    def get_pull_request_changes(self, pull_request_id: int) -> str:
+    def get_pull_request_changes(self, pull_request_id: int) -> Union[str, Dict[str, Any]]:
         """
         Retrieves changes for a pull request in a repository.
 
@@ -257,7 +257,7 @@ class BitbucketTools(Toolkit):
             pull_request_id (int): The ID of the pull request to retrieve.
 
         Returns:
-            str: A markdown string containing the pull request diff.
+            Union[str, Dict[str, Any]]: A diff as a string (text) or a dict containing error information.
         """
         try:
             diff = self._make_request(
@@ -266,7 +266,7 @@ class BitbucketTools(Toolkit):
             return diff
         except Exception as e:
             logger.error(f"Error retrieving changes for pull request {pull_request_id} in {self.repo_slug}: {str(e)}")
-            return json.dumps({"error": str(e)})
+            return {"error": str(e)}
 
     def list_issues(self, count: int = 10) -> str:
         """

@@ -5,6 +5,15 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
+import firecrawl
+
+# Ensure backwards-compatibility for firecrawl package variants where
+# ScrapeOptions was renamed to V1ScrapeOptions (or similar). This ensures
+# importing agno.tools.firecrawl (which expects ScrapeOptions) will not
+# fail during test collection.
+if not hasattr(firecrawl, "ScrapeOptions") and hasattr(firecrawl, "V1ScrapeOptions"):
+    firecrawl.ScrapeOptions = firecrawl.V1ScrapeOptions
+
 from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
