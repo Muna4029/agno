@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 from agno.exceptions import ModelProviderError
 from agno.models.openai.like import OpenAILike
-from agno.models.response import ModelResponse
 
 
 @dataclass
@@ -84,7 +83,7 @@ class DashScope(OpenAILike):
             params["extra_body"] = {
                 "enable_thinking": self.enable_thinking,
             }
-            
+
             if self.thinking_budget is not None:
                 params["extra_body"]["thinking_budget"] = self.thinking_budget
 
