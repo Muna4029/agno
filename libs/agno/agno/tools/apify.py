@@ -278,7 +278,8 @@ def create_apify_client(token: str) -> ApifyClient:
         raise ValueError("API token is required to create an Apify client.")
 
     client = ApifyClient(token)
-    if http_client := getattr(client.http_client, "httpx_client", None):
+    http_client = getattr(client.http_client, "httpx_client", None)
+    if http_client:
         http_client.headers["user-agent"] += "; Origin/agno"
     return client
 
@@ -310,10 +311,12 @@ def get_actor_latest_build(apify_client: ApifyClient, actor_id: str) -> Dict[str
         ValueError: If the Actor is not found or the build data is not found
         TypeError: If the build is not a dictionary
     """
-    if not (actor := apify_client.actor(actor_id).get()):
+    actor = apify_client.actor(actor_id).get()
+    if not actor:
         raise ValueError(f"Actor {actor_id} not found.")
 
-    if not (actor_obj_id := actor.get("id")):
+    actor_obj_id = actor.get("id")
+    if not actor_obj_id:
         raise ValueError(f"Failed to get the Actor object ID for {actor_id}.")
 
     url = APIFY_API_ENDPOINT_GET_DEFAULT_BUILD.format(actor_id=actor_obj_id)
@@ -323,7 +326,8 @@ def get_actor_latest_build(apify_client: ApifyClient, actor_id: str) -> Dict[str
     if not isinstance(build, dict):
         raise TypeError(f"Failed to get the latest build of the Actor {actor_id}.")
 
-    if (data := build.get("data")) is None:
+    data = build.get("data")
+    if data is None:
         raise ValueError(f"Failed to get the latest build data of the Actor {actor_id}.")
 
     return data
@@ -344,12 +348,14 @@ def prune_actor_input_schema(input_schema: Dict[str, Any]) -> Tuple[Dict[str, An
     properties_out: Dict[str, Any] = {}
     for item, meta in properties.items():
         properties_out[item] = {}
-        if desc := meta.get("description"):
+        desc = meta.get("description")
+        if desc:
             properties_out[item]["description"] = (
                 desc[:MAX_DESCRIPTION_LEN] + "..." if len(desc) > MAX_DESCRIPTION_LEN else desc
             )
         for key_name in ("type", "default", "prefill", "enum"):
-            if value := meta.get(key_name):
+            value = meta.get(key_name)
+            if value:
                 properties_out[item][key_name] = value
 
     return properties_out, required
