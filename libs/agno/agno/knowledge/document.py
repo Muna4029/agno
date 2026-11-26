@@ -6,7 +6,7 @@ from agno.utils.log import log_info, logger
 
 
 class DocumentKnowledgeBase(AgentKnowledge):
-    documents: Optional[Union[List[Document], List[Dict[str, Union[Document, Dict[str, Any]]]]]] = None
+    documents: Optional[List[Union[Document, Dict[str, Any]]]] = None
 
     @property
     def document_lists(self) -> Iterator[List[Document]]:

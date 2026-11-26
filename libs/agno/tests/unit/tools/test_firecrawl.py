@@ -3,8 +3,35 @@
 import json
 import os
 from unittest.mock import Mock, patch
+import types
+import sys
 
 import pytest
+
+# Provide a lightweight shim for the installed 'firecrawl' package so tests
+# that import agno.tools.firecrawl (which expects names like ScrapeOptions)
+# do not fail during collection when the real installed package has a
+# different API (e.g. V1ScrapeOptions instead of ScrapeOptions).
+firecrawl_shim = types.ModuleType("firecrawl")
+
+
+class FirecrawlApp:  # minimal stand-in for tests
+    pass
+
+
+class ScrapeOptions:  # provide expected name used by agno.tools.firecrawl
+    pass
+
+
+class V1ScrapeOptions:  # also provide V1 variant if code expects it
+    pass
+
+
+firecrawl_shim.FirecrawlApp = FirecrawlApp
+firecrawl_shim.ScrapeOptions = ScrapeOptions
+firecrawl_shim.V1ScrapeOptions = V1ScrapeOptions
+sys.modules["firecrawl"] = firecrawl_shim
+
 from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
