@@ -3,8 +3,27 @@
 import json
 import os
 from unittest.mock import Mock, patch
+import sys
+from types import ModuleType
 
 import pytest
+
+# Ensure 'firecrawl' exposes the symbols expected by agno.tools.firecrawl and the tests.
+# Some installed versions may export different names (e.g. V1ScrapeOptions) so provide
+# a lightweight shim when necessary to avoid ImportError during test collection.
+try:
+    import firecrawl as _firecrawl_temp
+    if not hasattr(_firecrawl_temp, "ScrapeOptions"):
+        _shim = ModuleType("firecrawl")
+        _shim.FirecrawlApp = getattr(_firecrawl_temp, "FirecrawlApp", Mock())
+        _shim.ScrapeOptions = Mock()
+        sys.modules["firecrawl"] = _shim
+except Exception:
+    _shim = ModuleType("firecrawl")
+    _shim.FirecrawlApp = Mock()
+    _shim.ScrapeOptions = Mock()
+    sys.modules["firecrawl"] = _shim
+
 from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools

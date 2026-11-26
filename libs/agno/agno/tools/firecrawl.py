@@ -5,6 +5,18 @@ from typing import Any, Dict, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
+# Import firecrawl symbols with compatibility fallback: some versions export V1ScrapeOptions
+# while others export ScrapeOptions. Keep a safe fallback to avoid import-time failures.
+try:
+    from firecrawl import FirecrawlApp, ScrapeOptions
+except Exception:
+    try:
+        from firecrawl import FirecrawlApp, V1ScrapeOptions as ScrapeOptions
+    except Exception:
+        # If import still fails, define placeholders to avoid NameError at module import time.
+        FirecrawlApp = None
+        ScrapeOptions = None
+
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:

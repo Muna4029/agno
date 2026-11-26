@@ -6527,7 +6527,7 @@ class Agent:
         log_info(f"Filters used by Agent: {search_filters}")
         return search_filters
 
-    def add_to_knowledge(self, query: str, result: str) -> str:
+    async def add_to_knowledge(self, query: str, result: str) -> str:
         """Use this function to add information to the knowledge base for future use.
 
         Args:
@@ -6548,7 +6548,7 @@ class Agent:
             document_name = query.replace(" ", "_").replace("?", "").replace("!", "").replace(".", "")
         document_content = json.dumps({"query": query, "result": result})
         log_info(f"Adding document to knowledge base: {document_name}: {document_content}")
-        self.knowledge.load_document(
+        await self.knowledge.load_document(
             document=Document(
                     name=document_name,
                     content=document_content,
