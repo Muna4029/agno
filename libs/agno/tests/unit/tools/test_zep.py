@@ -2,7 +2,20 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+try:
+    from agno.tools.zep import ZepAsyncTools, ZepTools
+except ImportError:
+    # Provide lightweight placeholders so pytest collection doesn't fail when the
+    # optional `zep-cloud` package isn't installed. Raising on instantiation
+    # ensures tests that actually require the real package will fail at test
+    # time with a clear message instead of aborting collection.
+    class ZepTools:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Optional dependency 'zep-cloud' is not installed. Install it with `pip install zep-cloud` to run these tests.")
+
+    class ZepAsyncTools:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Optional dependency 'zep-cloud' is not installed. Install it with `pip install zep-cloud` to run these tests.")
 
 # Test data
 MOCK_API_KEY = "test_api_key"
