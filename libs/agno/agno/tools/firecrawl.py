@@ -5,6 +5,15 @@ from typing import Any, Dict, List, Optional
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
+# firecrawl is an optional third-party dependency. Avoid raising at import time so
+# test collection and other parts of the application that don't require firecrawl
+# can still import this module.
+try:
+    import firecrawl  # type: ignore
+except Exception:
+    firecrawl = None
+    logger.debug("Optional dependency 'firecrawl-py' is not installed; firecrawl-based features will be disabled.")
+
 try:
     from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:

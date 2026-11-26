@@ -4,8 +4,17 @@ from typing import List
 
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from agno.tools.arxiv import ArxivTools
-from agno.tools.exa import ExaTools
+# Optional third-party dependencies used by some tool modules can cause ImportError
+# during test collection. Import them lazily and fall back to None so the module
+# can be imported even if those extras are not installed.
+try:
+    from agno.tools.arxiv import ArxivTools
+except ImportError:
+    ArxivTools = None
+try:
+    from agno.tools.exa import ExaTools
+except ImportError:
+    ExaTools = None
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
