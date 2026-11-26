@@ -5,6 +5,12 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
+import firecrawl
+# Ensure legacy name expected by agno.tools.firecrawl exists in the installed package
+if not hasattr(firecrawl, 'ScrapeOptions'):
+    # prefer V1ScrapeOptions if available, otherwise provide a minimal placeholder
+    setattr(firecrawl, 'ScrapeOptions', getattr(firecrawl, 'V1ScrapeOptions', type('ScrapeOptions', (), {})))
+
 from firecrawl import FirecrawlApp
 
 from agno.tools.firecrawl import FirecrawlTools
