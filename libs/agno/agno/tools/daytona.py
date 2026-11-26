@@ -2,7 +2,10 @@ import json
 from os import getenv
 from typing import Any, Dict, List, Optional
 
-from daytona_sdk import Daytona
+try:
+    from daytona_sdk import Daytona
+except Exception:
+    Daytona = None
 
 from agno.tools import Toolkit
 from agno.utils.code_execution import prepare_python_code
