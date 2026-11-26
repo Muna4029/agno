@@ -2,6 +2,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+# Skip these tests if the zep package is not available to avoid import errors during collection
+pytest.importorskip("zep", reason="`zep-cloud` package not found. Please install it with `pip install zep-cloud`")
+
 from agno.tools.zep import ZepAsyncTools, ZepTools
 
 # Test data
