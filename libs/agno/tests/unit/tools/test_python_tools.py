@@ -106,7 +106,8 @@ def test_run_python_code(python_tools):
 
 def test_run_python_code_advanced(python_tools):
     # Test running Python code directly
-    code = """
+    import textwrap
+    code = textwrap.dedent("""\
 def fibonacci(n, print_steps: bool = False):
     a, b = 0, 1
     for _ in range(n):
@@ -116,7 +117,7 @@ def fibonacci(n, print_steps: bool = False):
     return a
 
 result = fibonacci(10, print_steps=True)
-    """
+""")
     result = python_tools.run_python_code(code, "result")
     assert result == "55"
 

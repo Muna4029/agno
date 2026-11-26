@@ -640,13 +640,15 @@ class Team:
                 when load is not called the reader's document_lists won't be called and metadata filters won't be initialized
                 so we need to call initialize_valid_filters to make sure the filters are initialized
             """
-            if not self.knowledge.valid_metadata_filters:  # type: ignore
+            if self.knowledge is not None and not self.knowledge.valid_metadata_filters:  # type: ignore
                 self.knowledge.initialize_valid_filters()  # type: ignore
 
             effective_filters = self._get_team_effective_filters(knowledge_filters)
 
         # Agentic filters are enabled
-        if self.enable_agentic_knowledge_filters and not self.knowledge.valid_metadata_filters:  # type: ignore
+        if self.enable_agentic_knowledge_filters and (
+            self.knowledge is not None and not self.knowledge.valid_metadata_filters
+        ):  # type: ignore
             # initialize metadata (specially required in case when load is commented out)
             self.knowledge.initialize_valid_filters()  # type: ignore
 
@@ -1126,7 +1128,7 @@ class Team:
                 when load is not called the reader's document_lists won't be called and metadata filters won't be initialized
                 so we need to call initialize_valid_filters to make sure the filters are initialized
             """
-            if not self.knowledge.valid_metadata_filters:  # type: ignore
+            if self.knowledge is not None and not self.knowledge.valid_metadata_filters:  # type: ignore
                 self.knowledge.initialize_valid_filters()  # type: ignore
 
             effective_filters = self._get_team_effective_filters(knowledge_filters)
@@ -1712,17 +1714,17 @@ class Team:
         if stream_intermediate_steps and reasoning_state["reasoning_started"]:
             all_reasoning_steps: List[ReasoningStep] = []
             if (
-                self.run_response
-                and self.run_response.extra_data
-                and hasattr(self.run_response.extra_data, "reasoning_steps")
+                run_response
+                and getattr(run_response, "extra_data", None)
+                and hasattr(run_response.extra_data, "reasoning_steps")
             ):
-                all_reasoning_steps = cast(List[ReasoningStep], self.run_response.extra_data.reasoning_steps)
+                all_reasoning_steps = cast(List[ReasoningStep], run_response.extra_data.reasoning_steps)
 
             if all_reasoning_steps:
                 self._add_reasoning_metrics_to_extra_data(run_response, reasoning_state["reasoning_time_taken"])
                 yield self._create_run_response(
                     content=ReasoningSteps(reasoning_steps=all_reasoning_steps),
-                    content_type=ReasoningSteps.__class__.__name__,
+                    content_type=ReasoningSteps.__name__,
                     event=RunEvent.reasoning_completed,
                     session_id=session_id,
                 )
@@ -1794,17 +1796,17 @@ class Team:
         if stream_intermediate_steps and reasoning_state["reasoning_started"]:
             all_reasoning_steps: List[ReasoningStep] = []
             if (
-                self.run_response
-                and self.run_response.extra_data
-                and hasattr(self.run_response.extra_data, "reasoning_steps")
+                run_response
+                and getattr(run_response, "extra_data", None)
+                and hasattr(run_response.extra_data, "reasoning_steps")
             ):
-                all_reasoning_steps = cast(List[ReasoningStep], self.run_response.extra_data.reasoning_steps)
+                all_reasoning_steps = cast(List[ReasoningStep], run_response.extra_data.reasoning_steps)
 
             if all_reasoning_steps:
                 self._add_reasoning_metrics_to_extra_data(run_response, reasoning_state["reasoning_time_taken"])
                 yield self._create_run_response(
                     content=ReasoningSteps(reasoning_steps=all_reasoning_steps),
-                    content_type=ReasoningSteps.__class__.__name__,
+                    content_type=ReasoningSteps.__name__,
                     event=RunEvent.reasoning_completed,
                     session_id=session_id,
                 )
@@ -2311,6 +2313,7 @@ class Team:
                         )
 
                         # Create panel for member response
+                        member_response_panel = None
                         if isinstance(member_response, RunResponse) and member_response.agent_id is not None:
                             member_response_panel = create_panel(
                                 content=member_response_content,
@@ -2323,7 +2326,8 @@ class Team:
                                 title=f"{self._get_member_name(member_response.team_id)} Response",
                                 border_style="magenta",
                             )
-                        panels.append(member_response_panel)
+                        if member_response_panel is not None:
+                            panels.append(member_response_panel)
 
                         if member_response.citations is not None and member_response.citations.urls is not None:
                             md_content = "\n".join(
@@ -3764,11 +3768,17 @@ class Team:
                 return JSON(run_response.content.model_dump_json(exclude_none=True), indent=2)
             except Exception as e:
                 log_warning(f"Failed to convert response to JSON: {e}")
+                try:
+                    # Fallback to dumping the model dict
+                    return JSON(json.dumps(run_response.content.model_dump(exclude_none=True)), indent=2)
+                except Exception:
+                    return JSON(json.dumps(str(run_response.content)), indent=2)
         else:
             try:
                 return JSON(json.dumps(run_response.content), indent=4)
             except Exception as e:
                 log_warning(f"Failed to convert response to JSON: {e}")
+                return JSON(json.dumps(str(run_response.content)), indent=4)
 
     def cli_app(
         self,
@@ -4051,7 +4061,7 @@ class Team:
                         len(reasoning_agent_response.messages),
                     )
                     # Extract reasoning messages starting from the message after the first assistant message
-                    reasoning_messages = reasoning_agent_response.messages[first_assistant_index:]
+                    reasoning_messages = reasoning_agent_response.messages[first_assistant_index + 1 :]
 
                     # Add reasoning step to the Agent's run_response
                     update_run_response_with_reasoning(
@@ -4081,7 +4091,7 @@ class Team:
             if stream_intermediate_steps:
                 yield self._create_run_response(
                     content=ReasoningSteps(reasoning_steps=all_reasoning_steps),
-                    content_type=ReasoningSteps.__class__.__name__,
+                    content_type=ReasoningSteps.__name__,
                     event=RunEvent.reasoning_completed,
                     session_id=session_id,
                 )
@@ -4375,7 +4385,7 @@ class Team:
                     strict = True
 
                 for tool in tools:
-                    if isinstance(tool, Dict):
+                    if isinstance(tool, dict):
                         # If a dict is passed, it is a builtin tool
                         # that is run by the model provider and not the Agent
                         self._tools_for_model.append(tool)
@@ -4800,7 +4810,7 @@ class Team:
 
     def _get_user_message(
         self,
-        message: Optional[Union[str, List, Dict, Message]] = None,
+        message: Optional[Union[str, List, Dict, Message, Callable[..., Union[str, Message]]]] = None,
         audio: Optional[Sequence[Audio]] = None,
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
@@ -4816,7 +4826,12 @@ class Team:
             if isinstance(message, str):
                 message_str = message
             elif callable(message):
-                message_str = message(agent=self)
+                # Allow callables that return either a string or a Message
+                result = message(agent=self)
+                if isinstance(result, Message):
+                    message_str = result.get_content_as_string()
+                else:
+                    message_str = result
             else:
                 raise Exception("message must be a string or a callable when add_references is True")
 
@@ -5865,7 +5880,7 @@ class Team:
 
         return transfer_func
 
-    def _get_member_id(self, member: Union[Agent, "Team"]) -> str:
+    def _get_member_id(self, member: Union[Agent, "Team"]) -> Optional[str]:
         """
         Get the ID of a member
         """
@@ -5881,29 +5896,28 @@ class Team:
 
     def _find_member_by_id(self, member_id: str) -> Optional[Tuple[int, Union[Agent, "Team"]]]:
         """
-        Recursively search through team members and subteams to find an agent by name.
+        Recursively search through team members and subteams to find an agent by id.
 
         Args:
             member_id (str): ID of the agent to find
 
         Returns:
-            Optional[Tuple[int, Union[Agent, "Team"], Optional[str]]]: Tuple containing:
+            Optional[Tuple[int, Union[Agent, "Team"]]]: Tuple containing:
                 - Index of the member in its immediate parent team
-                - The top-level leader agent
+                - The found member (Agent or Team)
         """
         # First check direct members
         for i, member in enumerate(self.members):
-            if member.name is not None:
-                url_safe_member_id = self._get_member_id(member)
-                if url_safe_member_id == member_id:
-                    return i, member
+            url_safe_member_id = self._get_member_id(member)
+            if url_safe_member_id == member_id:
+                return i, member
 
             # If this member is a team, search its members recursively
             if isinstance(member, Team):
                 result = member._find_member_by_id(member_id)
                 if result is not None:
-                    # Found in subteam, return with the top-level team member's name
-                    return i, member
+                    # Found in subteam, return the actual found result
+                    return result
 
         return None
 
@@ -6710,9 +6724,12 @@ class Team:
             if run_response.extra_data.reasoning_messages is None:
                 run_response.extra_data.reasoning_messages = []
 
+            # Safely get reasoning_content if present
+            reasoning_content = getattr(run_response, "reasoning_content", "")
+
             metrics_message = Message(
                 role="assistant",
-                content=run_response.reasoning_content,
+                content=reasoning_content,
                 metrics={"time": reasoning_time_taken},
             )
 
@@ -6747,7 +6764,7 @@ class Team:
                     log_warning("No valid filters remain after validation. Search will proceed without filters.")
 
         if self.retriever is not None and callable(self.retriever):
-            from inspect import signature
+            from inspect import signature, iscoroutinefunction
 
             try:
                 sig = signature(self.retriever)
@@ -6757,6 +6774,14 @@ class Team:
                 if "filters" in sig.parameters:
                     retriever_kwargs["filters"] = filters
                 retriever_kwargs.update({"query": query, "num_documents": num_documents, **kwargs})
+
+                # If the retriever is async, run it synchronously
+                if iscoroutinefunction(self.retriever):
+                    import asyncio
+
+                    log_warning("Async retriever used in sync context; running with asyncio.run().")
+                    return asyncio.run(self.retriever(**retriever_kwargs))
+
                 return self.retriever(**retriever_kwargs)
             except Exception as e:
                 log_warning(f"Retriever failed: {e}")
@@ -6805,7 +6830,7 @@ class Team:
                     log_warning("No valid filters remain after validation. Search will proceed without filters.")
 
         if self.retriever is not None and callable(self.retriever):
-            from inspect import signature
+            from inspect import signature, iscoroutinefunction
 
             try:
                 sig = signature(self.retriever)
@@ -6815,7 +6840,16 @@ class Team:
                 if "filters" in sig.parameters:
                     retriever_kwargs["filters"] = filters
                 retriever_kwargs.update({"query": query, "num_documents": num_documents, **kwargs})
-                return self.retriever(**retriever_kwargs)
+
+                # If the retriever is async, await it
+                if iscoroutinefunction(self.retriever):
+                    return await self.retriever(**retriever_kwargs)  # type: ignore
+
+                # If the retriever is sync, run it in an executor to avoid blocking
+                import asyncio
+
+                loop = asyncio.get_event_loop()
+                return await loop.run_in_executor(None, lambda: self.retriever(**retriever_kwargs))
             except Exception as e:
                 log_warning(f"Retriever failed: {e}")
                 raise e
@@ -7202,15 +7236,13 @@ class Team:
         Returns:
             Dict[str, Any]: The final filters to use for the search.
         """
-        search_filters = {}
+        search_filters: Dict[str, Any] = {}
 
-        # If agentic filters exist and manual filters (passed by user) do not, use agentic filters
-        if filters and not effective_filters:
-            search_filters = filters
-
-        # If both agentic filters exist and manual filters (passed by user) exist, use manual filters (give priority to user and override)
-        if filters and effective_filters:
+        # Priority: if user provided effective_filters use them; otherwise fall back to agentic filters if present
+        if effective_filters:
             search_filters = effective_filters
+        elif filters:
+            search_filters = filters
 
         log_info(f"Filters used by Agent: {search_filters}")
         return search_filters
