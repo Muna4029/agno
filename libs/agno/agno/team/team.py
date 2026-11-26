@@ -5680,7 +5680,7 @@ class Team:
 
         return transfer_func
 
-    def _get_member_id(self, member: Union[Agent, "Team"]) -> str:
+    def _get_member_id(self, member: Union[Agent, "Team"]) -> Optional[str]:
         """
         Get the ID of a member
         """
