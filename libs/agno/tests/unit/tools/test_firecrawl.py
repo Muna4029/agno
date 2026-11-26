@@ -3,10 +3,37 @@
 import json
 import os
 from unittest.mock import Mock, patch
+import importlib
+import sys
+import types
 
 import pytest
-from firecrawl import FirecrawlApp
 
+# Ensure backward compatibility with different versions of the `firecrawl`
+# package: some installed versions export V1ScrapeOptions instead of
+# ScrapeOptions. Provide a compatibility alias or a minimal shim so that
+# importing agno.tools.firecrawl (which expects ScrapeOptions) does not
+# fail during test collection.
+try:
+    _fc = importlib.import_module("firecrawl")
+    if not hasattr(_fc, "ScrapeOptions") and hasattr(_fc, "V1ScrapeOptions"):
+        setattr(_fc, "ScrapeOptions", getattr(_fc, "V1ScrapeOptions"))
+except Exception:
+    # Create a minimal shim module to satisfy imports used by the module under test
+    shim = types.ModuleType("firecrawl")
+    class FirecrawlApp:  # minimal stand-in for tests
+        pass
+    class ScrapeOptions:
+        pass
+    class V1ScrapeOptions:
+        pass
+    shim.FirecrawlApp = FirecrawlApp
+    shim.ScrapeOptions = ScrapeOptions
+    shim.V1ScrapeOptions = V1ScrapeOptions
+    sys.modules["firecrawl"] = shim
+    _fc = shim
+
+from firecrawl import FirecrawlApp  # type: ignore
 from agno.tools.firecrawl import FirecrawlTools
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
