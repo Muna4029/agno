@@ -2,6 +2,42 @@ import json
 from os import getenv
 from typing import Any, Dict, List, Optional
 
+# The firecrawl package has changed its exported symbols in some versions.
+# Try to import the expected names and fall back to V1ScrapeOptions if available;
+# finally, provide a small fallback ScrapeOptions-compatible placeholder so
+# the rest of the module can operate in environments without the newer package.
+try:
+    from firecrawl import FirecrawlApp, ScrapeOptions
+except Exception:  # pragma: no cover - handle different installed versions
+    try:
+        from firecrawl import FirecrawlApp, V1ScrapeOptions as ScrapeOptions
+    except Exception:  # pragma: no cover
+        # Minimal placeholder to preserve runtime behavior when firecrawl isn't available
+        from dataclasses import dataclass, field
+        from typing import List as _List, Optional as _Optional
+
+        @dataclass
+        class ScrapeOptions:
+            formats: _Optional[_List[str]] = field(default=None)
+
+        # Provide a lightweight stub for FirecrawlApp to avoid NameError during import
+        class FirecrawlApp:  # pragma: no cover - fallback stub
+            def __init__(self, api_key=None, api_url=None):
+                self.api_key = api_key
+                self.api_url = api_url
+
+            def scrape_url(self, url, **kwargs):
+                raise RuntimeError("Firecrawl is not installed; cannot call scrape_url")
+
+            def crawl_url(self, url, **kwargs):
+                raise RuntimeError("Firecrawl is not installed; cannot call crawl_url")
+
+            def map_url(self, url, **kwargs):
+                raise RuntimeError("Firecrawl is not installed; cannot call map_url")
+
+            def search(self, query, **kwargs):
+                raise RuntimeError("Firecrawl is not installed; cannot call search")
+
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
@@ -104,7 +140,13 @@ class FirecrawlTools(Toolkit):
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            # Some versions of firecrawl expose a model class for ScrapeOptions
+            # while others may expect a plain dict. Be resilient and try to
+            # construct the ScrapeOptions object, falling back to a dict.
+            try:
+                params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            except Exception:
+                params["scrape_options"] = {"formats": self.formats}
 
         params["poll_interval"] = self.poll_interval
 
@@ -132,7 +174,10 @@ class FirecrawlTools(Toolkit):
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            try:
+                params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            except Exception:
+                params["scrape_options"] = {"formats": self.formats}
         if self.search_params:
             params.update(self.search_params)
 
