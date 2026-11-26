@@ -63,29 +63,29 @@ def deploy_playground_archive(name: str, tar_path: Path) -> bool:
 
     # Build headers
     headers = {}
-    if token := read_auth_token():
+    token = read_auth_token()
+    if token:
         headers[agno_cli_settings.auth_token_header] = token
-    if agno_api_key := getenv(AGNO_API_KEY_ENV_VAR):
+    agno_api_key = getenv(AGNO_API_KEY_ENV_VAR)
+    if agno_api_key:
         headers["Authorization"] = f"Bearer {agno_api_key}"
 
     try:
-        with (
-            HttpxClient(base_url=agno_cli_settings.api_url, headers=headers) as api_client,
-            open(tar_path, "rb") as file,
-        ):
-            files = {"file": (tar_path.name, file, "application/gzip")}
-            r: Response = api_client.post(
-                ApiRoutes.PLAYGROUND_APP_DEPLOY,
-                files=files,
-                data={"name": name},
-            )
+        with HttpxClient(base_url=agno_cli_settings.api_url, headers=headers) as api_client:
+            with open(tar_path, "rb") as file:
+                files = {"file": (tar_path.name, file, "application/gzip")}
+                r: Response = api_client.post(
+                    ApiRoutes.PLAYGROUND_APP_DEPLOY,
+                    files=files,
+                    data={"name": name},
+                )
 
-            if invalid_response(r):
-                raise RuntimeError(f"Deployment failed with status {r.status_code}: {r.text}")
+                if invalid_response(r):
+                    raise RuntimeError(f"Deployment failed with status {r.status_code}: {r.text}")
 
-            response_json: Dict = r.json()
-            logger.debug(f"Response: {response_json}")
-            return True
+                response_json: Dict = r.json()
+                logger.debug(f"Response: {response_json}")
+                return True
 
     except Exception as e:
         raise RuntimeError(f"Failed to deploy playground app: {str(e)}") from e
