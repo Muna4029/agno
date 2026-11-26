@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch
 import pytest
 from firecrawl import FirecrawlApp
 
-from agno.tools.firecrawl import FirecrawlTools
 
 TEST_API_KEY = os.environ.get("FIRECRAWL_API_KEY", "test_api_key")
 TEST_API_URL = "https://api.firecrawl.dev"
@@ -25,6 +24,10 @@ def mock_firecrawl():
 @pytest.fixture
 def firecrawl_tools(mock_firecrawl):
     """Create a FirecrawlTools instance with mocked dependencies."""
+    # Import inside the fixture to avoid import-time errors if the external
+    # firecrawl package API differs from what agno.tools.firecrawl expects.
+    from agno.tools.firecrawl import FirecrawlTools
+
     with patch.dict("os.environ", {"FIRECRAWL_API_KEY": TEST_API_KEY}):
         tools = FirecrawlTools()
         # Directly set the app to our mock to avoid initialization issues
