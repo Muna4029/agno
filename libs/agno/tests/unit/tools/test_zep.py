@@ -2,7 +2,15 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agno.tools.zep import ZepAsyncTools, ZepTools
+# Use pytest.importorskip to avoid an ImportError during collection when the
+# optional `zep-cloud` dependency is not installed. This will skip the test
+# module cleanly instead of aborting test collection.
+zep = pytest.importorskip(
+    "agno.tools.zep",
+    reason="`zep-cloud` package not installed. Please install it with `pip install zep-cloud`",
+)
+ZepAsyncTools = zep.ZepAsyncTools
+ZepTools = zep.ZepTools
 
 # Test data
 MOCK_API_KEY = "test_api_key"
